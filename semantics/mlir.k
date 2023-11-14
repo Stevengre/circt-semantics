@@ -1,0 +1,447 @@
+requires "ctrl.k"
+
+module MLIR-SYNTAX
+    imports STRING-SYNTAX
+    imports INT-SYNTAX
+    imports MAP
+
+    // ------------------------- Common Syntax ------------------------- //
+    // ignore digit, hex_digit, letter, id-punct since k lacks combination of regex and token
+    // digit     ::= [0-9]
+    // hex_digit ::= [0-9a-fA-F]
+    // letter    ::= [a-zA-Z]
+    // id-punct  ::= [$._-]
+    syntax IntegerLiteral ::= DecimalLiteral | HexaDecimalLiteral
+    syntax DecimalLiteral ::= Int
+    syntax HexaDecimalLiteral ::= r"0x[0-9a-fA-F]+" [prefer,token,prec(2)]
+    syntax FloatLiteral ::= r"[\\+-]?[0-9]+\\.[0-9]*([eE][\\+-]?[0-9]+)?" [token,prec(1)]
+    syntax StringLiteral ::= String
+
+    // ------------------------- Top-Level Productions ------------------------- //
+    syntax TopLevel ::= List{TopLevelElement,""}
+    // syntax TopLevel ::= TopLevelElement | TopLevelElement TopLevel
+    syntax TopLevelElement ::= Operation | AttributeAliasDef | TypeAliasDef
+    // ```
+
+    // ## Identifiers & Keywords
+
+    // ```k
+    // suffix-id ::= (digit+ | ((letter|id-punct) (letter|id-punct|digit)*))
+    // alias-name :: = bare-id
+    // Uses of value, e.g. in an operand list to an operation.
+    // value-use ::= value-id
+    // value-use-list ::= value-use (`,` value-use)*
+    syntax BareId ::= r"[a-zA-Z_][a-zA-Z0-9_$\\.]*" [token]
+    syntax BareIdList ::= BareId 
+                        | BareId "," BareIdList [prefer] // ambiguity with AffineExprList & No other use
+    syntax ValueId ::= r"%[0-9]+(#[0-9]+)?" [prefer,token,prec(3)]
+    syntax ValueId ::= r"%[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*(#[0-9]+)?" [token]
+    syntax ValueIdList ::= List{ValueId, ","}
+    // syntax ValueUse ::= ValueId | ValueId "#" IntegerLiteral // fix the error in lang-ref
+    // syntax ValueUseLit ::= ValueUse | ValueUse "," ValueUseLit
+    syntax SymbolRefId ::= r"@[0-9]+" [token]
+    syntax SymbolRefId ::= r"@[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*" [token]
+    syntax SymbolRefId ::= "@" StringLiteral [token]
+    syntax SymbolRefIdList ::= SymbolRefId | SymbolRefId "::" SymbolRefIdList
+    // syntax SymbolRefId ::= SymbolRefId "::" SymbolRefId [token]
+
+    // ------------------------------
+    // Dialects with New Operations, Attributes, and Types
+    // Description Approach in mlir-dialect-syntax.k
+    // Collaborative Development Approach in ods-gen-k.k
+    // ```
+
+    // ### Operations
+
+    // ```k
+    // ------------------------- Operations ------------------------- //
+    // operation ::= op-result-list? (generic-operation | custom-operation) trailing-location?
+    syntax Operation ::= OpResultList GenericOperation TrailingLocation // 11
+                    | OpResultList CustomOperation TrailingLocation // 11
+                    | GenericOperation TrailingLocation // 01
+                    | CustomOperation TrailingLocation // 01
+                    | OpResultList GenericOperation // 10
+                    | OpResultList CustomOperation // 10
+                    | GenericOperation // 00
+                    | CustomOperation // 00
+    //generic-operation ::= string-literal `(` value-use-list? `)`  successor-list? region-list? dictionary-attribute? `:` function-type
+
+    syntax GenericOperation ::= StringLiteral "(" ValueIdList ")" ":" FunctionType
+                              | StringLiteral "(" ValueIdList ")" AttrDict ":" FunctionType
+                              | StringLiteral "(" ValueIdList ")" RegionList ":" FunctionType
+                              | StringLiteral "(" ValueIdList ")" SuccessorList ":" FunctionType
+                              | StringLiteral "(" ValueIdList ")" RegionList AttrDict ":" FunctionType
+                              | StringLiteral "(" ValueIdList ")" SuccessorList AttrDict ":" FunctionType                        
+                              | StringLiteral "(" ValueIdList ")" SuccessorList RegionList ":" FunctionType                            
+                              | StringLiteral "(" ValueIdList ")" SuccessorList RegionList AttrDict ":" FunctionType
+
+    syntax OpResult ::= ValueId | ValueId ":" IntegerLiteral
+    syntax OpResults ::= List{OpResult, ","} [prefer]
+    syntax OpResultList ::=  OpResults "="
+    syntax Successor ::= CaretId ":" BlockArgList
+    syntax Successors ::= List{Successor, ","}
+    syntax SuccessorList ::= "[" Successors "]"
+    syntax Regions ::= List{Region, ","}
+    syntax RegionList ::= "(" Regions ")"
+    syntax AttrDict ::= "{" AttributeEntryList "}"
+                      | "{" Map "}"
+    syntax TrailingLocation ::= "loc" "(" Location ")"
+
+    // ------------------------- Blocks ------------------------- //
+    syntax Block ::= BlockLabel OperationList
+    syntax OperationList ::= List{Operation, ""} [prefer] // the prefer may not be used when there is configuration
+    syntax BlockLabel ::= CaretId ":" | CaretId "(" ValueIdAndTypeList ")" ":"
+    // block-id        ::= caret-id
+    syntax CaretId ::= r"\\^[0-9]+" [token]
+    syntax CaretId ::= r"\\^[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*" [token]
+    syntax ValueIdAndType ::= ValueId ":" Type
+    syntax ValueIdAndTypeList ::= List{ValueIdAndType, ","}
+    syntax BlockArgList ::= "(" ValueIdAndTypeList ")"
+
+    // ------------------------- Regions ------------------------- //
+    syntax Region ::= "{" OperationList BlockList "}"
+                    // | "{" "}" [prefer]
+                    // | "{" BlockList "}" 
+                    // | "{" OperationList "}" 
+                    
+    syntax BlockList ::= List{Block, ""}
+
+
+    // ------------------------- Type System ------------------------- //
+    syntax Type ::= TypeAlias 
+                //   | DialectType
+                  | BuiltinType
+
+    syntax Types ::= List{Type, ","}
+    // 此处和文档是不一致的，但是可能是要
+    syntax TypeListParens ::= "(" Types ")" //| "(" SsaUseAndTypeList ")"
+    // syntax SsaUseAndType ::= ValueId ":" Type
+    // // ssa-use ::= value-use
+    // syntax SsaUseAndTypeList ::= SsaUseAndType | SsaUseAndType "," SsaUseAndTypeList
+    syntax FunctionType ::= TypeListParens "->" TypeListParens [prefer]
+                        | Type "->" TypeListParens
+                        | TypeListParens "->" Type
+                        | Type "->" Type
+
+    // ------------------------- Type Aliases ------------------------- //
+    syntax TypeAliasDef ::= TypeAlias "=" Type
+    syntax TypeAlias ::= r"![a-zA-Z_][a-zA-Z0-9_$\\.]*" [token] // TODO: put into the top
+
+    // ------------------------- Dialect Types ------------------------- //
+    // dialect-namespace ::= bare-id
+
+    syntax DialectType ::= TypeAlias DialectTypeBody [prefer]
+                         | TypeAlias "." PrettyDialectTypeLeadIdent DialectTypeBody
+                         | TypeAlias "." PrettyDialectTypeLeadIdent
+    
+    syntax PrettyDialectTypeLeadIdent ::= r"[A-Za-z][A-Za-z0-9\\._]*" [token]
+    
+    syntax DialectTypeBody ::= "<" ">"
+                             | "<" DialectTypeContentsList ">"
+    
+    // syntax DialectTypeContentsList ::= DialectTypeContents 
+                                    //  | DialectTypeContents DialectTypeContentsList // [prefer]
+    syntax DialectTypeContentsList ::= List{DialectTypeContents, ""}
+    
+    syntax DialectTypeContents ::= DialectTypeBody
+                                 | "(" DialectTypeContentsList ")"
+                                 | "[" DialectTypeContentsList "]"
+                                 | "{" DialectTypeContentsList "}"
+                                 | BareId
+                                 | StringLiteral
+                                 | "+"
+                                 | "?"
+                                 | ","
+                                 | TypeAlias // solve bug
+                                 | SymbolRefId
+                                 | AttributeValue
+
+    // DialectTypeContent ::= '[^\[<({\]>)}\0]+'
+    // It's hard to define like this, we just use special characters to represent the content.
+    // It may cause some problems, but it's not a big deal. 
+    // We can add more special characters if needed.
+
+    // ------------------------- Attributes ------------------------- //
+    syntax AttributeEntryList ::= List{AttributeEntry, ","}
+
+    syntax AttributeEntry ::= BareId "=" AttributeValue
+                            | StringLiteral "=" AttributeValue
+                            | BareId
+
+    syntax AttributeValue ::= StringLiteral
+    syntax AttributeValue ::= AttributeAlias
+                            | DialectAttribute
+                            | BuiltinAttribute
+
+    // ------------------------- Attribute Value Aliases ------------------------- //
+    // syntax AttributeAliasDef ::= "#" BareId "=" AttributeValue
+    // syntax AttributeAlias ::= "#" BareId
+
+    // // ------------------------- Dialect Attribute Values ------------------------- //
+    // // dialect-namespace ::= bare-id
+    // syntax DialectAttribute ::= "#" BareId DialectTypeBody
+    //                      | "#" BareId "." PrettyDialectTypeLeadIdent DialectTypeBody
+    //                      | "#" BareId "." PrettyDialectTypeLeadIdent
+    // // DialectAttribute is the same as DialectType except that it starts with "#".
+
+    syntax AttributeAliasDef ::= AttributeAlias "=" AttributeValue
+    syntax AttributeAlias ::= r"#[a-zA-Z_][a-zA-Z0-9_$\\.]*" [token] // TODO: put into the top
+
+    // ------------------------- Dialect Attribute Values ------------------------- //
+    // dialect-namespace ::= bare-id
+    syntax DialectAttribute ::= AttributeAlias DialectTypeBody
+                              | AttributeAlias "." PrettyDialectTypeLeadIdent DialectTypeBody
+                              | AttributeAlias "." PrettyDialectTypeLeadIdent
+    // DialectAttribute is the same as DialectType except that it starts with "#".
+
+    // ------------------------- Non-deterministic Opaque Syntax ------------------------- //
+    // The following syntaxes are not deterministic. 
+    // Builtin dialect specifies the following syntaxes, and other dialects must import them.
+    syntax Location //::= "?"
+    syntax CustomOperation // ::= BareId CustomOperationFormat
+    // syntax CustomOperationFormat
+    syntax BuiltinType
+    syntax BuiltinAttribute
+
+endmodule
+
+
+
+module SYNTAX-HELPER
+    imports MLIR-SYNTAX
+    imports DOMAINS
+
+    syntax Int ::= integerLiteral2Int ( IntegerLiteral ) [function]
+    rule integerLiteral2Int(I:Int) => I
+    // TODO: token2string, string拆开
+    rule integerLiteral2Int(_:HexaDecimalLiteral) => 0
+
+    syntax String ::= "ValueId2String" "(" ValueId ")" [function, total,hook(STRING.token2string)]
+    syntax ValueId ::= "String2ValueId" "(" String ")" [function, total,hook(STRING.string2token)]
+
+    syntax String ::= "SymbolRefId2StringHelper" "(" SymbolRefId ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "SymbolRefId2String" "(" SymbolRefId ")" [function, total]
+    rule SymbolRefId2String(ID) => substrString ( SymbolRefId2StringHelper(ID) , 1 , lengthString(SymbolRefId2StringHelper(ID)) )
+    // TODO: 没有临时变量感觉写起来确实很麻烦。
+
+    syntax SymbolRefId ::= "String2SymbolRefId" "(" String ")" [function, total,hook(STRING.string2token)]
+
+    syntax KItem ::= "FindNext" "(" KItem "," List ")" [function]
+    rule FindNext(_:KItem, .List) => .List
+    rule FindNext (X, ListItem(X) ListItem(Y) _:List) => Y
+    rule FindNext (X, ListItem(_) L:List) => FindNext(X, L)
+
+    // syntax Controller ::= "#revealOperations" | 
+
+    // OpId, Region, Block, order
+    syntax OperationId ::= "op" "(" K "," K "," K "," Int ")" 
+
+    // syntax K ::= getAttributeValue(AttributeEntryList, BareId) [function]
+    // rule getAttributeValue(.AttributeEntryList, _:BareId) => .K
+    // rule getAttributeValue(ID:BareId = V:AttributeValue, AL:AttributeEntryList, ID) => V
+    // rule getAttributeValue(_:AttributeEntry, AL:AttributeEntryList, ID:BareId) => getAttributeValue(AL, ID) [owise]
+endmodule
+
+
+module MLIR
+    imports MLIR-SYNTAX
+    imports SYNTAX-HELPER
+    imports DOMAINS
+    imports CTRL
+    
+    // 先新建一个thread和frame，用于将所有的op都展开；随后再依次执行
+    configuration
+    <T>
+        <k> mlir </k>
+        <mlir>
+            <mlir-program> $PGM:TopLevel </mlir-program>
+            <standard-ops> .OperationList </standard-ops>
+            <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
+            <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
+            // SymbolTable的效果：给一个名字可以获得一个Operation。
+            // 名字暂定为String List；为此，Operation中出现sym_name的调用需要标准化为包含其父亲的sym_name，而不应该为相对sym_name。
+            // 如果没有sym_name，那么不存储。
+            // 先尝试一个版本的存储，主要是匿名的Operation中存有名字的这种有可能会产生冲突。或许可以考虑给一个名字。
+            <symbol-table> .Map </symbol-table>
+            // <standard-ops-temp> .List </standard-ops-temp>
+            // <threads>
+            //   <thread multiplicity="*" type="Map">
+            //     <thread-id> 0:Int </thread-id>
+            //     <frames>
+            //       <frame multiplicity="*" type="List">
+            //         <frame-pc> .K </frame-pc> // 对input和output的变量进行分类
+            //         <frame-locals> .Map </frame-locals>
+            //       </frame>
+            //     </frames>
+            //   </thread>
+            // </threads>
+            // TODO: 目前K还有一个问题就是state只能引入，不能引入之后进行修改，比如这里的threads和frame的内容，如果我想要修改他的内容，只能在meta修改，不能在方言里导入之后再新增块。这是使得方言的灵活性和可组合性降低。需要KKG。
+            // TODO: TypeAliasDef
+            // TODO: 内存模型：地址、类型、值、大小
+            // TODO: 全局变量：标示符、类型、值
+            // threads 是以防万一的设计，目前可能用处不大
+        </mlir>
+    </T>
+
+    // ----------------------------
+    // 1. Store Attribute Alias Definition into configuration
+    // ----------------------------
+    rule [attribute-alias-def]:
+        <k> mlir </k>
+        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T </mlir-program>
+        <attr-alias> M:Map => M[Alias <- Attr]</attr-alias>
+
+    // ----------------------------
+    // 2. Store Operation into std-op-list & Construct Symbol Table
+    // ----------------------------
+
+    rule [operation-standardization-helper]:
+        <k> mlir </k>
+        <mlir-program> Op:Operation T:TopLevel => T </mlir-program>
+        <standard-ops> Ops:OperationList => operationStandarize(Op) Ops </standard-ops>
+        <symbol-table> M:Map => M getSymbolTable(operationStandarize(Op), .List) </symbol-table>
+        // <standard-ops-temp> L:List => L ListItem(operationStandarize(Op))</standard-ops-temp>
+    
+    rule <k> mlir => preprocess </k>
+        <mlir-program> .TopLevel </mlir-program>
+    
+    // rule <k> mlir </k>
+    //     <mlir-program> Op:Operation => . ... </mlir-program>
+    //     <standard-ops> Ops:OperationList => Op Ops</standard-ops>
+    //     <symbol-table> M:Map => M getSymbolTable(Op, .List) </symbol-table>
+
+
+    // rule [operation-standardization]:
+    //     <k> mlir </k>
+    //     <standard-ops-temp> L:List ListItem(Op) => L </standard-ops-temp>
+    //     <standard-ops> Ops:OperationList => Op Ops</standard-ops>
+    //     <symbol-table> M:Map => M getSymbolTable(Op, .List) </symbol-table>
+    
+    // rule
+    //     <k> mlir => preprocess ... </k>
+    //     <standard-ops-temp> .List </standard-ops-temp>
+
+    // ----------------------------
+    // 2.1. Standarize
+    // ----------------------------
+    // TODO: Store the location into dictionaryAttribute
+
+
+    syntax Operation ::= operationStandarize(Operation) [function]
+
+    rule operationStandarize(_:Operation) 
+        => .OpResults = "" (.ValueIdList) [.Successors] (.Regions) {.Map} : (.Types) -> (.Types) [owise]
+
+    rule operationStandarize(GP:GenericOperation) 
+        => operationStandarize(.OpResults = GP)
+    
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) : FT:FunctionType) 
+        => Rs = N (Vs) [.Successors] (.Regions) {.Map} : functionTypeStandarize(FT)
+    
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) {AEL:AttributeEntryList} : FT:FunctionType) 
+        => Rs = N (Vs) [.Successors] (.Regions) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
+
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) (R:Regions) : FT:FunctionType) 
+        => Rs = N (Vs) [.Successors] (regionListStandarize(R)) {.Map} : functionTypeStandarize(FT)
+
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] : FT:FunctionType) 
+        => Rs = N (Vs) [Ss] (.Regions) {.Map} : functionTypeStandarize(FT)
+
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
+        => Rs = N (Vs) [.Successors] (regionListStandarize(R)) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
+    
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] {AEL:AttributeEntryList} : FT:FunctionType) 
+        => Rs = N (Vs) [Ss] (.Regions) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
+
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) : FT:FunctionType) 
+        => Rs = N (Vs) [Ss] (regionListStandarize(R)) {.Map} : functionTypeStandarize(FT)
+
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
+        => Rs = N (Vs) [Ss] (regionListStandarize(R)) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
+
+
+    syntax FunctionType ::= functionTypeStandarize(FunctionType) [function]
+    rule functionTypeStandarize((IT:Types)->(OT:Types)) => (IT) -> (OT)
+    rule functionTypeStandarize( T:Type -> (OT:Types)) => (T) -> (OT)
+    rule functionTypeStandarize((IT:Types) -> T:Type) => (IT) -> (T)
+    rule functionTypeStandarize(IT:Type -> OT:Type) => (IT) -> (OT)
+
+    syntax Regions ::= regionListStandarize(Regions) [function]
+    rule regionListStandarize(.Regions) => .Regions
+    rule regionListStandarize(R:Region, Rs:Regions) => regionStandarize(R), regionListStandarize(Rs)
+
+    syntax Region ::= regionStandarize(Region) [function]
+    rule regionStandarize({OPs:OperationList BL:BlockList}) => {operationListStandarize(OPs) blockListStandarize(BL)}
+
+    syntax OperationList ::= operationListStandarize(OperationList) [function]
+    rule operationListStandarize(.OperationList) => .OperationList
+    rule operationListStandarize(OP:Operation OPs:OperationList) => operationStandarize(OP) operationListStandarize(OPs)
+
+    syntax BlockList ::= blockListStandarize(BlockList) [function]
+    rule blockListStandarize(.BlockList) => .BlockList
+    rule blockListStandarize(B:Block BL:BlockList) => blockStandarize(B) blockListStandarize(BL)
+
+    syntax Block ::= blockStandarize(Block) [function]
+    rule blockStandarize(BL:BlockLabel OPs:OperationList) 
+        => blockLabelStandarize(BL) operationListStandarize(OPs)
+
+    syntax BlockLabel ::= blockLabelStandarize(BlockLabel) [function]
+    rule blockLabelStandarize(C:CaretId : ) => C ( .ValueIdAndTypeList ) :
+    rule blockLabelStandarize(B:BlockLabel) => B [owise]
+
+    syntax Map ::= attributeEntryList2Map(AttributeEntryList) [function]
+    
+    rule attributeEntryList2Map(.AttributeEntryList) => .Map
+
+    rule attributeEntryList2Map(N:BareId = V:AttributeValue, AEs:AttributeEntryList) 
+        => N |-> V attributeEntryList2Map(AEs)
+    
+    rule attributeEntryList2Map(N:StringLiteral = V:AttributeValue, AEs:AttributeEntryList)
+        => N |-> V attributeEntryList2Map(AEs)
+    
+    rule attributeEntryList2Map(_:BareId, AEs:AttributeEntryList) 
+        => attributeEntryList2Map(AEs)
+
+    // ----------------------------
+    // 2.2. Symbol Table
+    // ----------------------------
+    // operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) DA:AttrDict : FT:FunctionType) => Rs = N (Vs) [Ss] (regionListStandarize(R)) DA : functionTypeStandarize(FT)
+    syntax Map ::= getSymbolTable(Operation, List) [function]
+
+    rule getSymbolTable(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) {AL:Map} : FT:FunctionType, L:List)
+        => ( L ListItem(AL[#token("sym_name","BareId")]) |-> (Rs = N (Vs) [Ss] (R) {AL} : FT):Operation) 
+            getSymbolTableFromRegions(R, L ListItem(AL[#token("sym_name","BareId")]))
+        requires AL[#token("sym_name","BareId")] orDefault "" =/=K ""
+
+    rule getSymbolTable(_:OpResults = _:StringLiteral (_:ValueIdList) [_:Successors] (R:Regions) {AL:Map} : _:FunctionType, L:List)
+        => getSymbolTableFromRegions(R, L)
+        requires AL[#token("sym_name","BareId")] orDefault "" ==K ""
+
+    // OperationList BlockList
+    syntax Map ::= getSymbolTableFromRegions(Regions, List) [function]
+
+    rule getSymbolTableFromRegions(.Regions, _:List) => .Map
+
+    rule getSymbolTableFromRegions({Ops:OperationList BL:BlockList}, L:List)
+        => getSymbolTableFromOperationList(Ops, L) getSymbolTableFromBlockList(BL, L)
+
+    rule getSymbolTableFromRegions(R:Region, Rs:Regions, L:List)
+        => getSymbolTableFromRegions(R, L) getSymbolTableFromRegions(Rs, L) [owise]
+
+
+    syntax Map ::= getSymbolTableFromOperationList(OperationList, List) [function]
+
+    rule getSymbolTableFromOperationList(.OperationList, _:List) => .Map
+
+    rule getSymbolTableFromOperationList(O:Operation OPs:OperationList, L:List)
+        => getSymbolTable(O, L) getSymbolTableFromOperationList(OPs, L)
+
+    
+    syntax Map ::= getSymbolTableFromBlockList(BlockList, List) [function]
+    
+    rule getSymbolTableFromBlockList(.BlockList, _:List) => .Map
+
+    rule getSymbolTableFromBlockList(_:BlockLabel Os:OperationList BL:BlockList, L:List) 
+        => getSymbolTableFromOperationList(Os, L) getSymbolTableFromBlockList(BL, L)
+
+endmodule
