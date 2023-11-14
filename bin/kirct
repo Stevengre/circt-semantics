@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# 获取脚本所在目录的绝对路径
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# 记录当前目录
+CURRENT_DIR=$(pwd)
+
+# 切换到项目目录
+cd "$SCRIPT_DIR"/../kirct || exit
+
+# 执行命令，使用相对路径
+poetry run kirct $1 $CURRENT_DIR/$2 ${@:3}
