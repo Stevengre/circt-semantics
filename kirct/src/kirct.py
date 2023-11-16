@@ -12,7 +12,7 @@ from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, final
 
-from utils import check_dir_path, check_file_path
+from .utils import check_dir_path, check_file_path
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KSequence, KVariable
 # from pyk.kast.manip import anti_unify_with_constraints

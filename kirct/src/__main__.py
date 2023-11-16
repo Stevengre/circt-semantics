@@ -5,12 +5,12 @@ import subprocess
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
-from utils import dir_path, file_path
+from .utils import dir_path, file_path
 
 from pyk.ktool.kprint import KAstInput, KAstOutput
 from pyk.ktool.krun import KRunOutput
 
-from kirct import KIRCT
+from .kirct import KIRCT
 
 if TYPE_CHECKING:
     from argparse import Namespace

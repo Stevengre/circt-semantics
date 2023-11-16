@@ -38,5 +38,12 @@ Note that LLVM backend is for concrete execution, while Haskell backend is for s
 After building the project, you can access the `kimp` CLI via `poetry`:
 
 ```
-poetry run kimp --help
+poetry run kirct --help
 ```
+
+or 
+
+```
+bin/kirct --help
+```
+
