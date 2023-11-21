@@ -2,3 +2,5 @@
 .venv/
 kdist/
 kimulator/
+*-kompiled/
+.DS_Store
