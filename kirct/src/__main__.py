@@ -5,7 +5,7 @@ import subprocess
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
-from .utils import dir_path, file_path
+from .utils import dir_path, file_path, kbuild_definition_dir
 
 from pyk.ktool.kprint import KAstInput, KAstOutput
 from pyk.ktool.krun import KRunOutput
@@ -17,20 +17,6 @@ if TYPE_CHECKING:
 
 _LOGGER: Final = logging.getLogger(__name__)
 _LOG_FORMAT: Final = '%(levelname)s %(asctime)s %(name)s - %(message)s'
-
-
-def kbuild_definition_dir(target: str) -> Path:
-    proc_result = subprocess.run(
-        ['poetry', 'run', 'kbuild', 'which', target],
-        capture_output=True,
-    )
-    if proc_result.returncode:
-        _LOGGER.critical(
-            f'Could not find kbuild definition for target {target}. Run kbuild kompile {target}, or specify --definition-dir.'
-        )
-        exit(proc_result.returncode)
-    else:
-        return Path(proc_result.stdout.splitlines()[0].decode())
 
 
 def main() -> None:
@@ -49,7 +35,6 @@ def main() -> None:
 # 默认使用的是haskell后端，我需要之后根据需要进行优化
 def exec_parse(
     input_file: str,
-    definition_dir: str,
     input: str = 'program',
     output: str = 'kore',
     **kwargs: Any,
@@ -64,29 +49,20 @@ def exec_parse(
         print(proc_res.stdout)
 
 
-def exec_run(
+def exec_kimulator(
     input_file: str,
-    definition_dir: str,
     output: str = 'none',
-    ignore_return_code: bool = False,
     **kwargs: Any,
 ) -> None:
-    krun_output = KRunOutput[output.upper()]
-
-    kimp = KIMP(definition_dir, definition_dir)
+    kirct = KIRCT(kbuild_definition_dir('llvm'), kbuild_definition_dir('haskell'))
 
     try:
-        proc_res = kimp.run_program(input_file, output=krun_output)
-        if output != KAstOutput.NONE:
-            print(proc_res.stdout)
+        proc_res = kirct.gen_kimulator(input_file, output)
     except RuntimeError as err:
-        if ignore_return_code:
-            msg, stdout, stderr = err.args
-            print(stdout)
-            print(stderr)
-            print(msg)
-        else:
-            raise
+        msg, stdout, stderr = err.args
+        print(stdout)
+        print(stderr)
+        print(msg)
 
 
 # def exec_prove(
@@ -283,57 +259,57 @@ def create_argument_parser() -> ArgumentParser:
     shared_args = ArgumentParser(add_help=False)
     shared_args.add_argument('--verbose', '-v', default=False, action='store_true', help='Verbose output.')
     shared_args.add_argument('--debug', default=False, action='store_true', help='Debug output.')
-    shared_args.add_argument(
-        '--definition-dir',
-        dest='definition_dir',
-        nargs='?',
-        default=kbuild_definition_dir('haskell'),
-        type=dir_path,
-        help='Path to compiled K definition to use.',
-    )
-
-    # args shared by proof/prover/kcfg commands
-    spec_file_shared_args = ArgumentParser(add_help=False)
-    spec_file_shared_args.add_argument(
-        'spec_file',
-        type=file_path,
-        help='Path to K spec file',
-    )
-
-    claim_shared_args = ArgumentParser(add_help=False)
-    claim_shared_args.add_argument(
-        'spec_module',
-        type=str,
-        help='Spec main module',
-    )
-    claim_shared_args.add_argument(
-        'claim_id',
-        type=str,
-        help='Claim id',
-    )
-
-    explore_args = ArgumentParser(add_help=False)
-    explore_args.add_argument(
-        '--reinit',
-        dest='reinit',
-        default=False,
-        action='store_true',
-        help='Reinitialize proof even if it already exists.',
-    )
-    explore_args.add_argument(
-        '--max-depth',
-        dest='max_depth',
-        default=100,
-        type=int,
-        help='Max depth of execution',
-    )
-    explore_args.add_argument(
-        '--max-iterations',
-        dest='max_iterations',
-        default=20,
-        type=int,
-        help='Store every Nth state in the CFG for inspection.',
-    )
+    # shared_args.add_argument(
+    #     '--definition-dir',
+    #     dest='definition_dir',
+    #     nargs='?',
+    #     default=kbuild_definition_dir('haskell'),
+    #     type=dir_path,
+    #     help='Path to compiled K definition to use.',
+    # )
+    #
+    # # args shared by proof/prover/kcfg commands
+    # spec_file_shared_args = ArgumentParser(add_help=False)
+    # spec_file_shared_args.add_argument(
+    #     'spec_file',
+    #     type=file_path,
+    #     help='Path to K spec file',
+    # )
+    #
+    # claim_shared_args = ArgumentParser(add_help=False)
+    # claim_shared_args.add_argument(
+    #     'spec_module',
+    #     type=str,
+    #     help='Spec main module',
+    # )
+    # claim_shared_args.add_argument(
+    #     'claim_id',
+    #     type=str,
+    #     help='Claim id',
+    # )
+    #
+    # explore_args = ArgumentParser(add_help=False)
+    # explore_args.add_argument(
+    #     '--reinit',
+    #     dest='reinit',
+    #     default=False,
+    #     action='store_true',
+    #     help='Reinitialize proof even if it already exists.',
+    # )
+    # explore_args.add_argument(
+    #     '--max-depth',
+    #     dest='max_depth',
+    #     default=100,
+    #     type=int,
+    #     help='Max depth of execution',
+    # )
+    # explore_args.add_argument(
+    #     '--max-iterations',
+    #     dest='max_iterations',
+    #     default=20,
+    #     type=int,
+    #     help='Store every Nth state in the CFG for inspection.',
+    # )
 
     parser = ArgumentParser(prog='kirct', description='KIRCT command line tool')
     command_parser = parser.add_subparsers(dest='command', required=True, help='Command to execute')
@@ -363,28 +339,46 @@ def create_argument_parser() -> ArgumentParser:
         required=False,
     )
 
-    # Run
-    run_subparser = command_parser.add_parser('run', help='Generate a stimulation header for hardware simulation.', parents=[shared_args])
-    run_subparser.add_argument(
+    # Kimulator
+    kimulator_subparser = command_parser.add_parser('kimulator',
+                                                    help='Generate a stimulation header for hardware simulation.',
+                                                    parents=[shared_args])
+    kimulator_subparser.add_argument(
         'input_file',
         type=file_path,
         help='Path to .mlir file, should be in the generic version. You can obtain it by `circt-opt --mlir-print-op-generic`.',
     )
-    run_subparser.add_argument(
+    kimulator_subparser.add_argument(
         '--output',
         dest='output',
         type=str,
-        default='kast',
-        help='Output mode',
-        choices=['pretty', 'program', 'json', 'kore', 'kast', 'none'],
+        default='none',
+        help='Output path',
         required=False,
     )
-    run_subparser.add_argument(
-        '--ignore-return-code',
-        action='store_true',
-        default=False,
-        help='Ignore return code of krun, alwasys return 0 (use for debugging only)',
-    )
+
+    # # Run
+    # run_subparser = command_parser.add_parser('run', help='Generate a stimulation header for hardware simulation.', parents=[shared_args])
+    # run_subparser.add_argument(
+    #     'input_file',
+    #     type=file_path,
+    #     help='Path to .mlir file, should be in the generic version. You can obtain it by `circt-opt --mlir-print-op-generic`.',
+    # )
+    # run_subparser.add_argument(
+    #     '--output',
+    #     dest='output',
+    #     type=str,
+    #     default='kast',
+    #     help='Output mode',
+    #     choices=['pretty', 'program', 'json', 'kore', 'kast', 'none'],
+    #     required=False,
+    # )
+    # run_subparser.add_argument(
+    #     '--ignore-return-code',
+    #     action='store_true',
+    #     default=False,
+    #     help='Ignore return code of krun, alwasys return 0 (use for debugging only)',
+    # )
 
     # # Prove
     # _ = command_parser.add_parser(

@@ -924,6 +924,17 @@ files = [
 test = ["coverage", "pytest", "pytest-cov"]
 
 [[package]]
+name = "vcdvcd"
+version = "2.3.4"
+description = "Python Verilog value change dump (VCD) parser library + the nifty vcdcat VCD command line viewer"
+optional = false
+python-versions = "*"
+files = [
+    {file = "vcdvcd-2.3.4-py3-none-any.whl", hash = "sha256:55a0a4660417063bda5046a9f69663796809db0ad75a0034d9059a5ecd30c3c0"},
+    {file = "vcdvcd-2.3.4.tar.gz", hash = "sha256:91c2ab2475f3b40db233ed070915a2c6d7d3f9c9a814e13f59b90bc3a439deb8"},
+]
+
+[[package]]
 name = "wcwidth"
 version = "0.2.10"
 description = "Measures the displayed width of unicode strings in a terminal"
@@ -952,4 +963,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5dd1aa604a8e2ab8720369f6578c9db48dc6da0e19faab122ae65fa2f1eee30e"
+content-hash = "f5ad0ed790313853f51162f38c28dc9114273bd13d7921597d3cec08f7867ace"
