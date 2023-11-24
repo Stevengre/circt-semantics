@@ -103,5 +103,8 @@ class KIRCT:
 
         temp_file = Path(temp_file)
         return __preprocess_and_parse(program_file, temp_file)
+
+    def gen_kimulator(self, input_file: str, output: str):
+        pass
         
 

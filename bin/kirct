@@ -6,8 +6,27 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # 记录当前目录
 CURRENT_DIR=$(pwd)
 
+ARGUMENT_WITH_PATH=""
+OTHER_ARGUMENTS=()
+NUM=0
+
+# 找到第一个不以 "-" 开头的参数
+for arg in "${@:2}"; do
+    if [[ ! "$arg" == -* ]]; then
+        # 组合路径并替换原始参数
+        ARGUMENT_WITH_PATH="$CURRENT_DIR/$arg"
+        NUM=$((NUM + 1))
+        break
+    else
+        # 如果是以 "-" 开头的参数，将其保存到一个变量中
+        OTHER_ARGUMENTS+=("$arg")
+        NUM=$((NUM + 1))
+    fi
+done
+
 # 切换到项目目录
 cd "$SCRIPT_DIR"/../kirct || exit
 
 # 执行命令，使用相对路径
-poetry run kirct $1 $CURRENT_DIR/$2 ${@:3}
+poetry run kirct "$1" "${OTHER_ARGUMENTS[@]}" "$ARGUMENT_WITH_PATH"  "${@:NUM+2}"
+

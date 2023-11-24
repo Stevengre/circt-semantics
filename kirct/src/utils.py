@@ -1,4 +1,25 @@
 from pathlib import Path
+import subprocess
+import logging
+from typing import Final
+
+_LOGGER: Final = logging.getLogger(__name__)
+_LOG_FORMAT: Final = '%(levelname)s %(asctime)s %(name)s - %(message)s'
+
+
+def kbuild_definition_dir(target: str) -> Path:
+    proc_result = subprocess.run(
+        ['poetry', 'run', 'kbuild', 'which', target],
+        capture_output=True,
+    )
+    if proc_result.returncode:
+        _LOGGER.critical(
+            f'Could not find kbuild definition for target {target}. Run kbuild kompile {target}, or specify --definition-dir.'
+        )
+        exit(proc_result.returncode)
+    else:
+        return Path(proc_result.stdout.splitlines()[0].decode())
+
 
 def check_dir_path(path: Path) -> None:
     path = path.resolve()
@@ -12,6 +33,7 @@ def dir_path(s: str | Path) -> Path:
     path = Path(s)
     check_dir_path(path)
     return path
+
 
 def check_file_path(path: Path) -> None:
     path = path.resolve()
