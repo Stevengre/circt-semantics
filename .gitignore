@@ -1,6 +1,6 @@
 .build
 .venv/
 kdist/
-kimulator/
 *-kompiled/
 .DS_Store
+.pytest_cache/
