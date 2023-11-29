@@ -10,6 +10,7 @@ authors = [
     "JianhongZhao <zhaojianhong96@gmail.com>",
     "Jinhui Kang",
 ]
+include = ["kirct"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -17,7 +18,7 @@ pyk = { git = "https://github.com/runtimeverification/pyk.git", rev="aac8056" }
 vcdvcd = "^2.3.4"
 
 [tool.poetry.scripts]
-kirct = "src.__main__:main"
+kirct = "kirct.__main__:main"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "*"

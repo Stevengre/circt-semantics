@@ -4,3 +4,4 @@ kdist/
 *-kompiled/
 .DS_Store
 .pytest_cache/
+temp/
