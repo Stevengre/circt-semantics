@@ -14,6 +14,7 @@ K-CIRCT consists of 2 parts:
 ### Prerequisites
 
 - K Framework should be installed and added to the `PATH` environment variable. See [here](https://github.com/runtimeverification/k#quick-start) for installation instructions.
+- CIRCT should be installed and added to the `PATH` environment variable, making `circt-opt` and `arcilator` accessible in the shell. See [here](https://github.com/llvm/circt) for installation instructions.
 - `poetry` Python build tool is recommended to build the `kirct` tool. Follow the instructions [here](https://python-poetry.org/docs/#installing-with-pipx) to install `poetry`.
 
 ### Building
