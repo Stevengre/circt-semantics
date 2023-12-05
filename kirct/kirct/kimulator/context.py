@@ -1,4 +1,4 @@
-from pyk.ktool.krun import KRun
+from pyk.ktool.krun import KRun, _krun
 from datetime import datetime
 from ..utils import kbuild_definition_dir, check_file_path
 from pathlib import Path
@@ -75,7 +75,7 @@ class KimulatorContext:
         shutil.rmtree(self.krun.use_directory, ignore_errors=True)
         shutil.rmtree(self.history_dir, ignore_errors=True)
 
-    def __del__(self, exc_type, exc_value, traceback):
+    def __del__(self):
         # 在删除时，删除 history_dir
         shutil.rmtree(self.history_dir, ignore_errors=True)
         shutil.rmtree(self.history_dir, ignore_errors=True)
@@ -116,6 +116,6 @@ class KimulatorContext:
             c = (t % 84) + 33
             if c >= ord('0'):
                 c += 10
-            abbrev += chr(c)
+            abbrev += chr(int(c))
             t /= 84
         return abbrev
