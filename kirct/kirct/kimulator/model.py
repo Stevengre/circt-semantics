@@ -3,9 +3,17 @@ from pyk.ktool.krun import _krun, KRunOutput
 from pathlib import Path
 from pyk.kore.parser import KoreParser
 from typing import Final
+from enum import Enum
+from tempfile import NamedTemporaryFile
+from ..kutils import k_symbol, get_cell, CellType
+from pyk.kore.syntax import *
+from pyk.konvert import _kore_to_kast
 
 CONTROL_TEMPLATE: Final = """circtTest-hw.module @{module_name}({inputs})"""
-
+KORE_CONTROL_TEMPLATE: Final = """App(symbol="Lbl'-LT-'circt-control'-GT-'", sorts=(), args=(App(symbol='kseq', sorts=(), args=(App(symbol='inj', sorts=(SortApp(name='SortControl', sorts=()), SortApp(name='SortKItem', sorts=())), args=(App(symbol="LblcirctTest-hw'Stop'module'UndsLParUndsRParUnds'CIRCT'Unds'Control'Unds'SymbolRefId'Unds'Values", sorts=(), args=(DV(sort=SortApp(name='SortSymbolRefId', sorts=()), value=String(value='@{module_name}')), {inputs})),)), App(symbol='dotk', sorts=(), args=()))),))"""
+KORE_INPUTS_TEMPLATE: Final = """App(symbol="Lbl'UndsCommUndsUnds'CIRCT-SYNTAX-CORE'Unds'Values'Unds'Value'Unds'Values", sorts=(), args=(App(symbol='inj', sorts=(SortApp(name='SortInt', sorts=()), SortApp(name='SortValue', sorts=())), args=(DV(sort=SortApp(name='SortInt', sorts=()), value=String(value='{input}')),)), {inputs}))"""
+KORE_INPUT_STOP: Final = """App(symbol="Lbl'Stop'List'LBraQuotUndsCommUndsUnds'CIRCT-SYNTAX-CORE'Unds'Values'Unds'Value'Unds'Values'QuotRBraUnds'Values", sorts=(), args=())"""
+KORE_CONTROL_TO_REPLACE = """App(symbol="Lbl'-LT-'circt-control'-GT-'", sorts=(), args=(App(symbol='dotk', sorts=(), args=()),))"""
 
 class KimulatorModel:
     module_name: str
@@ -44,28 +52,79 @@ class KimulatorModel:
         return self.signals[signal]
 
     def eval(self):
-        # krun --definition /Users/steven/Desktop/Projects/circt-semantics/kirct/kdist/v6.1.7-0-g6c5492b3df/llvm
-        # /Users/steven/Desktop/Projects/circt-semantics/kirct/tests/resource/adder.generic.mlir
-        # -cControl="circtTest-hw.module @Adder(0, 0, 2, 6)"
-        inputs = ""
+        args = []
         for signal in self.signals.values():
             if signal.is_input:
-                inputs += str(signal.signal_value) + ", "
-        inputs = inputs[:-2]
-        control = CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=inputs)
-        proc_res = _krun(input_file=Path(self.source_file),
-                         definition_dir=self.context.krun.definition_dir,
-                         output=KRunOutput.PRETTY,
-                         cmap={'Control': control},
-                         check=True)
-        print(proc_res.stdout)
-        # self.context.state = KoreParser(proc_res.stdout).pattern()
-        pass
-        # if self.context.state is None:
-        #
-        #     pass
-        # else:
-        #     pass
-        # self.context.krun.run()
+                args.append(str(signal.signal_value))
+
+        if self.context.state is None:
+            control = CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=", ".join(args))
+            proc_res = _krun(input_file=Path(self.source_file),
+                             definition_dir=self.context.krun.definition_dir,
+                             output=KRunOutput.KORE,
+                             cmap={'Control': control},
+                             check=True)
+            self.context.state = KoreParser(proc_res.stdout).pattern()
+        else:
+            # todo: optimize this
+            # put control into context.state
+            # # construct control
+            index = len(args) - 1
+            inputs = KORE_INPUT_STOP
+            while index >= 0:
+                inputs = KORE_INPUTS_TEMPLATE.format(input=args[index], inputs=inputs)
+                index -= 1
+            control = KORE_CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=inputs)
+            # control_pattern = eval(control)
+            # todo: frozen App is not convenient to use
+            # # update circt-control cell
+            state_text = str(self.context.state)
+            state_text = state_text.replace(KORE_CONTROL_TO_REPLACE, control, 1)
+            self.context.state = self.context.krun.run_pattern(pattern=eval(state_text))
+            # todo: 没有执行，怀疑是语义的问题。通过85-95行基本排除run_pattern导致的问题，大概率是语义的问题。
+            # with NamedTemporaryFile(mode='w') as f:
+            #     eval(state_text).write(f)
+            #     f.write('\n')
+            #     f.flush()
+            #     proc_res = _krun(input_file=Path(f.name),
+            #                      definition_dir=self.context.krun.definition_dir,
+            #                      output=KRunOutput.KORE,
+            #                      term=True,
+            #                      parser='cat',
+            #                      check=True)
+            #     self.context.state = KoreParser(proc_res.stdout).pattern()
+            # circt_control = get_cell(self.context.state, [
+            #     ('circt', CellType.NORMAL),
+            #     ('circt-control', CellType.NORMAL)])
+            # circt_control.args = target_control.args
+
+            # simple_control = CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=", ".join(args))
+            # proc_res_0 = _krun(input_file=Path(self.source_file),
+            #                    definition_dir=self.context.krun.definition_dir,
+            #                    output=KRunOutput.KORE,
+            #                    cmap={'Control': simple_control},
+            #                    depth=0,
+            #                    check=True)
+            # proc_res = _krun(input_file=Path(self.source_file),
+            #                  definition_dir=self.context.krun.definition_dir,
+            #                  output=KRunOutput.KORE,
+            #                  cmap={'Control': simple_control},
+            #                  check=True)
 
 
+        # todo: make the following code more readable; and utils for k in k_utils
+        # find circt-output cell
+        kast_output = _kore_to_kast(
+            get_cell(self.context.state, [
+                ('circt', CellType.NORMAL),
+                ('circt-frames', CellType.NORMAL),
+                ('circt-frame', CellType.LIST),
+                ('circt-output', CellType.NORMAL)])).to_dict()
+        # setup outputs for context
+        for kv in kast_output['args']:
+            key = kv['args'][0]['token']
+            value = int(kv['args'][1]['args'][1]['token'])
+            # todo: remove this binding from %0 to io_out
+            if key == '%0':
+                key = 'io_out'
+            self.context.signals[key].signal_value = value
