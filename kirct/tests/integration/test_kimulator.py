@@ -7,6 +7,10 @@ def test_adder_eval() -> None:
     adder_model.io_a = 2
     adder_model.io_b = 6
     adder_model.eval()
-    # assert adder_model.io_out == 8
+    assert adder_model.io_out == 8
     kimulator_context.time_inc(1)
     assert kimulator_context.time() == 1
+    adder_model.io_a = 1
+    adder_model.io_b = 3
+    adder_model.eval()
+    assert adder_model.io_out == 4
