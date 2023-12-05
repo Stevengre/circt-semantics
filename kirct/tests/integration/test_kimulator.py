@@ -1,0 +1,12 @@
+from ..resource.adder import kimulator_context, adder_model
+from ..resource import DATA_PATH
+
+
+def test_adder_eval() -> None:
+    # Given
+    adder_model.io_a = 2
+    adder_model.io_b = 6
+    adder_model.eval()
+    # assert adder_model.io_out == 8
+    kimulator_context.time_inc(1)
+    assert kimulator_context.time() == 1

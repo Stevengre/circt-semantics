@@ -1,10 +1,10 @@
 from pathlib import Path
 from kirct.kimulator.model import KimulatorModel, KimulatorContext, Signal
 
-fpath = Path(__file__).parent.joinpath('adder.mlir')
+fpath = Path(__file__).parent.joinpath('adder.generic.mlir')
 kimulator_context: KimulatorContext = KimulatorContext()
 kimulator_context.trace_ever_on(True)
-kimulator_context.init_pattern(fpath)
+# kimulator_context.init_pattern(fpath)
 
 kimulator_context.signals = {
     'clock': Signal(name='clock',
