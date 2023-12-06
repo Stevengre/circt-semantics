@@ -16,6 +16,7 @@ module CIRCT-CONFIGURATION
                     <local-last>.Map</local-last>
                 </circt-frame>
             </circt-frames>
+            <registers> .Map </registers>
             <macros>.Map</macros>
         </circt>
         <mlir/>
