@@ -235,7 +235,6 @@ module CIRCT
     imports SEQ
     imports SV
 
-
     syntax Control ::= "circtTest-hw.module" SymbolRefId "(" Values ")"
     // syntax AttributeValues ::= List{AttributeValue,","}
 
@@ -251,7 +250,10 @@ module CIRCT
                     .Bag =>
                     <circt-frame>
                         ...
-                        <circt-exec> Vs ~> M [ ListItem(SymbolRefId2String(ID)) ] </circt-exec>
+                        <circt-exec>
+                            initial ~> always ~> Vs ~> M [ ListItem(SymbolRefId2String(ID)) ]
+                        </circt-exec>
+                        <module> ID </module>
                         ...
                     </circt-frame>
                 )
@@ -270,6 +272,23 @@ module CIRCT
             ...
         </circt>
         requires notBool ListItem(SymbolRefId2String(ID)) in_keys(M)
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            initial => #if notBool ID in S #then M [ID] orDefault .OperationList #else .K #fi
+            ...
+        </circt-exec>
+        <module> ID:SymbolRefId </module>
+        <initial> M:Map </initial>
+        <initalized> S:Set </initialized>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            always => M [ID] orDefault .OperationList
+            ...
+        </circt-exec>
+        <module> ID:SymbolRefId </module>
+        <always> M:Map </always>
 
     rule <k> circt </k>
         <circt-exec> 

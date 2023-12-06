@@ -140,6 +140,20 @@ module HW
             </circt-frames>
             ...
         </circt>
+
+    rule <k> circt </k>
+        <circt-frames>
+            (
+                <circt-frame>
+                    ...
+                    <circt-exec> .K </circt-exec>
+                    <circt-output> Out:Map </circt-output>
+                    ...
+                </circt-frame>
+                => .Bag
+            )
+        </circt-frames>
+        <result> L:List => L ListItem(Out) </result>
     
 
     // hw.aggregate_constant

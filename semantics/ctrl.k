@@ -13,4 +13,7 @@ module CTRL
                   
     syntax Ctrl ::= "done"
                   | "done" Int
+
+    syntax Ctrl ::= "initial"
+                  | "always"
 endmodule
