@@ -12,12 +12,16 @@ module CIRCT-CONFIGURATION
                     <circt-exec> .K </circt-exec>
                     <circt-locals> .Map </circt-locals>
                     <circt-output> .Map </circt-output>
-                    <always>.Map</always>
-                    <local-last>.Map</local-last>
+                    <local-last> .Map </local-last>
+                    <module> @_:SymbolRefId </module>
                 </circt-frame>
             </circt-frames>
             <registers> .Map </registers>
-            <macros>.Map</macros>
+            <macros> .Map </macros>
+            <result> .List </result>
+            <always> .Map </always>
+            <initial> .Map </initial>
+            <initalized> .Set </initialized>
         </circt>
         <mlir/>
 endmodule

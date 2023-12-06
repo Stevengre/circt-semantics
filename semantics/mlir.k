@@ -258,28 +258,7 @@ module MLIR
             <standard-ops> .OperationList </standard-ops>
             <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
             <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
-            // SymbolTable的效果：给一个名字可以获得一个Operation。
-            // 名字暂定为String List；为此，Operation中出现sym_name的调用需要标准化为包含其父亲的sym_name，而不应该为相对sym_name。
-            // 如果没有sym_name，那么不存储。
-            // 先尝试一个版本的存储，主要是匿名的Operation中存有名字的这种有可能会产生冲突。或许可以考虑给一个名字。
             <symbol-table> .Map </symbol-table>
-            // <standard-ops-temp> .List </standard-ops-temp>
-            // <threads>
-            //   <thread multiplicity="*" type="Map">
-            //     <thread-id> 0:Int </thread-id>
-            //     <frames>
-            //       <frame multiplicity="*" type="List">
-            //         <frame-pc> .K </frame-pc> // 对input和output的变量进行分类
-            //         <frame-locals> .Map </frame-locals>
-            //       </frame>
-            //     </frames>
-            //   </thread>
-            // </threads>
-            // TODO: 目前K还有一个问题就是state只能引入，不能引入之后进行修改，比如这里的threads和frame的内容，如果我想要修改他的内容，只能在meta修改，不能在方言里导入之后再新增块。这是使得方言的灵活性和可组合性降低。需要KKG。
-            // TODO: TypeAliasDef
-            // TODO: 内存模型：地址、类型、值、大小
-            // TODO: 全局变量：标示符、类型、值
-            // threads 是以防万一的设计，目前可能用处不大
         </mlir>
     </T>
 
