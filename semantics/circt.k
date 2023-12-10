@@ -91,6 +91,8 @@ module CIRCT-SYNTAX
     imports HW-STRUCT
     imports HW-ENUM
 
+    syntax Control ::= "circtTest" SymbolRefId "(" Values ")"
+
     syntax AttributeValue ::= getAttr(Map, BareId) [function]
     rule getAttr(M:Map, I:BareId) => {M[I]}:>AttributeValue
 
@@ -235,7 +237,6 @@ module CIRCT
     imports SEQ
     imports SV
 
-    syntax Control ::= "circtTest-hw.module" SymbolRefId "(" Values ")"
     // syntax AttributeValues ::= List{AttributeValue,","}
 
     rule
@@ -243,7 +244,7 @@ module CIRCT
         <symbol-table> M:Map </symbol-table>
         <circt>
             <circt-control>
-                circtTest-hw.module ID:SymbolRefId ( Vs:Values ) => .
+                circtTest ID:SymbolRefId ( Vs:Values ) => .
             </circt-control>
             <circt-frames>
                 (
@@ -267,7 +268,7 @@ module CIRCT
         <symbol-table> M:Map </symbol-table>
         <circt>
             <circt-control>
-                circtTest-hw.module ID:SymbolRefId ( _:Values ) => .
+                circtTest ID:SymbolRefId ( _:Values ) => .
             </circt-control>
             ...
         </circt>
@@ -280,7 +281,7 @@ module CIRCT
         </circt-exec>
         <module> ID:SymbolRefId </module>
         <initial> M:Map </initial>
-        <initalized> S:Set </initialized>
+        <initialized> S:Set </initialized>
     
     rule <k> circt </k>
         <circt-exec> 

@@ -141,7 +141,7 @@ module HW
             ...
         </circt>
 
-    rule <k> circt </k>
+    rule <k> circt => done </k>
         <circt-frames>
             (
                 <circt-frame>

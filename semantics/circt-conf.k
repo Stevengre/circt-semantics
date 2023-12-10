@@ -13,7 +13,7 @@ module CIRCT-CONFIGURATION
                     <circt-locals> .Map </circt-locals>
                     <circt-output> .Map </circt-output>
                     <local-last> .Map </local-last>
-                    <module> @_:SymbolRefId </module>
+                    <module> #token("@_", "SymbolRefId"):SymbolRefId </module>
                 </circt-frame>
             </circt-frames>
             <registers> .Map </registers>
@@ -21,7 +21,7 @@ module CIRCT-CONFIGURATION
             <result> .List </result>
             <always> .Map </always>
             <initial> .Map </initial>
-            <initalized> .Set </initialized>
+            <initialized> .Set </initialized>
         </circt>
         <mlir/>
 endmodule
