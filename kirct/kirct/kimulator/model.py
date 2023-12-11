@@ -15,6 +15,7 @@ KORE_INPUTS_TEMPLATE: Final = """App(symbol="Lbl'UndsCommUndsUnds'CIRCT-SYNTAX-C
 KORE_INPUT_STOP: Final = """App(symbol="Lbl'Stop'List'LBraQuotUndsCommUndsUnds'CIRCT-SYNTAX-CORE'Unds'Values'Unds'Value'Unds'Values'QuotRBraUnds'Values", sorts=(), args=())"""
 KORE_CONTROL_TO_REPLACE = """App(symbol="Lbl'-LT-'circt-control'-GT-'", sorts=(), args=(App(symbol='dotk', sorts=(), args=()),))"""
 
+
 class KimulatorModel:
     module_name: str
     source_file: str
@@ -81,6 +82,7 @@ class KimulatorModel:
             state_text = str(self.context.state)
             state_text = state_text.replace(KORE_CONTROL_TO_REPLACE, control, 1)
             self.context.state = self.context.krun.run_pattern(pattern=eval(state_text))
+            print()
             # todo: 没有执行，怀疑是语义的问题。通过85-95行基本排除run_pattern导致的问题，大概率是语义的问题。
             # with NamedTemporaryFile(mode='w') as f:
             #     eval(state_text).write(f)
