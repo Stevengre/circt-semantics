@@ -69,21 +69,21 @@ module BITS
     rule !Bits bits(X:Int, W:Int) => bitsCast(X xorInt (2 ^Int W -Int 1), W)
 
     // bits to int
-    rule Bits2Int(bits(X:Int, W:Int):Bits) => X requires isPos(X, W)
-    rule Bits2Int(bits(X:Int, W:Int):Bits) => -1 -Int (X xorInt (2 ^Int W -Int 1)) [owise]
+    rule Bits2Int(bits(X:Int, W:Int)) => X requires isPos(X, W)
+    rule Bits2Int(bits(X:Int, W:Int)) => -1 -Int (X xorInt (2 ^Int W -Int 1)) [owise]
 
     rule Int2Bits(X:Int, W:Int) => bitsCast(X, W) requires X >=Int 0
     rule Int2Bits(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
 
     // bits to unsigned int
-    rule Bits2UInt(bits(X:Int, W:Int):Bits) => X &Int (2 ^Int W -Int 1)
+    rule Bits2UInt(bits(X:Int, W:Int)) => X &Int (2 ^Int W -Int 1)
 
-    rule Int2Bits(X:Int, W:Int) => bitsCast(X, W) requires W >=Int 0 andBool X >=Int 0
-    rule Int2Bits(X:Int, W:Int) => bitsCast(0 -Int X, W) [owise]
+    // rule Int2Bits(X:Int, W:Int) => bitsCast(X, W) requires W >=Int 0 andBool X >=Int 0
+    // rule Int2Bits(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
 
-    rule bitsCast(bits(X:Int, _:Int):Bits, W:Int) => bits(X &Int (2 ^Int W -Int 1), W)
+    rule bitsCast(bits(X:Int, _:Int), W:Int) => bits(X &Int (2 ^Int W -Int 1), W)
     rule bitsCast(X:Int, W:Int) => bits(X &Int (2 ^Int W -Int 1), W) requires X >=Int 0 andBool W >=Int 0
-    rule bitsCast(X:Int, W:Int) => bitsCast(0 -Int X, W) [owise]
+    rule bitsCast(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
 
     // bits concat
     rule BitsConcat(B:Bits, BV:BitsVec) => B concatBits BitsConcat(BV)
@@ -138,7 +138,7 @@ module BITS
             #fi
         #fi
 
-    // bits shl <<
+    // bits concatenation
     rule bits(X1:Int, W1:Int):Bits concatBits bits(X2:Int, W2:Int):Bits
         => #if W1 ==Int 0 #then bits(X2, W2) #else
             #if W2 ==Int 0 #then bits(X1, W1) #else 

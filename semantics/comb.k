@@ -193,7 +193,7 @@ module COMB
     
     // comb.divu
     rule <circt-exec> 
-            "comb.divs" ( A0:ValueId, A1:ValueId ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
+            "comb.divu" ( A0:ValueId, A1:ValueId ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(
                 T2, 
                 Bits2Int(bitsCast(
@@ -269,22 +269,25 @@ module COMB
         </circt-exec>
     
     // comb.mux
-    rule <circt-exec> 
-            "comb.mux" ( A0:ValueId, A1:ValueId, A2:ValueId ) { _:Map } : ( T0:Type, T1:Type, T2:Type ) -> ( T2:Type )
-            => ListItem( TV(
-                T2,
-                {#if V0 =/=Int 0 #then V1 #else V2 #fi}:>Value
-            ) )
+    rule <circt-exec>
+            (.K => .List)
+            ~> "comb.mux" ( _:ValueId, _:ValueId, _:ValueId ) { _:Map } : ( _:Type, _:Type, _:Type ) -> ( _:Type )
             ...
         </circt-exec>
-        <circt-locals> 
+    
+    rule <circt-exec>
+            (L:List => L ListItem( TV(T, V) ))
+            ~> "comb.mux" ( A:ValueId, As:ValueIdList => As ) { _:Map } : ( T:Type, Ts:Types => Ts ) -> ( _:Type )
             ...
-            A0 |-> TV(T0, V0)
-            A1 |-> TV(T1, V1)
-            A2 |-> TV(T2, V2)
-            ... 
-        </circt-locals>
-        requires T1 ==K T2
+        </circt-exec>
+        <circt-locals> ... A |-> TV(T, V) ... </circt-locals>
+
+    rule <circt-exec>
+            ListItem( TV(_T0, V0) ) ListItem( TV(T, V1) ) ListItem( TV(T, V2) )
+            ~> "comb.mux" ( .ValueIdList ) { _:Map } : ( .Types ) -> ( T:Type )
+            => ListItem( TV(T, {#if V0 =/=Int 0 #then V1 #else V2 #fi}:>Value) )
+            ...
+        </circt-exec>
 
     // comb.icmp
     rule <circt-exec>
