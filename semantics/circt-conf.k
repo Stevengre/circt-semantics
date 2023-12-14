@@ -22,6 +22,7 @@ module CIRCT-CONFIGURATION
             <always> .Map </always>
             <initial> .Map </initial>
             <initialized> .Set </initialized>
+            <sv-wires> .Map </sv-wires>
         </circt>
         <mlir/>
 endmodule
