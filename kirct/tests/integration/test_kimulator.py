@@ -1,6 +1,7 @@
-from ..resource.adder import kimulator_context, adder_model
+from resource.circt_modules.adder.adder import kimulator_context, adder_model
 from ..resource import DATA_PATH
 from kirct.kimulator.generator import Generator
+
 
 
 def test_generate_simulation_header() -> None:

@@ -8,6 +8,7 @@ import logging
 from typing import Final
 import subprocess
 from pyk.kore.parser import KoreParser
+from pyk.ktool.kprint import KPrint
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class KimulatorContext:
     traceOn: bool
     sim_time: int
     krun: KRun
+    kprint: KPrint
     history_dir: Path  # filename(sim_time.json): mlir_gen_name -> Signal
     state: Pattern | None
     changed: dict[str, bool]  # mlir_gen_name -> if Signal, then changed is True
@@ -61,6 +63,7 @@ class KimulatorContext:
         use_dir.mkdir(parents=True, exist_ok=True)
         history_dir.mkdir(parents=True, exist_ok=True)
         self.krun = KRun(definition_dir=kbuild_definition_dir('llvm'), use_directory=use_dir)
+        self.kprint = KPrint(definition_dir=kbuild_definition_dir('llvm'), use_directory=use_dir)
         self.history_dir = history_dir
         self.state = None
         self.last_signals = {}

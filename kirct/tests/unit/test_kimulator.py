@@ -57,6 +57,3 @@ def test_model_context_identical_modification() -> None:
     assert context.signals['x'].signal_value == 3
 
 
-# def test_nested_model_modification() -> None:
-#     assert False
-

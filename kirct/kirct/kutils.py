@@ -35,4 +35,3 @@ def get_cell(term: Pattern, cells: list[(str, CellType)]) -> Pattern:
 
 
 
-
