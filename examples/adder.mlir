@@ -1,10 +1,20 @@
-#loc = loc("<stdin>":4:11)
-#loc1 = loc("<stdin>":5:11)
-#loc2 = loc("src/main/scala/Main.scala":14:16)
+#loc = loc("adder.mlir":1:20)
+#loc1 = loc("adder.mlir":1:31)
+#loc2 = loc("adder.mlir":1:43)
+#loc3 = loc("adder.mlir":1:60)
+#loc4 = loc("adder.mlir":5:21)
+#loc5 = loc("adder.mlir":5:32)
+#loc6 = loc("adder.mlir":5:44)
 "builtin.module"() ({
   "hw.module"() ({
-  ^bb0(%arg0: i1, %arg1: i1, %arg2: i8, %arg3: i8):
-    %0 = "comb.add"(%arg2, %arg3) {sv.namehint = "_io_out_T_1"} : (i8, i8) -> i8
-    "hw.output"(%0) : (i8) -> ()
-  }) {argLocs = [#loc, #loc1, #loc2, #loc2], argNames = ["clock", "reset", "io_a", "io_b"], comment = "", function_type = (i1, i1, i8, i8) -> i8, parameters = [], resultLocs = [#loc2], resultNames = ["io_out"], sym_name = "Adder"} : () -> ()
+  ^bb0(%arg0: i8, %arg1: i8):
+    "hw.output"(%arg1, %arg0) : (i8, i8) -> ()
+  }) {module_type = !hw.modty<input xx : i8, input yy : i8, output result1 : i8, output result2 : i8>, parameters = [], port_locs = [#loc, #loc1, #loc2, #loc3], sym_name = "Swap"} : () -> ()
+  
+  "hw.module"() ({
+  ^bb0(%arg0: i8, %arg1: i8):
+    %0, %1 = "hw.instance"(%arg0, %arg1) {argNames = ["x", "y"], instanceName = "swap", moduleName = @Swap, parameters = [], resultNames = ["result1", "result2"]} : (i8, i8) -> (i8, i8)
+    %2 = "comb.add"(%0, %1) : (i8, i8) -> i8
+    "hw.output"(%2) : (i8) -> ()
+  }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i8>, parameters = [], port_locs = [#loc4, #loc5, #loc6], sym_name = "Adder"} : () -> ()
 }) : () -> ()

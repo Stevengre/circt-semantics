@@ -36,16 +36,18 @@ module CIRCT-SYNTAX-CORE
     syntax List ::= Values2List(Values) [function]
     rule Values2List(V:Value, Vs:Values) => ListItem(V) Values2List(Vs)
     rule Values2List(.Values) => .List
+
+    syntax Result ::= "result" "(" BareId "," TypeValue ")"
 endmodule
 
 
 module HW-INOUT
     imports CIRCT-SYNTAX-CORE
 
-    syntax HwInOutType ::= "!hw.inout" "<" IntegerType ">"
+    syntax HwInOutType ::= "!hw.inout" "<" Type ">"
     syntax Type ::= HwInOutType
 
-    syntax HwInOut ::= "hw.inout" "(" String "," IntegerType "," Int ")"
+    syntax HwInOut ::= "hw.inout" "(" String "," Type "," Value ")"
     syntax Value ::= HwInOut
 endmodule
 
@@ -161,6 +163,7 @@ module CIRCT-SYNTAX
     rule toValue(B:Bool) => #if B #then 1 #else 0 #fi
     rule toValue([I:IntegerLiteral : _:IntegerType]) => {I}:>Int
     rule toValue([ L:AttributeValueList ]) => ([ toValues(L) ]):HwArray
+    rule toValue(V:HwModty) => V
     
     syntax Values ::= toValues(AttributeValueList) [function]
     rule toValues(I:IntegerLiteral : _:IntegerType , L:AttributeValueList) => {I}:>Int , toValues(L)
@@ -355,8 +358,10 @@ module CIRCT
         <always> M:Map </always>
 
     rule <k> circt </k>
-        <circt-exec> 
-            _:Values ~> (
+        <circt-exec>
+            (.K => getAttrValue(Attr, #token("module_type", "BareId")))
+            ~> _:Values 
+            ~> (
                 .OpResults = "hw.module" (Vs:ValueIdList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
                 => "hw.module" (Vs) (Rs) {Attr} : FT
             )
@@ -364,9 +369,18 @@ module CIRCT
     
     rule <k> circt </k>
         <circt-exec> 
-            _:Values
+            !hw.modty< P:ModulePort, PL:ModulePortList => PL >
+            ~> _:Values
+            ~> "hw.module" (_:ValueIdList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
+        </circt-exec>
+        <ports> L:List => L ListItem(P) </ports>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            (!hw.modty< .ModulePortList > => .K)
+            ~> _:Values
             ~> (
-                "hw.module" (_:ValueIdList) ({.OperationList B:Block}, .Regions) {_:Map} : _:FunctionType
+                "hw.module" (_:ValueIdList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
                 => B
             )
         </circt-exec>
@@ -374,7 +388,7 @@ module CIRCT
     rule <k> circt </k>
         <circt-exec> 
             (V:Value, Vs:Values => Vs)
-            ~> _:CaretId ((I:ValueId : T:Type, Is:ValueIdAndTypeList => Is)) : _:OperationList
+            ~> _:CaretId (I:ValueId : T:Type, Is:ValueIdAndTypeList => Is) : _:OperationList
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
     

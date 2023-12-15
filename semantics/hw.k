@@ -16,17 +16,33 @@ module HW
 
     // hw.output
     rule <k> circt </k>
-        <circt-exec> 
-            "hw.output" ( (I:ValueId , Is:ValueIdList => Is) ) {_:Map} : ( _:Types ) -> ( .Types )
+        <circt-exec>
+            (.K => L)
+            ~> "hw.output" ( _:ValueIdList ) { _:Map } : ( _:Types ) -> ( .Types )
             ...
         </circt-exec>
-        <circt-output> M:Map => M [I <- Locals [I]] </circt-output>
+        <ports> L:List </ports>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (ListItem(input _:BareId : _:Type) L:List => L)
+            ~> "hw.output" ( _Is:ValueIdList ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (ListItem(output Name:BareId : _:Type) L:List => L)
+            ~> "hw.output" ( I:ValueId, Is:ValueIdList => Is ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-output> Out:List => Out ListItem(result(Name, {Locals[I]}:>TypeValue)) </circt-output>
         <circt-locals> Locals:Map </circt-locals>
         requires I in_keys(Locals)
     
     rule <k> circt </k>
-        <circt-exec> 
-            "hw.output" ( .ValueIdList ) {_:Map} : ( _:Types ) -> ( .Types ) => .List
+        <circt-exec>
+            .List ~> "hw.output" ( .ValueIdList ) {_:Map} : ( _:Types ) -> ( .Types ) => .List
             ...
         </circt-exec>
 
@@ -117,16 +133,18 @@ module HW
                     <circt-frame>
                         ...
                         <circt-exec> .K </circt-exec>
-                        <circt-output> Out:Map </circt-output>
+                        <circt-output> Out:List </circt-output>
                         ...
                     </circt-frame>
                     => .Bag
                 )
                 <circt-frame>
                     ...
-                    <circt-exec> 
-                        (_:Values ~> "hw.instance" ( .ValueIdList ) { _:Map } : _:FunctionType)
-                        => values(Out)
+                    <circt-exec>
+                        (.K => .List)
+                        ~> (.K => Out)
+                        ~> _:Values 
+                        ~> "hw.instance" ( .ValueIdList ) { _:Map } : _:FunctionType
                         ...
                     </circt-exec>
                     ...
@@ -136,13 +154,30 @@ module HW
             ...
         </circt>
 
+    rule <k> circt </k>
+        <circt-exec>
+            (L1:List => L1 ListItem(V))
+            ~> (ListItem(result(_:BareId, V:TypeValue)) L2:List => L2)
+            ~> _:Values 
+            ~> "hw.instance" ( .ValueIdList ) { _:Map } : _:FunctionType
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            _:List
+            ~> (.List ~> _:Values ~> "hw.instance" ( .ValueIdList ) { _:Map } : _:FunctionType => .K)
+            ...
+        </circt-exec>
+
+    // all done
     rule <k> circt => done </k>
         <circt-frames>
             (
                 <circt-frame>
                     ...
                     <circt-exec> .K </circt-exec>
-                    <circt-output> Out:Map </circt-output>
+                    <circt-output> Out:List </circt-output>
                     ...
                 </circt-frame>
                 => .Bag
