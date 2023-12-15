@@ -80,7 +80,7 @@ class KimulatorContext:
 
     def __del__(self):
         # 在删除时，删除 history_dir
-        shutil.rmtree(self.history_dir, ignore_errors=True)
+        shutil.rmtree(self.krun.use_directory, ignore_errors=True)
         shutil.rmtree(self.history_dir, ignore_errors=True)
 
     def trace_ever_on(self, trace_ever_on: bool):
@@ -92,23 +92,6 @@ class KimulatorContext:
 
     def time_inc(self, time_inc: int):
         self.sim_time += time_inc
-        return
-
-    def init_pattern(self, source: Path):
-        check_file_path(source)
-        args = ['kast', '--definition', str(self.krun.definition_dir),
-                '--input', 'program', str(source), '--output', 'kore']
-        try:
-            proc_res = subprocess.run(
-                args,
-                capture_output=True,
-                check=True,
-            )
-            self.state = KoreParser(proc_res.stdout.decode('utf-8')).pattern()
-        except subprocess.CalledProcessError as err:
-            raise RuntimeError(
-                f'Command kast exited with code {err.returncode} for: {source}', err.stdout, err.stderr
-            ) from err
         return
 
     def gen_abbrev(self):
