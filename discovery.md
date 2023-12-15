@@ -1,2 +1,0 @@
-1. 2023.12.15 found: new type without its syntax and explanation in https://circt.llvm.org/docs/Dialects/HW/#moduletype
-   1. !hw.modty<input arge : i3, input arg1 : i1, input arg2 : !hw.array<16e8xi8>, output result 150>
