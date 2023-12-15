@@ -37,8 +37,18 @@ module CIRCT-SYNTAX-CORE
     rule Values2List(V:Value, Vs:Values) => ListItem(V) Values2List(Vs)
     rule Values2List(.Values) => .List
 
-    syntax HwInOut ::= "!hw.inout" "<" IntegerType ">"
-    syntax Type ::= HwInOut
+    syntax Result ::= "result" "(" BareId "," TypeValue ")"
+endmodule
+
+
+module HW-INOUT
+    imports CIRCT-SYNTAX-CORE
+
+    syntax HwInOutType ::= "!hw.inout" "<" Type ">"
+    syntax Type ::= HwInOutType
+
+    syntax HwInOut ::= "hw.inout" "(" String "," Type "," Value ")"
+    syntax Value ::= HwInOut
 endmodule
 
 
@@ -55,14 +65,33 @@ module HW-ARRAY
     // syntax Int ::= getHwArrayElemWidth(HwArrayType)
 
     syntax Value ::= HwArrayGet(HwArray, Int) [function]
+    syntax HwArray ::= HwArraySlice(HwArray, Int, Int) [function]
     
     rule HwArrayGet(([ _:Value, Vs:Values ]):HwArray, I:Int) => HwArrayGet([ Vs ], I -Int 1) requires I >Int 0
     rule HwArrayGet(([ V:Value, _:Values ]):HwArray, 0) => V
+
+    rule HwArraySlice([_:Value, Vs:Values], LowIndex:Int, HighIndex:Int)
+        => [ ValuesFromList(range(toList(Vs), LowIndex, size(toList(Vs)) -Int HighIndex)) ]
+    
+    syntax String ::= "HwArraySizePrefix2String" "(" HwArraySizePrefix ")" [function, hook(STRING.token2string)]
+    syntax Int ::= HwArraySize(HwArrayType) [function]
+    rule HwArraySize(!hw.array < S:HwArraySizePrefix _:Type >)
+        => String2Int(substrString(HwArraySizePrefix2String(S), 0, lengthString(HwArraySizePrefix2String(S)) -Int 1))
+
+    syntax List ::= toList(Values) [function]
+    rule toList(V:Value, Vs:Values) => ListItem(V) toList(Vs)
+    rule toList(.Values) => .List
+
+    syntax Values ::= ValuesFromList(List) [function]
+    rule ValuesFromList(ListItem(V:Value) L:List) => V, ValuesFromList(L)
+    rule ValuesFromList(.List) => .Values
+
 endmodule
 
 
 module HW-STRUCT
     imports CIRCT-SYNTAX-CORE
+    imports BITS
 
     syntax HwStructType ::= "!hw.struct" "<" HwStructFields ">"
     syntax HwStructFields ::= List{HwStructField, ","}
@@ -72,7 +101,35 @@ module HW-STRUCT
 
     syntax HwStruct ::= Map
     syntax Value ::= HwStruct
+
+    syntax Value ::= HwStructExtract(HwStruct, HwStructType, Int) [function]
+    rule HwStructExtract(M:Map, !hw.struct< _:HwStructField, Fs:HwStructFields >, Index:Int)
+        => HwStructExtract(M, !hw.struct< Fs >, Index -Int 1)
+        requires Index >Int 0
+    rule HwStructExtract(M:Map, !hw.struct< F:BareId : _:Type, _:HwStructFields >, 0) => {M[F]}:>Value
+
+    syntax Value ::= HwStructInject(HwStruct, Value, HwStructType, Int) [function]
+    rule HwStructInject(M:Map, V:Value, !hw.struct< _:HwStructField, Fs:HwStructFields >, Index:Int)
+        => HwStructInject(M, V, !hw.struct< Fs >, Index -Int 1)
+        requires Index >Int 0
+    rule HwStructInject(M:Map, V:Value, !hw.struct< F:BareId : _:Type, _:HwStructFields >, 0) => M[F <- V]
+
+    
+    syntax HwUnionType ::= "!hw.union" "<" HwStructFields ">"
+    syntax Type ::= HwUnionType
+
+    // syntax HwUnion ::= "hw.union" "(" Int "," HwUnionType ")"
+    syntax HwUnion ::= Int
+    syntax Value ::= HwUnion
+
+    syntax Value ::= HwUnionExtract(Value, Type) [function]
+    rule HwUnionExtract(X:Int, T:IntegerType) => Bits2UInt(bitsCast(X, getWidth(T)))
+
+    syntax Type ::= getFieldType(HwStructFields, Int) [function]
+    rule getFieldType(_:BareId : _:Type, Fs:HwStructFields, I:Int) => getFieldType(Fs, I -Int 1) requires I >Int 0
+    rule getFieldType(_:BareId : T:Type, _:HwStructFields, 0) => T
 endmodule
+
 
 module HW-ENUM
     imports CIRCT-SYNTAX-CORE
@@ -81,15 +138,19 @@ module HW-ENUM
                         | "enum" "<" HwEnumItems ">"
     syntax HwEnumItems ::= List{HwEnumItem, ","}
     syntax HwEnumItem ::= BareId
-
     syntax Type ::= HwEnumType
+
+    syntax HwEnum ::= "hw.enum" "(" HwEnumItem "," HwEnumType ")"
+    syntax Value ::= HwEnum
 endmodule
+
 
 
 module CIRCT-SYNTAX
     imports HW-ARRAY
     imports HW-STRUCT
     imports HW-ENUM
+    imports HW-INOUT
 
     syntax Control ::= "circtTest" SymbolRefId "(" Values ")"
 
@@ -102,15 +163,20 @@ module CIRCT-SYNTAX
     rule toValue(B:Bool) => #if B #then 1 #else 0 #fi
     rule toValue([I:IntegerLiteral : _:IntegerType]) => {I}:>Int
     rule toValue([ L:AttributeValueList ]) => ([ toValues(L) ]):HwArray
+    rule toValue(V:HwModty) => V
     
     syntax Values ::= toValues(AttributeValueList) [function]
     rule toValues(I:IntegerLiteral : _:IntegerType , L:AttributeValueList) => {I}:>Int , toValues(L)
+    rule toValues(B:Bool , L:AttributeValueList) => #if B #then 1 #else 0 #fi, toValues(L)
+    rule toValues([Vs:AttributeValueList] , L:AttributeValueList) => [toValues(Vs)], toValues(L)
+    rule toValues(S:String, L:AttributeValueList) => S, toValues(L)
     rule toValues(.AttributeValueList) => .Values
 
     syntax Value ::= getAttrValue(Map, BareId) [function]
     rule getAttrValue(M:Map, I:BareId) => toValue({M[I]}:>AttributeValue)
 
-
+    // syntax Value ::= getAttrValue(Map, String) [function]
+    // rule getAttrValue(M:Map, I:String) => toValue({M[#token(I, "BareId")]}:>AttributeValue)
 endmodule
 
 
@@ -292,8 +358,10 @@ module CIRCT
         <always> M:Map </always>
 
     rule <k> circt </k>
-        <circt-exec> 
-            _:Values ~> (
+        <circt-exec>
+            (.K => getAttrValue(Attr, #token("module_type", "BareId")))
+            ~> _:Values 
+            ~> (
                 .OpResults = "hw.module" (Vs:ValueIdList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
                 => "hw.module" (Vs) (Rs) {Attr} : FT
             )
@@ -301,9 +369,18 @@ module CIRCT
     
     rule <k> circt </k>
         <circt-exec> 
-            _:Values
+            !hw.modty< P:ModulePort, PL:ModulePortList => PL >
+            ~> _:Values
+            ~> "hw.module" (_:ValueIdList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
+        </circt-exec>
+        <ports> L:List => L ListItem(P) </ports>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            (!hw.modty< .ModulePortList > => .K)
+            ~> _:Values
             ~> (
-                "hw.module" (_:ValueIdList) ({.OperationList B:Block}, .Regions) {_:Map} : _:FunctionType
+                "hw.module" (_:ValueIdList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
                 => B
             )
         </circt-exec>
@@ -311,7 +388,7 @@ module CIRCT
     rule <k> circt </k>
         <circt-exec> 
             (V:Value, Vs:Values => Vs)
-            ~> _:CaretId ((I:ValueId : T:Type, Is:ValueIdAndTypeList => Is)) : _:OperationList
+            ~> _:CaretId (I:ValueId : T:Type, Is:ValueIdAndTypeList => Is) : _:OperationList
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
     
@@ -345,6 +422,15 @@ module CIRCT
             ...
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
+    
+    // %35:2 = "hw.struct_explode"(%32) : (!hw.struct<foo: i19, bar: i7>) -> (i19, i7)
+    rule <k> circt </k>
+        <circt-exec> 
+            (L:List => range(L, I, 0))
+            ~> (A:ValueId : I:Int, Rs:OpResults => Rs) =
+            ...
+        </circt-exec>
+        <circt-locals> M:Map => M [A <- range(L, 0, size(L) -Int I)] </circt-locals>
     
     rule <k> circt </k>
         <circt-exec> 

@@ -90,21 +90,24 @@ module SV
     // sv.wire, how to express a inout value?
     rule <k> circt </k>
         <circt-exec> 
-            "sv.wire" ( .ValueIdList ) {_:Map} : ( .Types ) -> ( T:HwInOut )
-            => ListItem( TV(T, 0) )
+            "sv.wire" ( .ValueIdList ) {M:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            => ListItem( TV(
+                !hw.inout< T >,
+                hw.inout({M[#token("name", "BareId")]}:>String, T, 0)
+            ) )
             ...
         </circt-exec>
     
     // sv.read_inout, where to read?
     rule <k> circt </k>
         <circt-exec> 
-            "sv.read_inout" ( I:ValueId ) { .Map } : ( !hw.inout < Tp:IntegerType > ) -> ( Tp:IntegerType )
-            => V
+            "sv.read_inout" ( I:ValueId ) { .Map } : ( !hw.inout < T:IntegerType > ) -> ( T:IntegerType )
+            => ListItem(TV(T, V))
             ...
         </circt-exec>
         <circt-locals>
             ...
-            I |-> TV(!hw.inout<Tp>, V)
+            I |-> TV(!hw.inout< T >, hw.inout(_:String, T, V:Int))
             ...
         </circt-locals>
 endmodule
