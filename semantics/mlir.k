@@ -1,8 +1,8 @@
 requires "ctrl.k"
 
-module MLIR-SYNTAX
-    imports STRING-SYNTAX
-    imports INT-SYNTAX
+module MLIR-SYNTAX-CORE
+    imports STRING
+    imports INT
     imports MAP
 
     // ------------------------- Common Syntax ------------------------- //
@@ -17,20 +17,6 @@ module MLIR-SYNTAX
     syntax FloatLiteral ::= r"[\\+-]?[0-9]+\\.[0-9]*([eE][\\+-]?[0-9]+)?" [token,prec(1)]
     syntax StringLiteral ::= String
 
-    // ------------------------- Top-Level Productions ------------------------- //
-    syntax TopLevel ::= List{TopLevelElement,""}
-    // syntax TopLevel ::= TopLevelElement | TopLevelElement TopLevel
-    syntax TopLevelElement ::= Operation | AttributeAliasDef | TypeAliasDef
-    // ```
-
-    // ## Identifiers & Keywords
-
-    // ```k
-    // suffix-id ::= (digit+ | ((letter|id-punct) (letter|id-punct|digit)*))
-    // alias-name :: = bare-id
-    // Uses of value, e.g. in an operand list to an operation.
-    // value-use ::= value-id
-    // value-use-list ::= value-use (`,` value-use)*
     syntax BareId ::= r"[a-zA-Z_][a-zA-Z0-9_$\\.]*" [token]
     syntax BareIdList ::= BareId 
                         | BareId "," BareIdList [prefer] // ambiguity with AffineExprList & No other use
@@ -44,16 +30,42 @@ module MLIR-SYNTAX
     syntax SymbolRefId ::= "@" StringLiteral [token]
     syntax SymbolRefIdList ::= SymbolRefId | SymbolRefId "::" SymbolRefIdList
     // syntax SymbolRefId ::= SymbolRefId "::" SymbolRefId [token]
+endmodule
 
-    // ------------------------------
-    // Dialects with New Operations, Attributes, and Types
-    // Description Approach in mlir-dialect-syntax.k
-    // Collaborative Development Approach in ods-gen-k.k
-    // ```
 
-    // ### Operations
+module MLIR-ATTR
+    imports MLIR-SYNTAX-CORE
 
-    // ```k
+    syntax Type
+
+    syntax HwModty ::= "!hw.modty" "<" ModulePortList ">"
+    syntax ModulePortList ::= List{ModulePort, ","}
+    syntax ModulePort ::= "input" BareId ":" Type
+                        | "output" BareId ":" Type
+    
+    syntax AttributeValue ::= HwModty
+    syntax Value ::= HwModty
+
+    syntax StructType ::= "struct" "<"  ">"
+    syntax Field ::= BareId ":" Type
+    syntax FieldList ::= List{Field, ","}
+    
+    syntax UarrayType ::= "uarray" "<" ArraySizeX Type ">"
+    syntax ArraySizeX ::= r"[1-9][0-9]*x" [token]
+
+    syntax Type ::= StructType
+                  | UarrayType
+endmodule
+
+
+module MLIR-SYNTAX
+    imports MLIR-ATTR
+
+    // ------------------------- Top-Level Productions ------------------------- //
+    syntax TopLevel ::= List{TopLevelElement,""}
+    // syntax TopLevel ::= TopLevelElement | TopLevelElement TopLevel
+    syntax TopLevelElement ::= Operation | AttributeAliasDef | TypeAliasDef
+
     // ------------------------- Operations ------------------------- //
     // operation ::= op-result-list? (generic-operation | custom-operation) trailing-location?
     syntax Operation ::= OpResultList GenericOperation TrailingLocation // 11
@@ -168,10 +180,10 @@ module MLIR-SYNTAX
                             | StringLiteral "=" AttributeValue
                             | BareId
 
-    syntax AttributeValue ::= StringLiteral
     syntax AttributeValue ::= AttributeAlias
                             | DialectAttribute
                             | BuiltinAttribute
+                            | StringLiteral
 
     // ------------------------- Attribute Value Aliases ------------------------- //
     // syntax AttributeAliasDef ::= "#" BareId "=" AttributeValue
