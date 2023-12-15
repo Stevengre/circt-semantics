@@ -1,35 +1,29 @@
 [
   {
     "name": "Adder",
-    "numStateBytes": 5,
+    "numStateBytes": 4,
     "states": [
       {
-        "name": "clock",
+        "name": "i0",
         "offset": 0,
-        "numBits": 1,
+        "numBits": 8,
         "type": "input"
       },
       {
-        "name": "reset",
+        "name": "i1",
         "offset": 1,
-        "numBits": 1,
+        "numBits": 8,
         "type": "input"
       },
       {
-        "name": "io_a",
+        "name": "res_add",
         "offset": 2,
         "numBits": 8,
-        "type": "input"
+        "type": "output"
       },
       {
-        "name": "io_b",
+        "name": "res_sub",
         "offset": 3,
-        "numBits": 8,
-        "type": "input"
-      },
-      {
-        "name": "io_out",
-        "offset": 4,
         "numBits": 8,
         "type": "output"
       }
