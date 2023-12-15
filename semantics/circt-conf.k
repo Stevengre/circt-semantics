@@ -11,9 +11,10 @@ module CIRCT-CONFIGURATION
                 <circt-frame multiplicity="*" type="List">
                     <circt-exec> .K </circt-exec>
                     <circt-locals> .Map </circt-locals>
-                    <circt-output> .Map </circt-output>
+                    <circt-output> .List </circt-output>
                     <local-last> .Map </local-last>
                     <module> #token("@_", "SymbolRefId"):SymbolRefId </module>
+                    <ports> .List </ports>
                 </circt-frame>
             </circt-frames>
             <registers> .Map </registers>
