@@ -8,8 +8,16 @@ from tempfile import NamedTemporaryFile
 from ..kutils import k_symbol, get_cell, CellType
 from pyk.kore.syntax import *
 from pyk.konvert import _kore_to_kast
+from pyk.ktool.kprint import _kast, KAstInput, KAstOutput
+from pyk.kore.tools import kore_print, PrintOutput
+from pyk.cterm import CTerm
+from pyk.kast.manip import cell_label_to_var_name, flatten_label
 
-CONTROL_TEMPLATE: Final = """circtTest-hw.module @{module_name}({inputs})"""
+# todo: make them easy to configure
+# Change the following codes when something in the semantics changed.
+# - result_cell and codes below <- cell storing the results
+
+CONTROL_TEMPLATE: Final = """circtTest @{module_name}({inputs})"""
 KORE_CONTROL_TEMPLATE: Final = """App(symbol="Lbl'-LT-'circt-control'-GT-'", sorts=(), args=(App(symbol='kseq', sorts=(), args=(App(symbol='inj', sorts=(SortApp(name='SortControl', sorts=()), SortApp(name='SortKItem', sorts=())), args=(App(symbol="LblcirctTest-hw'Stop'module'UndsLParUndsRParUnds'CIRCT'Unds'Control'Unds'SymbolRefId'Unds'Values", sorts=(), args=(DV(sort=SortApp(name='SortSymbolRefId', sorts=()), value=String(value='@{module_name}')), {inputs})),)), App(symbol='dotk', sorts=(), args=()))),))"""
 KORE_INPUTS_TEMPLATE: Final = """App(symbol="Lbl'UndsCommUndsUnds'CIRCT-SYNTAX-CORE'Unds'Values'Unds'Value'Unds'Values", sorts=(), args=(App(symbol='inj', sorts=(SortApp(name='SortInt', sorts=()), SortApp(name='SortValue', sorts=())), args=(DV(sort=SortApp(name='SortInt', sorts=()), value=String(value='{input}')),)), {inputs}))"""
 KORE_INPUT_STOP: Final = """App(symbol="Lbl'Stop'List'LBraQuotUndsCommUndsUnds'CIRCT-SYNTAX-CORE'Unds'Values'Unds'Value'Unds'Values'QuotRBraUnds'Values", sorts=(), args=())"""
@@ -57,16 +65,23 @@ class KimulatorModel:
         for signal in self.signals.values():
             if signal.is_input:
                 args.append(str(signal.signal_value))
+        ctrl = CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=", ".join(args))
 
         if self.context.state is None:
-            control = CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=", ".join(args))
             proc_res = _krun(input_file=Path(self.source_file),
                              definition_dir=self.context.krun.definition_dir,
                              output=KRunOutput.KORE,
-                             cmap={'Control': control},
+                             cmap={'Control': ctrl},
                              check=True)
             self.context.state = KoreParser(proc_res.stdout).pattern()
         else:
+            # todo: optimize this
+            # obtain the kore presentation of control
+            ctrl_kore = self.context.kprint._expression_kast(ctrl,
+                                                             input=KAstInput.PROGRAM,
+                                                             output=KAstOutput.KORE,
+                                                             sort='Control').stdout
+            empty_ctrl_cell = eval(KORE_CONTROL_TO_REPLACE)
             # todo: optimize this
             # put control into context.state
             # # construct control
@@ -75,12 +90,18 @@ class KimulatorModel:
             while index >= 0:
                 inputs = KORE_INPUTS_TEMPLATE.format(input=args[index], inputs=inputs)
                 index -= 1
-            control = KORE_CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=inputs)
+            control_temp0 = KORE_CONTROL_TEMPLATE.format(module_name=self.module_name, inputs=inputs)
+            # control_temp1 = _kast(definition_dir=self.context.krun.definition_dir,
+            #                       input=KAstInput.PROGRAM,
+            #                       output=KAstOutput.KORE,
+            #                       expression='circtTest @Adder(0,0,1,2)',
+            #                       sort='Control'
+            #                       ).stdout
             # control_pattern = eval(control)
             # todo: frozen App is not convenient to use
             # # update circt-control cell
             state_text = str(self.context.state)
-            state_text = state_text.replace(KORE_CONTROL_TO_REPLACE, control, 1)
+            state_text = state_text.replace(KORE_CONTROL_TO_REPLACE, ctrl_kore, 1)
             self.context.state = self.context.krun.run_pattern(pattern=eval(state_text))
             print()
             # todo: 没有执行，怀疑是语义的问题。通过85-95行基本排除run_pattern导致的问题，大概率是语义的问题。
@@ -112,21 +133,19 @@ class KimulatorModel:
             #                  output=KRunOutput.KORE,
             #                  cmap={'Control': simple_control},
             #                  check=True)
-
-
-        # todo: make the following code more readable; and utils for k in k_utils
         # find circt-output cell
-        kast_output = _kore_to_kast(
-            get_cell(self.context.state, [
-                ('circt', CellType.NORMAL),
-                ('circt-frames', CellType.NORMAL),
-                ('circt-frame', CellType.LIST),
-                ('circt-output', CellType.NORMAL)])).to_dict()
+        state_cterm = CTerm.from_kast(self.context.kprint.kore_to_kast(self.context.state))
+        result_cell = state_cterm.cells[cell_label_to_var_name('<result>')]
+        result_values = flatten_label('_|->_', flatten_label('ListItem', result_cell)[-1])
+        kv_result = result_cell
         # setup outputs for context
-        for kv in kast_output['args']:
-            key = kv['args'][0]['token']
-            value = int(kv['args'][1]['args'][1]['token'])
-            # todo: remove this binding from %0 to io_out
-            if key == '%0':
-                key = 'io_out'
-            self.context.signals[key].signal_value = value
+        # kore_print(pattern=kast_output,
+        #            definition_dir=self.context.krun.definition_dir,
+        #            output=PrintOutput.KORE)
+        # for kv in kast_output['args']:
+        #     key = kv['args'][0]['token']
+        #     value = int(kv['args'][1]['args'][1]['token'])
+        #     # todo: remove this binding from %0 to io_out
+        #     if key == '%0':
+        #         key = 'io_out'
+        #     self.context.signals[key].signal_value = value
