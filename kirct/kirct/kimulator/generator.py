@@ -25,11 +25,12 @@ for signal in kimulator_context.signals.values():
 """
 
 # inputs: mlir_gen_name, spaces=len(mlir_gen_name), name, is_input, signal_type
-SIGNAL_TEMPLATE = """    '{mlir_gen_name}': Signal(name='{name}', 
-               {spaces}abbrev=kimulator_context.gen_abbrev(), 
-               {spaces}mlir_gen_name='{mlir_gen_name}', 
-               {spaces}is_input={is_input}, 
-               {spaces}signal_type='{signal_type}', 
+SIGNAL_TEMPLATE = """    '{mlir_gen_name}': Signal(name='{name}',
+               {spaces}abbrev=kimulator_context.gen_abbrev(),
+               {spaces}mlir_gen_name='{mlir_gen_name}',
+               {spaces}is_input={is_input},
+               {spaces}num_bits={num_bits},
+               {spaces}signal_type='{signal_type}',
                {spaces}signal_value=0),
 """
 
@@ -74,6 +75,7 @@ class Generator:
                         name=str(s['name']).split('/')[-1],
                         spaces=' ' * len(str(s['name'])),
                         is_input=str(str(s['type']) != 'output'),
+                        num_bits=str(s['numBits']),
                         signal_type=str(s['type'])
                     )
                 print()
