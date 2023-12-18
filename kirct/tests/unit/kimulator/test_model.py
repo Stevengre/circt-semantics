@@ -1,5 +1,7 @@
 from kirct.kimulator.model import *
+from kirct.kimulator.context import _changed_signal_history, _changed_signal
 from resource.circt_modules.adder.expected.adder import adder_model
+import copy
 
 
 def test_nested_model_eval() -> None:
@@ -13,23 +15,29 @@ def test_model_eval_two_output() -> None:
 
 
 def test_model_eval_twice() -> None:
-    # todo:
-    # todo: update result
-    # todo: run multiple times
+
     # Given
-    adder_model.io_a = 2
-    adder_model.io_b = 6
+    adder_model.io_a = 6
+    adder_model.io_b = 2
     # When
     adder_model.eval()
     # Then
-    assert adder_model.io_out == 8
-    # When
+    assert adder_model.res_add == 8
+    assert adder_model.res_sub == 4
+    assert len(_changed_signal) == 4
+    temp_changed = copy.deepcopy(_changed_signal)
+    assert _changed_signal_history == {}
+    # When: run second time
     adder_model.context.time_inc(1)
-    adder_model.io_a = 1
-    adder_model.io_b = 3
+    adder_model.io_a = 5
+    adder_model.io_b = 1
     adder_model.eval()
     # Then
-    assert adder_model.io_out == 4
+    assert adder_model.res_add == 6
+    assert adder_model.res_sub == 4
+    for (s0, s1) in zip(_changed_signal_history[0], temp_changed):
+        assert s0.signal_value == s1.signal_value
+    assert len(_changed_signal) == 3
 
 
 def test_simultaneous_model_modification() -> None:

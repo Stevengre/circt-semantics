@@ -9,8 +9,11 @@ from typing import Final
 import subprocess
 from pyk.kore.parser import KoreParser
 from pyk.ktool.kprint import KPrint
+import copy
 
 _LOGGER: Final = logging.getLogger(__name__)
+_changed_signal_history = {}
+_changed_signal = []
 
 
 class Signal:
@@ -18,8 +21,9 @@ class Signal:
     abbrev: str
     mlir_gen_name: str
     is_input: bool
+    num_bits: int
     signal_type: str
-    signal_value: int
+    _signal_value: int
 
     _SIGNAL_TYPE: Final = {'input', 'output', 'register', 'memory', 'wire'}
 
@@ -28,15 +32,27 @@ class Signal:
                  abbrev: str = '',
                  mlir_gen_name: str = '',
                  is_input: bool = False,
+                 num_bits: int = 1,
                  signal_type: str = 'wire',
                  signal_value: int = 0):
         self.name = name
         self.abbrev = abbrev
         self.mlir_gen_name = mlir_gen_name
         self.is_input = is_input
+        self.num_bits = num_bits
         self.signal_type = signal_type
-        self.signal_value = signal_value
+        self._signal_value = signal_value
         return
+
+    @property
+    def signal_value(self) -> int:
+        return self._signal_value
+
+    @signal_value.setter
+    def signal_value(self, value: int):
+        if value != self._signal_value:
+            self._signal_value = value
+            _changed_signal.append(copy.copy(self))
 
 
 class KimulatorContext:
@@ -46,7 +62,6 @@ class KimulatorContext:
     kprint: KPrint
     history_dir: Path  # filename(sim_time.json): mlir_gen_name -> Signal
     state: Pattern | None
-    changed: dict[str, bool]  # mlir_gen_name -> if Signal, then changed is True
     signals: dict[str, Signal]  # mlir_gen_name -> Signal
     _rest: int = 0
 
@@ -91,17 +106,19 @@ class KimulatorContext:
         return self.sim_time
 
     def time_inc(self, time_inc: int):
+        _changed_signal_history[self.sim_time] = copy.deepcopy(_changed_signal)
+        _changed_signal.clear()
         self.sim_time += time_inc
         return
 
     def gen_abbrev(self):
         self._rest += 1
-        t = self._rest
+        t: int = self._rest
         abbrev = ""
         while t != 0:
             c = (t % 84) + 33
             if c >= ord('0'):
                 c += 10
             abbrev += chr(int(c))
-            t /= 84
+            t //= 84
         return abbrev

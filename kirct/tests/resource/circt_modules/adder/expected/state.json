@@ -4,13 +4,13 @@
     "numStateBytes": 4,
     "states": [
       {
-        "name": "i0",
+        "name": "io_a",
         "offset": 0,
         "numBits": 8,
         "type": "input"
       },
       {
-        "name": "i1",
+        "name": "io_b",
         "offset": 1,
         "numBits": 8,
         "type": "input"
