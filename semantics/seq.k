@@ -1,5 +1,5 @@
 module SEQ
-    imports CIRCT-CONFIGURATION
+    imports CONFIGURATION
     imports CIRCT-SYNTAX
 
     // todo

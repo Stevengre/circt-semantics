@@ -48,3 +48,10 @@ or
 bin/kirct --help
 ```
 
+## Test
+generator: 生成 generic 的 mlir 和 adder.py (module of Adder)
+model: MLIR module
+context: all runtime context
+vcd:
+- class KimulatorVCD, manage vcd files, dump the result of simulation
+- vcd.diff, comparing two vcd files.

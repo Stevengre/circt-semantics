@@ -1,9 +1,9 @@
 requires "bits.k"
-requires "circt-conf.k"
+// requires "circt-conf.k"
 
 module COMB
-    imports CIRCT-CONFIGURATION
     imports CIRCT-SYNTAX
+    imports CONFIGURATION
     imports BITS
     imports MAP
 

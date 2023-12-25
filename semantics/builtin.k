@@ -62,6 +62,7 @@ module BUILTIN-DIALECT-SYNTAX
                         | StringLiteral
     // SymbolRefAttr
     syntax BuiltinAttribute ::= SymbolRefIdList
+                            //   | SymbolRefId
 
     // TypeAttr
     syntax BuiltinAttribute ::= Type
