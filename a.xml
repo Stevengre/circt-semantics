@@ -1,52 +1,13 @@
-<generatedTop>
+<T>
   <k>
     done ~> .
   </k>
-  <circt>
-    <circt-control>
-      .
-    </circt-control>
-    <circt-frames>
-      .CirctFrameCellList
-    </circt-frames>
-    <registers>
-      .Map
-    </registers>
-    <macros>
-      .Map
-    </macros>
-    <result>
-      ListItem ( ListItem ( result ( res , TV ( i8 , 4 ) ) ) )
-    </result>
-    <always>
-      .Map
-    </always>
-    <initial>
-      .Map
-    </initial>
-    <initialized>
-      .Set
-    </initialized>
-    <sv-wires>
-      .Map
-    </sv-wires>
-  </circt>
   <mlir>
     <mlir-program>
       .TopLevel
     </mlir-program>
     <standard-ops>
-      .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] ( { .OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "hw.output" ( %arg1 , %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
-      parameters |-> [ ]
-      port_locs |-> [ #loc , #loc1 , #loc2 , #loc3 , .AttributeValueList ]
-      sym_name |-> "Swap" } : ( .Types ) -> ( .Types )  .OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
-      instanceName |-> "swap"
-      moduleName |-> @Swap
-      parameters |-> [ ]
-      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
-      parameters |-> [ ]
-      port_locs |-> [ #loc4 , #loc5 , #loc6 , .AttributeValueList ]
-      sym_name |-> "Adder" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OperationList
+      .OperationList
     </standard-ops>
     <attr-alias>
       #loc1 |-> loc ( "adder.mlir" : 1 : 31 )
@@ -61,7 +22,7 @@
       .Map
     </type-alias>
     <symbol-table>
-      ListItem ( "Adder" ) |-> .OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.stop" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.finish" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.exit" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
       instanceName |-> "swap"
       moduleName |-> @Swap
       parameters |-> [ ]
@@ -69,12 +30,39 @@
       parameters |-> [ ]
       port_locs |-> [ #loc4 , #loc5 , #loc6 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )
-      ListItem ( "Swap" ) |-> .OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "hw.output" ( %arg1 , %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
+      "Swap" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "hw.output" ( %arg1 , %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc , #loc1 , #loc2 , #loc3 , .AttributeValueList ]
       sym_name |-> "Swap" } : ( .Types ) -> ( .Types )
     </symbol-table>
   </mlir>
-<generatedCounter>
-  0
-</generatedCounter>
+  <circt>
+    <circt-control>
+      .
+    </circt-control>
+    <circt-frames>
+      .CirctFrameCellList
+    </circt-frames>
+    <registers>
+      .Map
+    </registers>
+    <macros>
+      .Map
+    </macros>
+    <result>
+      ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
+    </result>
+    <always>
+      .Map
+    </always>
+    <initial>
+      "Adder" |-> { .OpResults = "sv.stop" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.finish" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.exit" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions
+    </initial>
+    <initialized>
+      .Set
+    </initialized>
+    <sv-wires>
+      .Map
+    </sv-wires>
+  </circt>
+</T>

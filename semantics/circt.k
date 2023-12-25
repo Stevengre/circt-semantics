@@ -3,7 +3,7 @@ requires "comb.k"
 requires "hw.k"
 requires "seq.k"
 requires "sv.k"
-requires "circt-conf.k"
+// requires "circt-conf.k"
 // requires "types.k"
 
 module CIRCT-SYNTAX-CORE
@@ -14,6 +14,7 @@ module CIRCT-SYNTAX-CORE
     imports INT
     imports STRING
     imports LIST
+    imports MLIR
 
     syntax Value ::= String
                    | Int
@@ -182,7 +183,6 @@ endmodule
 
 module CIRCT-PREPROCESS
     imports CIRCT-SYNTAX
-    imports CIRCT-CONFIGURATION
 
     rule <k> (.K => preprocess-1 ~> Ops) ~> preprocess ... </k>
         <standard-ops> Ops:OperationList </standard-ops>
@@ -308,7 +308,6 @@ module CIRCT
     rule
         <k> circt </k>
         <symbol-table> M:Map </symbol-table>
-        <circt>
             <circt-control>
                 circtTest ID:SymbolRefId ( Vs:Values ) => .
             </circt-control>
@@ -318,19 +317,17 @@ module CIRCT
                     <circt-frame>
                         ...
                         <circt-exec>
-                            initial ~> always ~> Vs ~> M [ ListItem(SymbolRefId2String(ID)) ]
+                            initial ~> always ~> Vs ~> M [ SymbolRefId2String(ID) ]
                         </circt-exec>
                         <module> ID </module>
                         ...
                     </circt-frame>
                 )
             </circt-frames>
-            ...
-        </circt>
-        requires ListItem(SymbolRefId2String(ID)) in_keys(M)
+        requires SymbolRefId2String(ID) in_keys(M)
     
     rule
-        <k> circt => stop "no such module" </k>
+        <k> circt => stop "no such module" ~> ID </k>
         <symbol-table> M:Map </symbol-table>
         <circt>
             <circt-control>
@@ -338,11 +335,11 @@ module CIRCT
             </circt-control>
             ...
         </circt>
-        requires notBool ListItem(SymbolRefId2String(ID)) in_keys(M)
+        requires notBool SymbolRefId2String(ID) in_keys(M)
     
     rule <k> circt </k>
         <circt-exec> 
-            initial => #if notBool ID in S #then M [ID] orDefault .OperationList #else .K #fi
+            initial => #if notBool ID in S #then M [ID] orDefault .OperationList #else .OperationList #fi
             ...
         </circt-exec>
         <module> ID:SymbolRefId </module>
@@ -362,9 +359,10 @@ module CIRCT
             (.K => getAttrValue(Attr, #token("module_type", "BareId")))
             ~> _:Values 
             ~> (
-                .OpResults = "hw.module" (Vs:ValueIdList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
+                "hw.module" (Vs:ValueIdList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
                 => "hw.module" (Vs) (Rs) {Attr} : FT
             )
+            ...
         </circt-exec>
     
     rule <k> circt </k>
@@ -372,6 +370,7 @@ module CIRCT
             !hw.modty< P:ModulePort, PL:ModulePortList => PL >
             ~> _:Values
             ~> "hw.module" (_:ValueIdList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
+            ...
         </circt-exec>
         <ports> L:List => L ListItem(P) </ports>
     
@@ -383,6 +382,7 @@ module CIRCT
                 "hw.module" (_:ValueIdList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
                 => B
             )
+            ...
         </circt-exec>
     
     rule <k> circt </k>

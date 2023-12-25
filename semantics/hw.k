@@ -1,7 +1,7 @@
 requires "bits.k"
 
 module HW
-    imports CIRCT-CONFIGURATION
+    imports CONFIGURATION
     imports CIRCT-SYNTAX
     imports BITS
 
@@ -104,9 +104,9 @@ module HW
                     <circt-frame>
                         ...
                         <circt-exec> 
-                            Vs ~> M [ ListItem(SymbolRefId2String(
-                                {getAttr(Attr, #token("moduleName", "BareId"))}:>SymbolRefId
-                            )) ] 
+                            Vs ~> M [ SymbolRefId2String(
+                                {Attr[#token("moduleName", "BareId")] orDefault #token("@_", "SymbolRefId")}:>SymbolRefId
+                            ) ] orDefault (stop "no such module")
                         </circt-exec>
                         ...
                     </circt-frame>
