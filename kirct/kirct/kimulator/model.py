@@ -29,19 +29,23 @@ class KimulatorModel:
     source_file: str
     signals: dict[str, Signal] = {}  # name -> Signal
     # todo: allow children
-    children = []
+    children = {}  # instance_name -> KimulatorModel
     context: KimulatorContext | None
 
     def __init__(self,
                  module_name: str = '',
                  source_file: str = '',
                  signals=None,
+                 children=None,
                  context: KimulatorContext = None):
         if signals is None:
             signals = {}
+        if children is None:
+            children = {}
         self.module_name = module_name
         self.source_file = source_file
         self.signals = signals
+        self.children = children
         self.prev_signals = {}
         self.context = context
         return

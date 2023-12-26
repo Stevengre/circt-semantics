@@ -1,4 +1,4 @@
-MODULE = AddTwo
+MODULE = chisel-template
 
 # 目标文件
 FIR_FILE = ./source/$(MODULE).fir

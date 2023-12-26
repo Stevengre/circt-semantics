@@ -5,3 +5,5 @@ kdist/
 .DS_Store
 .pytest_cache/
 temp/
+.bsp/
+.scala-build/

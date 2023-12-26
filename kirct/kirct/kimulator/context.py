@@ -55,6 +55,23 @@ class Signal:
             _changed_signal.append(copy.copy(self))
 
 
+class Abbrev:
+    _rest: int = 0
+
+    @classmethod
+    def gen(cls):
+        cls._rest += 1
+        t: int = cls._rest
+        abbrev = ""
+        while t != 0:
+            c = (t % 84) + 33
+            if c >= ord('0'):
+                c += 10
+            abbrev += chr(int(c))
+            t //= 84
+        return abbrev
+
+
 class KimulatorContext:
     traceOn: bool
     sim_time: int
@@ -111,14 +128,4 @@ class KimulatorContext:
         self.sim_time += time_inc
         return
 
-    def gen_abbrev(self):
-        self._rest += 1
-        t: int = self._rest
-        abbrev = ""
-        while t != 0:
-            c = (t % 84) + 33
-            if c >= ord('0'):
-                c += 10
-            abbrev += chr(int(c))
-            t //= 84
-        return abbrev
+

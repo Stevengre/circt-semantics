@@ -1,0 +1,2 @@
+- adder: the simplest module for unit test
+- chisel-lang-docs: modules from https://www.chisel-lang.org/docs, except for chisel-template.

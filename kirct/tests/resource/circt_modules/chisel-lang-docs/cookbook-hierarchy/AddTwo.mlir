@@ -4,14 +4,11 @@ module {
     %0 = comb.add %in, %c1_i8 {sv.namehint = "_out_T"} : i8
     hw.output %0 : i8
   }
-  hw.module private @AddTwo(in %in : i8, out out : i8) {
+  hw.module @AddTwo(in %clock : !seq.clock, in %reset : i1, in %in : i8, out out : i8) {
     %i0.out = hw.instance "i0" @AddOne(in: %in: i8) -> (out: i8)
     %i1.out = hw.instance "i1" @AddOne(in: %i0.out: i8) -> (out: i8)
     hw.output %i1.out : i8
   }
-  hw.module @Adder(in %in : i8, out out2 : i8, out out3: i8) {
-    %i3.out = hw.instance "i3" @AddTwo(in: %in: i8) -> (out: i8)
-    %i4.out = hw.instance "i4" @AddOne(in: %i3.out: i8) -> (out: i8)
-    hw.output %i3.out, %i4.out : i8, i8
+  om.class @AddTwo_Class(%basepath: !om.basepath) {
   }
 }
