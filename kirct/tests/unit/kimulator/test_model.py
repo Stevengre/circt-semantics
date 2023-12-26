@@ -1,6 +1,6 @@
 from kirct.kimulator.model import *
 from kirct.kimulator.context import _changed_signal_history, _changed_signal
-from resource.circt_modules.adder.expected.adder import adder_model
+from resource.circt_modules.adder.adder.adder import adder_model
 import copy
 
 
@@ -15,7 +15,6 @@ def test_model_eval_two_output() -> None:
 
 
 def test_model_eval_twice() -> None:
-
     # Given
     adder_model.io_a = 6
     adder_model.io_b = 2
