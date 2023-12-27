@@ -24,7 +24,7 @@ kimulator_context.trace_ever_on(True)
 
 # inputs: sid, name, mlir_gen_name, spaces=len(sid) , is_input, signal_type
 SIGNAL_TEMPLATE = """{sid} = Signal(name='{name}',
-          {spaces}abbrev='{abbrev}',
+          {spaces}abbrev="{abbrev}",
           {spaces}mlir_gen_name='{mlir_gen_name}',
           {spaces}is_input={is_input},
           {spaces}num_bits={num_bits},
@@ -92,7 +92,7 @@ class Generator:
                     if str(s['name']) not in signals.keys():
                         signals[str(s['name'])] = Signal(
                             name=str(s['name']).split('/')[-1],
-                            abbrev=Abbrev.gen(),
+                            abbrev=Abbrev.gen().replace("'", "\\'") if "'" in Abbrev.gen() else Abbrev.gen(),
                             mlir_gen_name=str(s['name']),
                             is_input=(str(s['type']) == 'input'),
                             num_bits=int(s['numBits']),
@@ -110,10 +110,10 @@ class Generator:
         str_context_signals = ""
         str_models = []
         model_signals = {}
-        model_children = {top_module_name.lower() + "_model": set()}
-        model_names = set()
+        model_children = {top_module_name.lower() + "_model": []}
+        model_names = []
         for signal in signals.values():
-            sid = signal.mlir_gen_name.replace('/', '_')
+            sid = signal.mlir_gen_name.replace('/', '_') + "_signal"
             nested = signal.mlir_gen_name.split('/')
             if len(nested) == 1:
                 model_name = top_module_name.lower() + "_model"
@@ -137,7 +137,8 @@ class Generator:
             )
             if model_signals.get(model_name) is None:
                 model_signals[model_name] = [{'name': signal.name, 'sid': sid}]
-                model_names.add(model_name)
+                if model_name not in model_names:
+                    model_names.append(model_name)
             else:
                 model_signals[model_name].append({'name': signal.name, 'sid': sid})
             if len(nested) > 1:
@@ -145,22 +146,23 @@ class Generator:
                 father_name = top_module_name.lower() + "_model"
                 child_name = nested[i].lower() + "_model"
                 while i < len(nested) - 1:
-                    if model_children[father_name] is None:
-                        model_children[father_name] = {child_name}
-                    else:
-                        model_children[father_name].add(child_name)
+                    if model_children.get(father_name) is None:
+                        model_children[father_name] = [child_name]
+                    elif child_name not in model_children[father_name]:
+                        model_children[father_name].append(child_name)
                     i += 1
                     father_name = child_name
                     child_name = nested[i].lower() + "_model"
 
         fathers = [top_module_name.lower() + "_model"]
         model_children_backup = copy.deepcopy(model_children)
-        while model_names != set():
+        while model_names != []:
             model_name = fathers[-1]
             module_name = ''
             if top_module_name.lower() + "_model" == model_name:
                 module_name = top_module_name
-            if model_children.get(model_name) is None or model_children[model_name] == set():
+            if model_children.get(model_name) is None or model_children[model_name] == []:
+                model_children[model_name] = []
                 str_models.append(MODEL_TEMPLATE.format(
                     model_name=model_name,
                     module_name=module_name,
@@ -174,7 +176,7 @@ class Generator:
                         name=child[:-6],
                         model=child,
                         spaces=' ' * (43 + len(model_name))
-                    ) for child in model_children[model_name]])
+                    ) for child in model_children.get(model_name)])
                 ))
                 # delete all this child in model_children
                 for child in model_children.values():
@@ -183,8 +185,7 @@ class Generator:
                 model_names.remove(model_name)
                 fathers.pop()
             else:
-                fathers.append(model_children[model_name].pop())
-                model_children[model_name].add(fathers[-1])
+                fathers.append(model_children[model_name][-1])
 
         module_output = HEADER_TEMPLATE.format(
             generic_mlir_path=str_generic_mlir_path,
