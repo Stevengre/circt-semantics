@@ -4,85 +4,85 @@
     "numStateBytes": 14,
     "states": [
       {
-        "name": "in",
+        "name": "io_a",
         "offset": 0,
         "numBits": 8,
         "type": "input"
       },
       {
-        "name": "out2",
+        "name": "res_out2",
         "offset": 1,
         "numBits": 8,
         "type": "output"
       },
       {
-        "name": "out3",
+        "name": "res_out1",
         "offset": 2,
         "numBits": 8,
         "type": "output"
       },
       {
-        "name": "in",
+        "name": "io_a",
         "offset": 3,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/in",
+        "name": "i3/io_a",
         "offset": 4,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i0/in",
+        "name": "i3/i0/io_a",
         "offset": 5,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i0/out",
+        "name": "i3/i0/res",
         "offset": 6,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i1/in",
+        "name": "i3/i1/io_a",
         "offset": 7,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i1/out",
+        "name": "i3/i1/res",
         "offset": 8,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/out",
+        "name": "i3/res2",
         "offset": 9,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i4/in",
+        "name": "i4/io_a",
         "offset": 10,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i4/out",
+        "name": "i4/res",
         "offset": 11,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "out2",
+        "name": "res_out2",
         "offset": 12,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "out3",
+        "name": "res_out1",
         "offset": 13,
         "numBits": 8,
         "type": "wire"

@@ -98,8 +98,7 @@ class KimulatorContext:
         self.kprint = KPrint(definition_dir=kbuild_definition_dir('llvm'), use_directory=use_dir)
         self.history_dir = history_dir
         self.state = None
-        self.last_signals = {}
-        self.curr_signals = {}
+        self.signals = {}
         return
 
     def __enter__(self):

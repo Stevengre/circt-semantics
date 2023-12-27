@@ -1,17 +1,7 @@
 from kirct.kimulator.model import *
-from kirct.kimulator.context import _changed_signal_history, _changed_signal
-from resource.circt_modules.adder.adder.adder import adder_model
+from kirct.kimulator.context import _changed_signal_history, _changed_signal, Abbrev
+from resource.circt_modules.adder.expected.adder import adder_model
 import copy
-
-
-def test_nested_model_eval() -> None:
-    # todo
-    pass
-
-
-def test_model_eval_two_output() -> None:
-    # todo: update result with multiple outputs
-    pass
 
 
 def test_model_eval_twice() -> None:
@@ -44,13 +34,13 @@ def test_simultaneous_model_modification() -> None:
     kimulator_context: KimulatorContext = KimulatorContext()
     kimulator_context.signals = {
         'io_a': Signal(name='io_a',
-                       abbrev=kimulator_context.gen_abbrev(),
+                       abbrev=Abbrev.gen(),
                        mlir_gen_name='io_a',
                        is_input=True,
                        signal_type='input',
                        signal_value=0),
         'io_b': Signal(name='io_b',
-                       abbrev=kimulator_context.gen_abbrev(),
+                       abbrev=Abbrev.gen(),
                        mlir_gen_name='io_b',
                        is_input=True,
                        signal_type='input',

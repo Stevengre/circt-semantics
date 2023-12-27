@@ -114,7 +114,7 @@ class KimulatorModel:
         # find circt-output cell
         # ------
         # help: observe the result
-        # kore_print(self.context.kprint.kast_to_kore(r_cell), self.context.krun.definition_dir, 'pretty')
+        # kore_print(pattern=self.context.kprint.kast_to_kore(r_cell), definition_dir=self.context.krun.definition_dir, output='pretty')
         state_cterm = CTerm.from_kast(self.context.kprint.kore_to_kast(self.context.state))
         r_cell = state_cterm.cells[cell_label_to_var_name('<result>')]
         r_curr = flatten_label('_List_', r_cell)[-1]
