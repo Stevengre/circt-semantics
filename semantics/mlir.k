@@ -259,6 +259,10 @@ module CONFIGURATION
             <initial> .Map </initial>
             <initialized> .Set </initialized>
             <sv-wires> .Map </sv-wires>
+            <observation>
+                <ob-in> .Map </ob-in>
+                <ob-out> .Map </ob-out>
+            </observation>
         </circt>
     </T>
 endmodule
@@ -305,10 +309,28 @@ module MLIR
     rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
     rule <k> 
             (.K => Attr[#token("sym_name", "BareId")]) 
-            ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ({ .OperationList B:Block }) { Attr:Map } : T:FunctionType => B)
+            ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] (R:Region) { Attr:Map } : T:FunctionType => R)
             ...
         </k>
-        <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] ({ .OperationList B }) { Attr } : T ] </symbol-table>
+        <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] (R) { Attr } : T ] </symbol-table>
+
+    rule <k>
+            _:String ~> ({ .OperationList B:Block } => B)
+            ...
+        </k>
+
+    rule <k>
+            _:String ~> ({ Ops:OperationList .BlockList } => Ops)
+            ...
+        </k>
+    // rule <k> 
+    //         (.K => Attr[#token("sym_name", "BareId")]) 
+    //         ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ({ Ops:OperationList .BlockList }) { Attr:Map } : T:FunctionType => Ops)
+    //         ...
+    //     </k>
+    //     <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] ({ Ops .BlockList }) { Attr } : T ] </symbol-table>
+
+    rule <k> .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types ) => . ... </k>
 
     rule <k>
             _Module:String

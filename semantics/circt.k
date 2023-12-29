@@ -472,5 +472,18 @@ module CIRCT
             ...
         </circt-exec>
     
-    
+    // all done
+    rule <k> circt => done </k>
+        <circt-frames>
+            (
+                <circt-frame>
+                    ...
+                    <circt-exec> .K </circt-exec>
+                    <circt-output> Out:List </circt-output>
+                    ...
+                </circt-frame>
+                => .Bag
+            )
+        </circt-frames>
+        <result> L:List => L ListItem(Out) </result>
 endmodule
