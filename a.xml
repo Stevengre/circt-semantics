@@ -64,5 +64,15 @@
     <sv-wires>
       .Map
     </sv-wires>
+    <observation>
+      <ob-in>
+        "swap" |-> ListItem ( 2 )
+        ListItem ( 3 )
+      </ob-in>
+      <ob-out>
+        "swap" |-> ListItem ( result ( result1 , TV ( i8 , 3 ) ) )
+        ListItem ( result ( result2 , TV ( i8 , 2 ) ) )
+      </ob-out>
+    </observation>
   </circt>
 </T>
