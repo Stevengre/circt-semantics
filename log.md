@@ -11,3 +11,5 @@ dialect-type-contents ::= dialect-type-body
                             | `{` dialect-type-contents+ `}`
                             | [^\[<({\]>)}\0]+
 ```
+3. 2023.12.21 found: why the previous nested adder is wrong -> 1. not in the module to build symbol table 2. the submodule is not private.
+4. 2023.12.21 found: a new dialect is required without its role described in https://circt.llvm.org

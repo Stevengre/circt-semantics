@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Adder",
+    "numStateBytes": 14,
+    "states": [
+      {
+        "name": "io_a",
+        "offset": 0,
+        "numBits": 8,
+        "type": "input"
+      },
+      {
+        "name": "res_out2",
+        "offset": 1,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "res_out1",
+        "offset": 2,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "io_a",
+        "offset": 3,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i3/io_a",
+        "offset": 4,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i3/i0/io_a",
+        "offset": 5,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i3/i0/res",
+        "offset": 6,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i3/i1/io_a",
+        "offset": 7,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i3/i1/res",
+        "offset": 8,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i3/res2",
+        "offset": 9,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i4/io_a",
+        "offset": 10,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i4/res",
+        "offset": 11,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "res_out2",
+        "offset": 12,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "res_out1",
+        "offset": 13,
+        "numBits": 8,
+        "type": "wire"
+      }
+    ]
+  }
+]

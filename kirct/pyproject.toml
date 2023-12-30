@@ -14,7 +14,7 @@ include = ["kirct"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pyk = { git = "https://github.com/runtimeverification/pyk.git", rev="b5c15a2" }
+pyk = { git = "https://github.com/runtimeverification/pyk.git", rev="79b24b78a2b1dc0cad6216e21764662fb771c01b" }
 vcdvcd = "^2.3.4"
 
 [tool.poetry.scripts]
