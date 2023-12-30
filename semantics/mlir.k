@@ -1,4 +1,5 @@
 requires "ctrl.k"
+// requires "conf.k"
 
 module MLIR-SYNTAX-CORE
     imports STRING
@@ -18,8 +19,10 @@ module MLIR-SYNTAX-CORE
     syntax StringLiteral ::= String
 
     syntax BareId ::= r"[a-zA-Z_][a-zA-Z0-9_$\\.]*" [token]
-    syntax BareIdList ::= BareId 
-                        | BareId "," BareIdList [prefer] // ambiguity with AffineExprList & No other use
+    syntax BareIdList ::= List{BareId, ","}
+    // syntax BareIdList ::= BareId 
+                        // | BareId "," BareIdList [prefer] // ambiguity with AffineExprList & No other use
+    
     syntax ValueId ::= r"%[0-9]+(#[0-9]+)?" [prefer,token,prec(3)]
     syntax ValueId ::= r"%[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*(#[0-9]+)?" [token]
     syntax ValueIdList ::= List{ValueId, ","}
@@ -27,8 +30,9 @@ module MLIR-SYNTAX-CORE
     // syntax ValueUseLit ::= ValueUse | ValueUse "," ValueUseLit
     syntax SymbolRefId ::= r"@[0-9]+" [token]
     syntax SymbolRefId ::= r"@[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*" [token]
-    syntax SymbolRefId ::= "@" StringLiteral [token]
+    // syntax SymbolRefId ::= "@" StringLiteral [token]
     syntax SymbolRefIdList ::= SymbolRefId | SymbolRefId "::" SymbolRefIdList
+    // syntax SymbolRefIdList ::= List{SymbolRefId, "::"}
     // syntax SymbolRefId ::= SymbolRefId "::" SymbolRefId [token]
 endmodule
 
@@ -60,22 +64,23 @@ endmodule
 
 module MLIR-SYNTAX
     imports MLIR-ATTR
+    // imports CTRL
 
     // ------------------------- Top-Level Productions ------------------------- //
     syntax TopLevel ::= List{TopLevelElement,""}
-    // syntax TopLevel ::= TopLevelElement | TopLevelElement TopLevel
     syntax TopLevelElement ::= Operation | AttributeAliasDef | TypeAliasDef
+    // syntax TopLevel ::= TopLevelElement | TopLevelElement TopLevel
 
     // ------------------------- Operations ------------------------- //
     // operation ::= op-result-list? (generic-operation | custom-operation) trailing-location?
     syntax Operation ::= OpResultList GenericOperation TrailingLocation // 11
-                    | OpResultList CustomOperation TrailingLocation // 11
-                    | GenericOperation TrailingLocation // 01
-                    | CustomOperation TrailingLocation // 01
-                    | OpResultList GenericOperation // 10
-                    | OpResultList CustomOperation // 10
-                    | GenericOperation // 00
-                    | CustomOperation // 00
+                       | OpResultList CustomOperation TrailingLocation // 11
+                       | GenericOperation TrailingLocation // 01
+                       | CustomOperation TrailingLocation // 01
+                       | OpResultList GenericOperation // 10
+                       | OpResultList CustomOperation // 10
+                       | GenericOperation // 00
+                       | CustomOperation // 00
     //generic-operation ::= string-literal `(` value-use-list? `)`  successor-list? region-list? dictionary-attribute? `:` function-type
 
     syntax GenericOperation ::= StringLiteral "(" ValueIdList ")" ":" FunctionType
@@ -87,14 +92,18 @@ module MLIR-SYNTAX
                               | StringLiteral "(" ValueIdList ")" SuccessorList RegionList ":" FunctionType                            
                               | StringLiteral "(" ValueIdList ")" SuccessorList RegionList AttrDict ":" FunctionType
 
-    syntax OpResult ::= ValueId | ValueId ":" IntegerLiteral
-    syntax OpResults ::= List{OpResult, ","} [prefer]
-    syntax OpResultList ::=  OpResults "="
+    syntax OpResult ::= ValueId 
+                      | ValueId ":" IntegerLiteral
+    syntax OpResults ::= List{OpResult, ","}
+    syntax OpResultList ::= OpResults "="
+
     syntax Successor ::= CaretId ":" BlockArgList
     syntax Successors ::= List{Successor, ","}
     syntax SuccessorList ::= "[" Successors "]"
+
     syntax Regions ::= List{Region, ","}
     syntax RegionList ::= "(" Regions ")"
+
     syntax AttrDict ::= "{" AttributeEntryList "}"
                       | "{" Map "}"
     syntax TrailingLocation ::= "loc" "(" Location ")"
@@ -151,8 +160,6 @@ module MLIR-SYNTAX
     syntax DialectTypeBody ::= "<" ">"
                              | "<" DialectTypeContentsList ">"
     
-    // syntax DialectTypeContentsList ::= DialectTypeContents 
-                                    //  | DialectTypeContents DialectTypeContentsList // [prefer]
     syntax DialectTypeContentsList ::= List{DialectTypeContents, ""}
     
     syntax DialectTypeContents ::= DialectTypeBody
@@ -211,17 +218,171 @@ module MLIR-SYNTAX
     // Builtin dialect specifies the following syntaxes, and other dialects must import them.
     syntax Location //::= "?"
     syntax CustomOperation // ::= BareId CustomOperationFormat
-    // syntax CustomOperationFormat
     syntax BuiltinType
     syntax BuiltinAttribute
-
+    // syntax CustomOperationFormat
 endmodule
 
+
+module CONFIGURATION
+    imports MLIR-SYNTAX
+    imports LIST
+    imports SET
+    imports CTRL
+
+    configuration
+    <T>
+        <k> mlir </k>
+        <mlir>
+            <mlir-program> $PGM:TopLevel </mlir-program>
+            <standard-ops> .OperationList </standard-ops>
+            <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
+            <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
+            <symbol-table> .Map </symbol-table>
+        </mlir>
+        <circt>
+            <circt-control> $Control:K </circt-control>
+            <circt-frames>
+                <circt-frame multiplicity="*" type="List">
+                    <circt-exec> .K </circt-exec>
+                    <circt-locals> .Map </circt-locals>
+                    <circt-output> .List </circt-output>
+                    <local-last> .Map </local-last>
+                    <module> #token("@_", "SymbolRefId"):SymbolRefId </module>
+                    <ports> .List </ports>
+                </circt-frame>
+            </circt-frames>
+            <registers> .Map </registers>
+            <macros> .Map </macros>
+            <result> .List </result>
+            <always> .Map </always>
+            <initial> .Map </initial>
+            <initialized> .Set </initialized>
+            <sv-wires> .Map </sv-wires>
+            <observation>
+                <ob-in> .Map </ob-in>
+                <ob-out> .Map </ob-out>
+            </observation>
+        </circt>
+    </T>
+endmodule
+
+
+module MLIR
+    imports MLIR-SYNTAX
+    imports SYNTAX-HELPER
+    imports CONFIGURATION
+    
+    // 先新建一个thread和frame，用于将所有的op都展开；随后再依次执行
+    // configuration
+    // <T>
+    //     <k> mlir </k>
+    //     <mlir>
+    //         <mlir-program> $PGM:TopLevel </mlir-program>
+    //         <standard-ops> .OperationList </standard-ops>
+    //         <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
+    //         <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
+    //         <symbol-table> .Map </symbol-table>
+    //     </mlir>
+    // </T>
+
+    // ----------------------------
+    // 1. Store Attribute Alias Definition into configuration
+    // ----------------------------
+    rule [attribute-alias-def]:
+        <k> mlir </k>
+        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T </mlir-program>
+        <attr-alias> M:Map => M[Alias <- Attr]</attr-alias>
+
+    // ----------------------------
+    // 2. Store Operation into std-op-list & Construct Symbol Table
+    // ----------------------------
+
+    rule [operation-standardization-helper]:
+        <k> (.K => operationStandarize(Op)) ~> mlir </k>
+        <mlir-program> Op:Operation T:TopLevel => T </mlir-program>
+        // <standard-ops> Ops:OperationList => operationStandarize(Op) Ops </standard-ops>
+        // <symbol-table> M:Map => M getSymbolTable(operationStandarize(Op), .List) </symbol-table>
+    
+    rule <k> .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] (R:Region) {_:Map} : (.Types) -> (.Types) => R ... </k>
+    rule <k> { Ops:OperationList .BlockList } => Ops ... </k>
+    rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
+    rule <k> 
+            (.K => Attr[#token("sym_name", "BareId")]) 
+            ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] (R:Region) { Attr:Map } : T:FunctionType => R)
+            ...
+        </k>
+        <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] (R) { Attr } : T ] </symbol-table>
+
+    rule <k>
+            _:String ~> ({ .OperationList B:Block } => B)
+            ...
+        </k>
+
+    rule <k>
+            _:String ~> ({ Ops:OperationList .BlockList } => Ops)
+            ...
+        </k>
+    // rule <k> 
+    //         (.K => Attr[#token("sym_name", "BareId")]) 
+    //         ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ({ Ops:OperationList .BlockList }) { Attr:Map } : T:FunctionType => Ops)
+    //         ...
+    //     </k>
+    //     <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] ({ Ops .BlockList }) { Attr } : T ] </symbol-table>
+
+    rule <k> .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types ) => . ... </k>
+
+    rule <k>
+            _Module:String
+            ~> (_:CaretId (_:ValueIdAndTypeList) : Ops:OperationList => Ops)
+            ...
+        </k>
+    
+    rule <k>
+            _Module:String
+            ~> (Op:Operation Ops:OperationList => Op ~> Ops)
+            ...
+        </k>
+
+    rule <k>
+            Module:String
+            ~> (.OpResults = "sv.always" ( _:ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
+            ...
+        </k>
+        <initial> M:Map => M [Module <- R] </initial>
+    
+    rule <k>
+            Module:String
+            ~> (.OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
+            ...
+        </k>
+        <initial> M:Map => M [Module <- R] </initial>
+
+    rule <k>
+            _Module:String
+            ~> (_:Operation => .K)
+            ...
+        </k> [owise]
+
+    rule <k>
+            _Module:String ~> .OperationList => .K
+            ...
+        </k>
+    
+    rule <k> .OperationList => . ... </k>
+
+
+    rule <k> mlir => preprocess </k>
+        <mlir-program> .TopLevel </mlir-program>
+    
+    
+endmodule
 
 
 module SYNTAX-HELPER
     imports MLIR-SYNTAX
-    imports DOMAINS
+    imports LIST
+    imports K-EQUAL
 
     syntax Int ::= integerLiteral2Int ( IntegerLiteral ) [function]
     rule integerLiteral2Int(I:Int) => I
@@ -238,85 +399,20 @@ module SYNTAX-HELPER
 
     syntax SymbolRefId ::= "String2SymbolRefId" "(" String ")" [function, total,hook(STRING.string2token)]
 
-    syntax KItem ::= "FindNext" "(" KItem "," List ")" [function]
-    rule FindNext(_:KItem, .List) => .List
-    rule FindNext (X, ListItem(X) ListItem(Y) _:List) => Y
-    rule FindNext (X, ListItem(_) L:List) => FindNext(X, L)
+    // syntax KItem ::= "FindNext" "(" KItem "," List ")" [function]
+    // rule FindNext(_:KItem, .List) => .List
+    // rule FindNext (X, ListItem(X) ListItem(Y) _:List) => Y
+    // rule FindNext (X, ListItem(_) L:List) => FindNext(X, L)
 
     // syntax Controller ::= "#revealOperations" | 
 
     // OpId, Region, Block, order
-    syntax OperationId ::= "op" "(" K "," K "," K "," Int ")" 
+    // syntax OperationId ::= "op" "(" K "," K "," K "," Int ")" 
 
     // syntax K ::= getAttributeValue(AttributeEntryList, BareId) [function]
     // rule getAttributeValue(.AttributeEntryList, _:BareId) => .K
     // rule getAttributeValue(ID:BareId = V:AttributeValue, AL:AttributeEntryList, ID) => V
     // rule getAttributeValue(_:AttributeEntry, AL:AttributeEntryList, ID:BareId) => getAttributeValue(AL, ID) [owise]
-endmodule
-
-
-module MLIR
-    imports MLIR-SYNTAX
-    imports SYNTAX-HELPER
-    imports DOMAINS
-    imports CTRL
-    
-    // 先新建一个thread和frame，用于将所有的op都展开；随后再依次执行
-    configuration
-    <T>
-        <k> mlir </k>
-        <mlir>
-            <mlir-program> $PGM:TopLevel </mlir-program>
-            <standard-ops> .OperationList </standard-ops>
-            <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
-            <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
-            <symbol-table> .Map </symbol-table>
-        </mlir>
-    </T>
-
-    // ----------------------------
-    // 1. Store Attribute Alias Definition into configuration
-    // ----------------------------
-    rule [attribute-alias-def]:
-        <k> mlir </k>
-        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T </mlir-program>
-        <attr-alias> M:Map => M[Alias <- Attr]</attr-alias>
-
-    // ----------------------------
-    // 2. Store Operation into std-op-list & Construct Symbol Table
-    // ----------------------------
-
-    rule [operation-standardization-helper]:
-        <k> mlir </k>
-        <mlir-program> Op:Operation T:TopLevel => T </mlir-program>
-        <standard-ops> Ops:OperationList => operationStandarize(Op) Ops </standard-ops>
-        <symbol-table> M:Map => M getSymbolTable(operationStandarize(Op), .List) </symbol-table>
-        // <standard-ops-temp> L:List => L ListItem(operationStandarize(Op))</standard-ops-temp>
-    
-    rule <k> mlir => preprocess </k>
-        <mlir-program> .TopLevel </mlir-program>
-    
-    // rule <k> mlir </k>
-    //     <mlir-program> Op:Operation => . ... </mlir-program>
-    //     <standard-ops> Ops:OperationList => Op Ops</standard-ops>
-    //     <symbol-table> M:Map => M getSymbolTable(Op, .List) </symbol-table>
-
-
-    // rule [operation-standardization]:
-    //     <k> mlir </k>
-    //     <standard-ops-temp> L:List ListItem(Op) => L </standard-ops-temp>
-    //     <standard-ops> Ops:OperationList => Op Ops</standard-ops>
-    //     <symbol-table> M:Map => M getSymbolTable(Op, .List) </symbol-table>
-    
-    // rule
-    //     <k> mlir => preprocess ... </k>
-    //     <standard-ops-temp> .List </standard-ops-temp>
-
-    // ----------------------------
-    // 2.1. Standarize
-    // ----------------------------
-    // TODO: Store the location into dictionaryAttribute
-
 
     syntax Operation ::= operationStandarize(Operation) [function]
 
@@ -350,7 +446,7 @@ module MLIR
     rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
         => Rs = N (Vs) [Ss] (regionListStandarize(R)) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
 
-
+    
     syntax FunctionType ::= functionTypeStandarize(FunctionType) [function]
     rule functionTypeStandarize((IT:Types)->(OT:Types)) => (IT) -> (OT)
     rule functionTypeStandarize( T:Type -> (OT:Types)) => (T) -> (OT)
@@ -434,5 +530,4 @@ module MLIR
 
     rule getSymbolTableFromBlockList(_:BlockLabel Os:OperationList BL:BlockList, L:List) 
         => getSymbolTableFromOperationList(Os, L) getSymbolTableFromBlockList(BL, L)
-
 endmodule

@@ -1,5 +1,5 @@
 module SV
-    imports CIRCT-CONFIGURATION
+    imports CONFIGURATION
     imports CIRCT-SYNTAX
 
     rule <k> circt </k>
@@ -26,15 +26,7 @@ module SV
         </circt-exec>
         <macros> M:Map </macros>
 
-    // todo ?
-    rule <k> circt </k>
-        <circt-exec> 
-            "sv.always" ( _Clk:ValueId ) ( R:Region ) { Attr:Map } : ( _:Types ) -> ( .Types )
-            => .List
-            ...
-        </circt-exec>
-        <always> M:Map => M [getAttrValue(Attr, #token("events", "BareId")) <- R] </always>
-    
+    // sv.macro.ref    
     rule <k> circt </k>
         <circt-exec> 
             ( .K => {M [#token("ident", "BareId")]}:>DialectAttribute ) 
@@ -110,4 +102,20 @@ module SV
             I |-> TV(!hw.inout< T >, hw.inout(_:String, T, V:Int))
             ...
         </circt-locals>
+    
+    // sv.initial
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.initial" ( .ValueIdList ) ( _:Region ) { .Map } : ( .Types ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+
+    // sv.always
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.always" ( .ValueIdList ) ( _:Region ) { .Map } : ( .Types ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
 endmodule

@@ -1,10 +1,20 @@
 requires "mlir.k"
 
-module CIRCT-CONFIGURATION
-    imports MLIR
+module CONFIGURATION
+    imports MLIR-SYNTAX
+    imports LIST
+    imports SET
 
     configuration
-        <k/>
+    <T>
+        <k> mlir </k>
+        <mlir>
+            <mlir-program> $PGM:TopLevel </mlir-program>
+            <standard-ops> .OperationList </standard-ops>
+            <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
+            <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
+            <symbol-table> .Map </symbol-table>
+        </mlir>
         <circt>
             <circt-control> $Control:K </circt-control>
             <circt-frames>
@@ -25,5 +35,5 @@ module CIRCT-CONFIGURATION
             <initialized> .Set </initialized>
             <sv-wires> .Map </sv-wires>
         </circt>
-        <mlir/>
+    </T>
 endmodule
