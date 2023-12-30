@@ -4,12 +4,13 @@ module CONFIGURATION
     imports MLIR-SYNTAX
     imports LIST
     imports SET
+    imports CTRL
 
     configuration
     <T>
         <k> mlir </k>
         <mlir>
-            <mlir-program> $PGM:TopLevel </mlir-program>
+            <mlir-program> $PGM:TopLevel ~> .K </mlir-program>
             <standard-ops> .OperationList </standard-ops>
             <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
             <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
@@ -34,6 +35,11 @@ module CONFIGURATION
             <initial> .Map </initial>
             <initialized> .Set </initialized>
             <sv-wires> .Map </sv-wires>
+            <trace> .List </trace>
+            <observation>
+                <ob-in> .Map </ob-in>
+                <ob-out> .Map </ob-out>
+            </observation>
         </circt>
     </T>
 endmodule

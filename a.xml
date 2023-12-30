@@ -4,35 +4,49 @@
   </k>
   <mlir>
     <mlir-program>
-      .TopLevel
+      .TopLevel ~> .
     </mlir-program>
     <standard-ops>
       .OperationList
     </standard-ops>
     <attr-alias>
-      #loc1 |-> loc ( "adder.mlir" : 1 : 31 )
-      #loc2 |-> loc ( "adder.mlir" : 1 : 43 )
-      #loc3 |-> loc ( "adder.mlir" : 1 : 60 )
-      #loc4 |-> loc ( "adder.mlir" : 5 : 21 )
-      #loc5 |-> loc ( "adder.mlir" : 5 : 32 )
-      #loc6 |-> loc ( "adder.mlir" : 5 : 44 )
+      #loc1 |-> loc ( "adder.mlir" : 1 : 32 )
+      #loc2 |-> loc ( "adder.mlir" : 5 : 20 )
+      #loc3 |-> loc ( "adder.mlir" : 5 : 31 )
+      #loc4 |-> loc ( "adder.mlir" : 5 : 43 )
+      #loc5 |-> loc ( "adder.mlir" : 5 : 60 )
+      #loc6 |-> loc ( "adder.mlir" : 11 : 21 )
+      #loc7 |-> loc ( "adder.mlir" : 11 : 32 )
+      #loc8 |-> loc ( "adder.mlir" : 11 : 44 )
       #loc |-> loc ( "adder.mlir" : 1 : 20 )
     </attr-alias>
     <type-alias>
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.stop" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.finish" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.exit" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
       instanceName |-> "swap"
       moduleName |-> @Swap
       parameters |-> [ ]
-      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
-      port_locs |-> [ #loc4 , #loc5 , #loc6 , .AttributeValueList ]
+      port_locs |-> [ #loc6 , #loc7 , #loc8 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )
-      "Swap" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "hw.output" ( %arg1 , %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
+      "Same" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : .OpResults = "hw.output" ( %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
-      port_locs |-> [ #loc , #loc1 , #loc2 , #loc3 , .AttributeValueList ]
+      port_locs |-> [ #loc , #loc1 , .AttributeValueList ]
+      sym_name |-> "Same" } : ( .Types ) -> ( .Types )
+      "Swap" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
+      instanceName |-> "same1"
+      moduleName |-> @Same
+      parameters |-> [ ]
+      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "hw.instance" ( %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
+      instanceName |-> "same2"
+      moduleName |-> @Same
+      parameters |-> [ ]
+      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , %0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
+      parameters |-> [ ]
+      port_locs |-> [ #loc2 , #loc3 , #loc4 , #loc5 , .AttributeValueList ]
       sym_name |-> "Swap" } : ( .Types ) -> ( .Types )
     </symbol-table>
   </mlir>
@@ -50,13 +64,13 @@
       .Map
     </macros>
     <result>
-      ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
+      ListItem ( ListItem ( result ( res , TV ( i8 , 6 ) ) ) )
     </result>
     <always>
       .Map
     </always>
     <initial>
-      "Adder" |-> { .OpResults = "sv.stop" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.finish" ( .ValueIdList ) [ .Successors ] ( .Regions ) { verbosity |-> 1 : i8 } : ( .Types ) -> ( .Types )  .OpResults = "sv.exit" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions
+      .Map
     </initial>
     <initialized>
       .Set
@@ -64,14 +78,21 @@
     <sv-wires>
       .Map
     </sv-wires>
+    <trace>
+      .List
+    </trace>
     <observation>
       <ob-in>
         "swap" |-> ListItem ( 2 )
         ListItem ( 3 )
+        "swap/same1" |-> ListItem ( 2 )
+        "swap/same2" |-> ListItem ( 3 )
       </ob-in>
       <ob-out>
         "swap" |-> ListItem ( result ( result1 , TV ( i8 , 3 ) ) )
         ListItem ( result ( result2 , TV ( i8 , 2 ) ) )
+        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , 2 ) ) )
+        "swap/same2" |-> ListItem ( result ( res , TV ( i8 , 3 ) ) )
       </ob-out>
     </observation>
   </circt>

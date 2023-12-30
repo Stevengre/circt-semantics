@@ -76,7 +76,8 @@ module HW
             ~> "hw.instance" ( .ValueIdList ) { Attr:Map } : _:FunctionType
             ...
         </circt-exec>
-        <ob-in> M:Map => M [Attr[#token("instanceName", "BareId")] <- L ] </ob-in>
+        <trace> Trace:List </trace>
+        <ob-in> M:Map => M [ getTrace(Trace ListItem(Attr[#token("instanceName", "BareId")])) <- L ] </ob-in>
     
     rule <k> circt </k>
         <circt-exec> 
@@ -120,6 +121,7 @@ module HW
             </circt-frame>
             ...
         </circt-frames>
+        <trace> L:List => L ListItem(Attr[#token("instanceName", "BareId")]) </trace>
 
     
     // hw.instance finish, clear frame
@@ -140,14 +142,21 @@ module HW
                     (.K => .List)
                     ~> (.K => Out)
                     ~> _:Values 
-                    ~> "hw.instance" ( .ValueIdList ) { Attr:Map } : _:FunctionType
+                    ~> "hw.instance" ( .ValueIdList ) { _Attr:Map } : _:FunctionType
                     ...
                 </circt-exec>
                 ...
             </circt-frame>
             ...
         </circt-frames>
-        <ob-out> M:Map => M [Attr[#token("instanceName", "BareId")] <- Out] </ob-out>
+        <ob-out> M:Map => M [ getTrace(L ListItem(S)) <- Out] </ob-out>
+        <trace> L:List ListItem(S:String) => L </trace>
+    
+    syntax String ::= getTrace(List) [function]
+    rule getTrace(ListItem(S1:String) ListItem(S2:String) L:List)
+        => S1 +String "/" +String getTrace(ListItem(S2:String) L)
+    rule getTrace(ListItem(S:String) .List) => S
+    rule getTrace(.List) => ""
         
 
     rule <k> circt </k>
