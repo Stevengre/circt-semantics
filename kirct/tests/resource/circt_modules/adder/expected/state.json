@@ -1,7 +1,7 @@
 [
   {
     "name": "Adder",
-    "numStateBytes": 4,
+    "numStateBytes": 8,
     "states": [
       {
         "name": "io_a",
@@ -26,6 +26,30 @@
         "offset": 3,
         "numBits": 8,
         "type": "output"
+      },
+      {
+        "name": "io_a",
+        "offset": 4,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "io_b",
+        "offset": 5,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "res_add",
+        "offset": 6,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "res_sub",
+        "offset": 7,
+        "numBits": 8,
+        "type": "wire"
       }
     ]
   }
