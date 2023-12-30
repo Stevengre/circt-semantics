@@ -1,5 +1,5 @@
 requires "ctrl.k"
-// requires "conf.k"
+requires "conf.k"
 
 module MLIR-SYNTAX-CORE
     imports STRING
@@ -224,153 +224,111 @@ module MLIR-SYNTAX
 endmodule
 
 
-module CONFIGURATION
-    imports MLIR-SYNTAX
-    imports LIST
-    imports SET
-    imports CTRL
-
-    configuration
-    <T>
-        <k> mlir </k>
-        <mlir>
-            <mlir-program> $PGM:TopLevel </mlir-program>
-            <standard-ops> .OperationList </standard-ops>
-            <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
-            <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
-            <symbol-table> .Map </symbol-table>
-        </mlir>
-        <circt>
-            <circt-control> $Control:K </circt-control>
-            <circt-frames>
-                <circt-frame multiplicity="*" type="List">
-                    <circt-exec> .K </circt-exec>
-                    <circt-locals> .Map </circt-locals>
-                    <circt-output> .List </circt-output>
-                    <local-last> .Map </local-last>
-                    <module> #token("@_", "SymbolRefId"):SymbolRefId </module>
-                    <ports> .List </ports>
-                </circt-frame>
-            </circt-frames>
-            <registers> .Map </registers>
-            <macros> .Map </macros>
-            <result> .List </result>
-            <always> .Map </always>
-            <initial> .Map </initial>
-            <initialized> .Set </initialized>
-            <sv-wires> .Map </sv-wires>
-            <observation>
-                <ob-in> .Map </ob-in>
-                <ob-out> .Map </ob-out>
-            </observation>
-        </circt>
-    </T>
-endmodule
-
-
 module MLIR
     imports MLIR-SYNTAX
     imports SYNTAX-HELPER
     imports CONFIGURATION
     
-    // 先新建一个thread和frame，用于将所有的op都展开；随后再依次执行
-    // configuration
-    // <T>
-    //     <k> mlir </k>
-    //     <mlir>
-    //         <mlir-program> $PGM:TopLevel </mlir-program>
-    //         <standard-ops> .OperationList </standard-ops>
-    //         <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
-    //         <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
-    //         <symbol-table> .Map </symbol-table>
-    //     </mlir>
-    // </T>
+    // rule <k> mlir </k>
+    //     <mlir-program> E:TopLevelElement T:TopLevel => E ~> T ... </mlir-program>
 
-    // ----------------------------
-    // 1. Store Attribute Alias Definition into configuration
-    // ----------------------------
-    rule [attribute-alias-def]:
-        <k> mlir </k>
-        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T </mlir-program>
-        <attr-alias> M:Map => M[Alias <- Attr]</attr-alias>
+    rule <k> mlir </k>
+        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T ... </mlir-program>
+        <attr-alias> M:Map => M[Alias <- Attr] </attr-alias>
 
-    // ----------------------------
-    // 2. Store Operation into std-op-list & Construct Symbol Table
-    // ----------------------------
-
-    rule [operation-standardization-helper]:
-        <k> (.K => operationStandarize(Op)) ~> mlir </k>
-        <mlir-program> Op:Operation T:TopLevel => T </mlir-program>
-        // <standard-ops> Ops:OperationList => operationStandarize(Op) Ops </standard-ops>
-        // <symbol-table> M:Map => M getSymbolTable(operationStandarize(Op), .List) </symbol-table>
+    rule <k> mlir </k>
+        <mlir-program>
+            Op:Operation T:TopLevel => operationStandarize(Op) ~> T
+            ...
+        </mlir-program>
     
-    rule <k> .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] (R:Region) {_:Map} : (.Types) -> (.Types) => R ... </k>
-    rule <k> { Ops:OperationList .BlockList } => Ops ... </k>
-    rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
-    rule <k> 
+    // rule <k> mlir </k>
+    //     <mlir-program> .TopLevel => . ... </mlir-program>
+    
+    rule <k> mlir </k>
+        <mlir-program> 
+            .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] (R:Region) { _:Map } : (.Types) -> (.Types)
+            => R
+            ... 
+        </mlir-program>
+
+    rule <k> mlir </k>
+        <mlir-program>
+            { Ops:OperationList .BlockList } => Ops
+            ...
+        </mlir-program>
+    
+    rule <k> mlir </k>
+        <mlir-program> 
+            Op:Operation Ops:OperationList => Op ~> Ops
+            ...
+        </mlir-program>
+
+    rule <k> mlir </k>
+        <mlir-program> 
             (.K => Attr[#token("sym_name", "BareId")]) 
             ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] (R:Region) { Attr:Map } : T:FunctionType => R)
             ...
-        </k>
-        <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] (R) { Attr } : T ] </symbol-table>
+        </mlir-program>
+        <symbol-table>
+            M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] (R) { Attr } : T ]
+        </symbol-table>
 
-    rule <k>
+    rule <k> mlir </k>
+        <mlir-program>
             _:String ~> ({ .OperationList B:Block } => B)
             ...
-        </k>
+        </mlir-program>
 
     rule <k>
             _:String ~> ({ Ops:OperationList .BlockList } => Ops)
             ...
         </k>
-    // rule <k> 
-    //         (.K => Attr[#token("sym_name", "BareId")]) 
-    //         ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ({ Ops:OperationList .BlockList }) { Attr:Map } : T:FunctionType => Ops)
-    //         ...
-    //     </k>
-    //     <symbol-table> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] ({ Ops .BlockList }) { Attr } : T ] </symbol-table>
-
+   
     rule <k> .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types ) => . ... </k>
 
-    rule <k>
+    rule <k> mlir </k>
+        <mlir-program>
             _Module:String
             ~> (_:CaretId (_:ValueIdAndTypeList) : Ops:OperationList => Ops)
             ...
-        </k>
+        </mlir-program>
     
-    rule <k>
+    rule <k> mlir </k>
+        <mlir-program>
             _Module:String
             ~> (Op:Operation Ops:OperationList => Op ~> Ops)
             ...
-        </k>
+        </mlir-program>
 
-    rule <k>
+    rule <k> mlir </k>
+        <mlir-program>
             Module:String
             ~> (.OpResults = "sv.always" ( _:ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
             ...
-        </k>
+        </mlir-program>
         <initial> M:Map => M [Module <- R] </initial>
     
-    rule <k>
+    rule <k> mlir </k>
+        <mlir-program>
             Module:String
             ~> (.OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
             ...
-        </k>
+        </mlir-program>
         <initial> M:Map => M [Module <- R] </initial>
 
-    rule <k>
+    rule <k> mlir </k>
+        <mlir-program>
             _Module:String
             ~> (_:Operation => .K)
             ...
-        </k> [owise]
+        </mlir-program> [owise]
 
-    rule <k>
-            _Module:String ~> .OperationList => .K
-            ...
-        </k>
+    rule  <k> mlir </k>
+        <mlir-program> _Module:String ~> .OperationList => .K ... </mlir-program>
     
-    rule <k> .OperationList => . ... </k>
-
+    rule <k> mlir </k>
+        <mlir-program> .OperationList => . ... </mlir-program>
 
     rule <k> mlir => preprocess </k>
         <mlir-program> .TopLevel </mlir-program>
