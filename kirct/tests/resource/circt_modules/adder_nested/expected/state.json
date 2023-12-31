@@ -28,49 +28,49 @@
         "type": "wire"
       },
       {
-        "name": "i3/io_a",
+        "name": "i0/io_a",
         "offset": 4,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i0/io_a",
+        "name": "i0/i0/io_a",
         "offset": 5,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i0/res",
+        "name": "i0/i0/res",
         "offset": 6,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i1/io_a",
+        "name": "i0/i1/io_a",
         "offset": 7,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/i1/res",
+        "name": "i0/i1/res",
         "offset": 8,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i3/res2",
+        "name": "i0/res2",
         "offset": 9,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i4/io_a",
+        "name": "i2/io_a",
         "offset": 10,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i4/res",
+        "name": "i2/res",
         "offset": 11,
         "numBits": 8,
         "type": "wire"
