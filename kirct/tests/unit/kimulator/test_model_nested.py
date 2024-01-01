@@ -17,3 +17,13 @@ def test_model_nested_eval() -> None:
     # Then
     assert adder_model.res_out2 == 7
     assert adder_model.res_out1 == 8
+    assert adder_model.children['i0'].signals['io_a'].signal_value == 5
+    assert adder_model.children['i0'].signals['res2'].signal_value == 7
+    assert adder_model.children['i0'].children['i0'].signals['io_a'].signal_value == 5
+    assert adder_model.children['i0'].children['i0'].signals['res'].signal_value == 6
+    assert adder_model.children['i0'].children['i1'].signals['io_a'].signal_value == 6
+    assert adder_model.children['i0'].children['i1'].signals['res'].signal_value == 7
+    assert adder_model.children['i2'].signals['io_a'].signal_value == 7
+    assert adder_model.children['i2'].signals['res'].signal_value == 8
+
+

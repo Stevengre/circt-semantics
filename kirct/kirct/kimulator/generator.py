@@ -112,13 +112,16 @@ class Generator:
         model_signals = {}
         model_children = {top_module_name.lower() + "_model": []}
         model_names = []
+        model_names_map_instance = {}
         for signal in signals.values():
             sid = signal.mlir_gen_name.replace('/', '_') + "_signal"
             nested = signal.mlir_gen_name.split('/')
             if len(nested) == 1:
                 model_name = top_module_name.lower() + "_model"
+                model_names_map_instance[model_name] = top_module_name.lower()
             elif len(nested) > 1:
-                model_name = nested[-2].lower() + "_model"
+                model_name = '_'.join([s.lower() for s in nested[:-1]]) + "_model"
+                model_names_map_instance[model_name] = nested[-2].lower()
             else:
                 raise Exception("Unexpected signal name")
             str_signals += SIGNAL_TEMPLATE.format(
@@ -144,7 +147,7 @@ class Generator:
             if len(nested) > 1:
                 i = 0
                 father_name = top_module_name.lower() + "_model"
-                child_name = nested[i].lower() + "_model"
+                child_name = '_'.join([s.lower() for s in nested[0:(i + 1)]]) + "_model"
                 while i < len(nested) - 1:
                     if model_children.get(father_name) is None:
                         model_children[father_name] = [child_name]
@@ -152,17 +155,16 @@ class Generator:
                         model_children[father_name].append(child_name)
                     i += 1
                     father_name = child_name
-                    child_name = nested[i].lower() + "_model"
+                    child_name = '_'.join([s.lower() for s in nested[0:(i + 1)]]) + "_model"
 
         fathers = [top_module_name.lower() + "_model"]
         model_children_backup = copy.deepcopy(model_children)
-        while model_names != []:
+        while model_names:
             model_name = fathers[-1]
             module_name = ''
             if top_module_name.lower() + "_model" == model_name:
                 module_name = top_module_name
             if model_children.get(model_name) is None or model_children[model_name] == []:
-                model_children[model_name] = []
                 str_models.append(MODEL_TEMPLATE.format(
                     model_name=model_name,
                     module_name=module_name,
@@ -171,18 +173,19 @@ class Generator:
                         name=s['name'],
                         sid=s['sid'],
                         spaces=' ' * (43 + len(model_name))
-                    ) for s in model_signals[model_name]]),
+                    ) for s in model_signals.get(model_name, [])]),
                     model_children="".join([MODEL_CHILD_TEMPLATE.format(
-                        name=child[:-6],
+                        name=model_names_map_instance[child],
                         model=child,
-                        spaces=' ' * (43 + len(model_name))
-                    ) for child in model_children.get(model_name)])
+                        spaces=' ' * (44 + len(model_name))
+                    ) for child in model_children_backup.get(model_name, [])])
                 ))
                 # delete all this child in model_children
                 for child in model_children.values():
                     if model_name in child:
                         child.remove(model_name)
-                model_names.remove(model_name)
+                if model_name in model_names:
+                    model_names.remove(model_name)
                 fathers.pop()
             else:
                 fathers.append(model_children[model_name][-1])
