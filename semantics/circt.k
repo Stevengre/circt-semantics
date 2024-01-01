@@ -24,7 +24,13 @@ module CIRCT-SYNTAX-CORE
 
     syntax Values ::= List{Value, ","}
 
-    syntax String ::= "IntType2String" "(" IntegerType ")" [function, hook(STRING.token2string)]
+    syntax String ::= "SignedIntegerType2String" "(" SignedIntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "UnsignedType2String" "(" UnsignedIntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "SignlessIntegerType2String" "(" SignlessIntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "IntType2String" "(" IntegerType ")" [function]
+    rule IntType2String(SI:SignedIntegerType) => SignedIntegerType2String(SI)
+    rule IntType2String(II:UnsignedIntegerType) => UnsignedType2String(II)
+    rule IntType2String(LI:SignlessIntegerType) => SignlessIntegerType2String(LI)
     
     syntax Int ::= getWidth(Type) [function]
 
