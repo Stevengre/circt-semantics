@@ -280,13 +280,33 @@ module MLIR
             ...
         </mlir-program>
 
-    rule <k>
-            _:String ~> ({ Ops:OperationList .BlockList } => Ops)
-            ...
-        </k>
-   
-    rule <k> .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types ) => . ... </k>
+    // sv.macro.decl
+    rule <k> mlir </k>
+        <mlir-program>
+            .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => . 
+            ... 
+        </mlir-program>
+        <macros> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "" ] </macros>
+    
+    // sv.bind
+    rule <k> mlir </k>
+        <mlir-program>
+            .OpResults = "sv.bind" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types )
+            => . 
+            ... 
+        </mlir-program>
+    
+    // sv.hierpath
+    rule <k> mlir </k>
+        <mlir-program>
+            .OpResults = "hw.hierpath" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types )
+            => . 
+            ... 
+        </mlir-program>
+        
 
+    // block head
     rule <k> mlir </k>
         <mlir-program>
             _Module:String
@@ -294,6 +314,7 @@ module MLIR
             ...
         </mlir-program>
     
+    // operation list
     rule <k> mlir </k>
         <mlir-program>
             _Module:String
@@ -301,6 +322,7 @@ module MLIR
             ...
         </mlir-program>
 
+    // sv.always
     rule <k> mlir </k>
         <mlir-program>
             Module:String
@@ -309,6 +331,7 @@ module MLIR
         </mlir-program>
         <initial> M:Map => M [Module <- R] </initial>
     
+    // sv.initial
     rule <k> mlir </k>
         <mlir-program>
             Module:String
@@ -319,10 +342,9 @@ module MLIR
 
     rule <k> mlir </k>
         <mlir-program>
-            _Module:String
-            ~> (_:Operation => .K)
-            ...
-        </mlir-program> [owise]
+            _Module:String ~> (_:Operation => .K) ...
+        </mlir-program>
+        [owise]
 
     rule  <k> mlir </k>
         <mlir-program> _Module:String ~> .OperationList => .K ... </mlir-program>
@@ -330,7 +352,10 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program> .OperationList => . ... </mlir-program>
 
-    rule <k> mlir => preprocess </k>
+    // rule <k> mlir => preprocess </k>
+    //     <mlir-program> .TopLevel </mlir-program>
+
+    rule <k> mlir => circt </k>
         <mlir-program> .TopLevel </mlir-program>
     
     

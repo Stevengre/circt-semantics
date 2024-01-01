@@ -6,9 +6,6 @@
     <mlir-program>
       .TopLevel ~> .
     </mlir-program>
-    <standard-ops>
-      .OperationList
-    </standard-ops>
     <attr-alias>
       #loc1 |-> loc ( "adder.mlir" : 1 : 32 )
       #loc2 |-> loc ( "adder.mlir" : 5 : 20 )
@@ -28,7 +25,7 @@
       instanceName |-> "swap"
       moduleName |-> @Swap
       parameters |-> [ ]
-      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc6 , #loc7 , #loc8 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )
@@ -61,10 +58,11 @@
       .Map
     </registers>
     <macros>
-      .Map
+      "RANDOM" |-> ""
+      "foo" |-> ""
     </macros>
     <result>
-      ListItem ( ListItem ( result ( res , TV ( i8 , 6 ) ) ) )
+      ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
     </result>
     <always>
       .Map
