@@ -161,7 +161,7 @@ class Generator:
         model_children_backup = copy.deepcopy(model_children)
         while model_names:
             model_name = fathers[-1]
-            module_name = ''
+            module_name = model_name.split('_')[-2]
             if top_module_name.lower() + "_model" == model_name:
                 module_name = top_module_name
             if model_children.get(model_name) is None or model_children[model_name] == []:

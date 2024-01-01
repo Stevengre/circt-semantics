@@ -98,28 +98,28 @@ kimulator_context.signals['i2/io_a'] = i2_io_a_signal
 kimulator_context.signals['i2/res'] = i2_res_signal
 
 
-i2_model: KimulatorModel = KimulatorModel(module_name='',
+i2_model: KimulatorModel = KimulatorModel(module_name='i2',
                                           source_file=generic_mlir_path,
                                           signals={'io_a': i2_io_a_signal,
                                                    'res': i2_res_signal,
                                                    },
                                           children={},
                                           context=kimulator_context)
-i0_i1_model: KimulatorModel = KimulatorModel(module_name='',
+i0_i1_model: KimulatorModel = KimulatorModel(module_name='i1',
                                              source_file=generic_mlir_path,
                                              signals={'io_a': i0_i1_io_a_signal,
                                                       'res': i0_i1_res_signal,
                                                       },
                                              children={},
                                              context=kimulator_context)
-i0_i0_model: KimulatorModel = KimulatorModel(module_name='',
+i0_i0_model: KimulatorModel = KimulatorModel(module_name='i0',
                                              source_file=generic_mlir_path,
                                              signals={'io_a': i0_i0_io_a_signal,
                                                       'res': i0_i0_res_signal,
                                                       },
                                              children={},
                                              context=kimulator_context)
-i0_model: KimulatorModel = KimulatorModel(module_name='',
+i0_model: KimulatorModel = KimulatorModel(module_name='i0',
                                           source_file=generic_mlir_path,
                                           signals={'io_a': i0_io_a_signal,
                                                    'res2': i0_res2_signal,

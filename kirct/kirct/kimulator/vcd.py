@@ -56,7 +56,7 @@ class KimulatorVCD:
             vcd_f.write(f"$scope module {model.module_name} $end\n")
             for signal in model.signals.values():
                 write_signal(signal, vcd_f)
-            for sub_model in model.children:
+            for sub_model in model.children.values():
                 write_kimulator_model(sub_model, vcd_f)
             vcd_f.write("$upscope $end\n")
 
