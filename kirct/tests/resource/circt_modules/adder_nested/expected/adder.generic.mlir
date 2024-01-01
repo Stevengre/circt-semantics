@@ -20,8 +20,8 @@
   }) {module_type = !hw.modty<input io_a : i8, output res2 : i8>, parameters = [], port_locs = [#loc2, #loc3], sym_name = "AddTwo", sym_visibility = "private"} : () -> ()
   "hw.module"() ({
   ^bb0(%arg0: i8):
-    %0 = "hw.instance"(%arg0) {argNames = ["io_a"], instanceName = "i3", moduleName = @AddTwo, parameters = [], resultNames = ["res2"]} : (i8) -> i8
-    %1 = "hw.instance"(%0) {argNames = ["io_a"], instanceName = "i4", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+    %0 = "hw.instance"(%arg0) {argNames = ["io_a"], instanceName = "i0", moduleName = @AddTwo, parameters = [], resultNames = ["res2"]} : (i8) -> i8
+    %1 = "hw.instance"(%0) {argNames = ["io_a"], instanceName = "i2", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
     "hw.output"(%0, %1) : (i8, i8) -> ()
   }) {module_type = !hw.modty<input io_a : i8, output res_out2 : i8, output res_out1 : i8>, parameters = [], port_locs = [#loc4, #loc5, #loc6], sym_name = "Adder"} : () -> ()
 }) : () -> ()
