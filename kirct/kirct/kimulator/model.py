@@ -29,19 +29,23 @@ class KimulatorModel:
     source_file: str
     signals: dict[str, Signal] = {}  # name -> Signal
     # todo: allow children
-    children = []
+    children = {}  # instance_name -> KimulatorModel
     context: KimulatorContext | None
 
     def __init__(self,
                  module_name: str = '',
                  source_file: str = '',
                  signals=None,
+                 children=None,
                  context: KimulatorContext = None):
         if signals is None:
             signals = {}
+        if children is None:
+            children = {}
         self.module_name = module_name
         self.source_file = source_file
         self.signals = signals
+        self.children = children
         self.prev_signals = {}
         self.context = context
         return
@@ -110,7 +114,7 @@ class KimulatorModel:
         # find circt-output cell
         # ------
         # help: observe the result
-        # kore_print(self.context.kprint.kast_to_kore(r_cell), self.context.krun.definition_dir, 'pretty')
+        # kore_print(pattern=self.context.kprint.kast_to_kore(r_cell), definition_dir=self.context.krun.definition_dir, output='pretty')
         state_cterm = CTerm.from_kast(self.context.kprint.kore_to_kast(self.context.state))
         r_cell = state_cterm.cells[cell_label_to_var_name('<result>')]
         r_curr = flatten_label('_List_', r_cell)[-1]
@@ -122,3 +126,34 @@ class KimulatorModel:
             key = r_flat_re[0].token
             v = int(flatten_label('TV(_,_)_CIRCT-SYNTAX-CORE_TypeValue_Type_Value', r_flat_re[1])[1].token)
             self.context.signals[key].signal_value = v
+        # -----------------------------------------------------------
+        ob_in = state_cterm.cells[cell_label_to_var_name('<ob-in>')]
+        ob_in_modules = flatten_label('_Map_', ob_in)
+        for ob_in_module in ob_in_modules:
+            ob_in_module_temp = flatten_label('_|->_', ob_in_module)
+            module_ident = str(ob_in_module_temp[0].token)[1:-1].split('/')
+            module = self
+            for ident in module_ident:
+                module = module.children[ident]
+            module_inputs = flatten_label('_List_', ob_in_module_temp[1])
+            input_index = 0
+            for module_input in module_inputs:
+                input_value = int(flatten_label('ListItem', module_input)[0].token)
+                module.signals[list(module.signals.keys())[input_index]].signal_value = input_value
+        # -----------------------------------------------------------
+        ob_out = state_cterm.cells[cell_label_to_var_name('<ob-out>')]
+        ob_out_modules = flatten_label('_Map_', ob_out)
+        for ob_out_module in ob_out_modules:
+            ob_out_module_temp = flatten_label('_|->_', ob_out_module)
+            module_ident = str(ob_out_module_temp[0].token)[1:-1].split('/')
+            module = self
+            for ident in module_ident:
+                module = module.children[ident]
+            module_outputs = flatten_label('_List_', ob_out_module_temp[1])
+            for module_output in module_outputs:
+                output_value = flatten_label('ListItem', module_output)[0]
+                output_value = flatten_label('result(_,_)_CIRCT-SYNTAX-CORE_Result_BareId_TypeValue', output_value)
+                output_indent = output_value[0].token
+                output_value = int(flatten_label('TV(_,_)_CIRCT-SYNTAX-CORE_TypeValue_Type_Value', output_value[1])[1].token)
+                module.signals[output_indent].signal_value = output_value
+
