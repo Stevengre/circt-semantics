@@ -11,7 +11,7 @@ module CONFIGURATION
         <k> mlir </k>
         <mlir>
             <mlir-program> $PGM:TopLevel ~> .K </mlir-program>
-            <standard-ops> .OperationList </standard-ops>
+            // <standard-ops> .OperationList </standard-ops>
             <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
             <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
             <symbol-table> .Map </symbol-table>

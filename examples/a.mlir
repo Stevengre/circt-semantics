@@ -22,6 +22,7 @@
   ^bb0(%arg0: i1, %arg1: i1, %arg2: i8):
     %0 = "hw.constant"() {value = -2147483646 : i32} : () -> i32
     %1 = "sv.localparam"() {name = "param_x", value = 11 : i42} : () -> i42
+    
     "sv.always"(%arg0) ({
       "sv.ifdef.procedural"() ({
       ^bb0:
@@ -41,26 +42,31 @@
         }) : (i1) -> ()
       }) {cond = #sv<macro.ident "SYNTHESIS">} : () -> ()
     }) {events = [0 : i32]} : (i1) -> ()
+    
     "sv.alwaysff"(%arg0) ({
       "sv.fwrite"(%0) {format_string = "Yo"} : (i32) -> ()
     }, {
     }) {clockEdge = 0 : i32, resetStyle = 0 : i32} : (i1) -> ()
+    
     "sv.alwaysff"(%arg0, %arg1) ({
       "sv.fwrite"(%0) {format_string = "Sync Main Block"} : (i32) -> ()
     }, {
       "sv.fwrite"(%0) {format_string = "Sync Reset Block"} : (i32) -> ()
     }) {clockEdge = 0 : i32, resetEdge = 0 : i32, resetStyle = 1 : i32} : (i1, i1) -> ()
+    
     "sv.alwaysff"(%arg0, %arg1) ({
       "sv.fwrite"(%0) {format_string = "Async Main Block"} : (i32) -> ()
     }, {
       "sv.fwrite"(%0) {format_string = "Async Reset Block"} : (i32) -> ()
     }) {clockEdge = 0 : i32, resetEdge = 1 : i32, resetStyle = 2 : i32} : (i1, i1) -> ()
+    
     "sv.initial"() ({
       "sv.if"(%arg0) ({
       ^bb0:
       }, {
       }) : (i1) -> ()
     }) : () -> ()
+    
     "sv.initial"() ({
       "sv.case"(%arg2) ({
         "sv.fwrite"(%0) {format_string = "x"} : (i32) -> ()
@@ -70,6 +76,7 @@
         "sv.fwrite"(%0) {format_string = "z"} : (i32) -> ()
       }) {casePatterns = [6 : i16, 9 : i16, unit], caseStyle = 2 : i32, validationQualifier = #sv<validation_qualifier plain>} : (i8) -> ()
     }) : () -> ()
+    
     "sv.initial"() ({
       "sv.case"(%arg1) ({
         "sv.fwrite"(%0) {format_string = "zero"} : (i32) -> ()

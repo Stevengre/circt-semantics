@@ -8,6 +8,13 @@
 #loc7 = loc("adder.mlir":11:32)
 #loc8 = loc("adder.mlir":11:44)
 "builtin.module"() ({
+
+    "sv.macro.decl"() {sym_name = "RANDOM"} : () -> ()
+    "sv.macro.decl"() {sym_name = "foo"} : () -> ()
+
+    "sv.bind"() {instance = #hw.innerNameRef<@AB::@b1>} : () -> ()
+    "hw.hierpath"() {namepath = [#hw.innerNameRef<@XMRRefOp::@bar>], sym_name = "ref2"} : () -> ()
+    
     "hw.module"() ({
         ^bb0(%arg0: i8):
             "hw.output"(%arg0) : (i8) -> ()
@@ -23,7 +30,7 @@
     "hw.module"() ({
         ^bb0(%arg0: i8, %arg1: i8):
             %0, %1 = "hw.instance"(%arg0, %arg1) {argNames = ["x", "y"], instanceName = "swap", moduleName = @Swap, parameters = [], resultNames = ["result1", "result2"]} : (i8, i8) -> (i8, i8)
-            %2 = "comb.add"(%0, %0) : (i8, i8) -> i8
+            %2 = "comb.add"(%0, %1) : (i8, i8) -> i8
             "hw.output"(%2) : (i8) -> ()
     }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i8>, parameters = [], port_locs = [#loc6, #loc7, #loc8], sym_name = "Adder"} : () -> ()
 }) : () -> ()
