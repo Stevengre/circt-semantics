@@ -1,0 +1,63 @@
+\section{Discussion}
+
+hello 
+
+\smallskip
+\textbf{Limitations}. 
+
+features not supported yet. future work.
+
+experimental applications. future work
+
+
+\smallskip
+\textbf{Lessons Learned}.
+
+\smallskip
+\textit{Layered Structure is helpful for extension.}
+
+\smallskip
+\textit{Control Syntax is helpful for making semantics independent.}
+
+\smallskip
+\textit{Domain Specific Interface is helpful.}
+
+\smallskip
+\textit{Separation of Documentation and Implementation is harmful.} Even though MLIR is traceable with static representation DRR and ODS, it is not easy to check its semantics. 
+
+limitation and future work and lessons learned
+
+\section{Related Work}
+% 其他语义相关的工作
+% \textbf{Existing Efforts}. (1) LLVM, MLIR semantics. (2) verilog, vhdl semantics. (3) K based semantics. (verilog)
+
+% extensibility, usability, validation
+To the best of our knowledge, our work is the first formal semantics for CIRCT, introducing rigor and determinism into this unified hardware compiler framework. Thus, we discuss some previous work on formal semantics and compare it with K-CIRCT from near to far, including \textit{semantics of MLIR}, \textit{semantics of hardware design languages}, and \textit{semantics in $\mathbb{K}$}.
+
+\smallskip
+\textbf{Other Semantics of MLIR}. \citet{bangSMTBasedTranslationValidation2022} encodes memref dialect, linalg dialect, and dialects for tensors in SMT to deliver translation validation for machine learning compilers. Since they focus on a specific set of mature dialects, they do not provide modular and compositional semantics, as well as a unified approach to formalize dialects for extensibility. Furthermore, the semantics in SMT are not executable, which means that the semantics cannot be validated by co-simulation, leading to reduced confidence in the semantics. 
+% 没有发论文的工作是不是就不用管了？mlir semantics
+
+\smallskip
+\textit{Comparison}. In contrast, for adapting to the ongoing hardware compiler infrastructure and facilitating future works on the MLIR formal semantics, Section~\ref{sec:semantics-formalization} presents a stratified semantics that is modular and compositional, as well as a unified approach in Section~\ref{sec:circt-static-semantics} to define the operation semantics which is the key to the dialect semantics. In addition, we propose a co-simulation framework to validate our executable semantics to build confidence in the correctness of the rules of the semantics and the completeness of the semantics to capture real-world hardware.
+
+% \smallskip
+% \textit{Work1} 
+
+\smallskip
+\textbf{Other Semantics of Hardware Design Languages (HDL)}. Due to the growing diversity of hardware requirements, many hardware design languages, including Chisel\red{cite}, Bluespec\red{cite}, VHDL\red{cite}, and System Verilog\red{cite}, are proposed. Indeed, this diversity motivates the CIRCT project. Since formal verification requires formal semantics of HDL and plays a crucial role in ensuring the correctness of hardware, each HDL has at least one formal semantics. Thus, for clarity, the following merely discusses part works on the semantics of the most famous HDL --- Verilog\red{cite}.
+
+Yosys~\cite{wolfYosysaFreeVerilog2013} is a open-source framework for RTL synthesis tools, which also support formal verification for extensive Verilog-2005. Therefore, it provides the semantics of Verilog by translating them into the logic network in AIGER or BLIF. After that, the hardware model checkers can verify formal properties on the given design. This a good way for formal verification, but the formal semantics are not executable which can be validated, too.  
+
+\citet{meredithFormalExecutableSemantics2010}, in contrast, presents a formal executable semantics of Verilog in Maude. This semantics covers almost complete features of Verilog, but it fails to validate the correctness of the semantics. Furthermore, even though it builds upon the rewriting logic, which is a previous version of matching logic the logical foundation of the K framework, its implementation cannot be used in the modern K, leading to limited applications. \citet{khanVeriFormalExecutableFormal2017} introduce an executable formal model of Verilog in Isabelle/HOL, which also lacks a user-friendly interface and comprehensive co-simulation to validate the correctness of the formal semantics. 
+
+\citet{chenEssenceVerilogTractable2023}, as the most recent work on Verilog, aims to capture the essence of Verilog to support the complete semantics of Verilog. It developed the semantics in Java with 27,000 lines of code and tested the totality and conformance of the developed semantics. It can facilitate the development of formal tools on Verilog and is working on the development of concolic-execution tool, which we already supported based on the $\mathbb{K}$ framework.
+
+\smallskip
+\textit{Comparison}. Compared to the existing works on a specific HDL, we present the formal semantics for the intermediate representations in a hardware compiler framework --- CIRCT, aiming to provide a unified framework for hardware design like LLVM for the software. Additionally, we provide a user-friendly interface to use our semantics as a simulator and introduce a validation of the correctness and completeness of our semantics by co-simulation.
+
+\smallskip
+\textbf{Other Semantics Defined in $\mathbb{K}$}. $\mathbb{K}$ is a formal language framework with high expressiveness and usability. Compared to other formal frameworks, it is well-known for the complete semantics based on it, such as C, Java, Javascript, LLVM, EVM, and x86\red{cite}. Thanks to its internal features for all languages, semantics can be comprehensively validated by execution like Java and x86\red{cite}, and many real-world applications can be presented based on its deductive prover and symbolic executor, such as EVM, smart contract, C, ...\red{cite}.
+
+\smallskip
+\textit{Comparison}. Based on the insights and lessons learned from other semantics in $\mathbb{K}$, we present an extensible, usable, and trustworthy semantics for CIRCT. Towards extensibility, we present modular and compositional semantics with layered phases based on the abstraction level; Towards usability, we present . In the future, we would like to develop standard formal verification tools based on our semantics for better performance and scalability, referring to the existing formal verification works on $\mathbb{K}$\red{cite}.

@@ -1,0 +1,40 @@
+# General
+*.log
+*.aux
+*.gz
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Compiled Output
+acmart-pacmpl-template.pdf
+*.dvi
+
+# Bibtex files
+*.bbl
+*.blg
+*.brf
+*.bcf
+
+# Other
+*.nav
+*.snm
+*.toc
+*.vrb
+*.xdv
+*.lof
+*.lot
+*.upa
+*.upb
+*.alg
+*.acr
+*.acn
+*.glg
+*.glo
+*.gls
+*.ist
+*.idx
+*.ilg
+*.ind
+*.loa

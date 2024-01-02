@@ -1,0 +1,68 @@
+
+% JianHong's style file
+
+\usepackage{tabularx,booktabs,xcolor,colortbl,pifont}
+\usepackage{subcaption}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{listings}
+% \usepackage{tgbonum}
+% \RequirePackage[T1]{fontenc} 
+% \RequirePackage[tt=false]{libertine} \setmonofont{inconsolata} 
+% \RequirePackage[varqu]{zi4} 
+% \RequirePackage[libertine]{newtxmath}
+% \usepackage{fontenc}
+% \usepackage{algorithm} % for algorithms
+% \usepackage{algpseudocode}
+% \usepackage{algorithmicx}
+
+% new colors 
+\definecolor{hgreen}{HTML}{8CB26E}
+\definecolor{mgreen}{HTML}{A9C695}
+\definecolor{lgreen}{HTML}{D9E7D6}
+\definecolor{hred}{HTML}{AC5A54}
+\definecolor{mred}{HTML}{DCADA9}
+\definecolor{lred}{HTML}{F1D0CD}
+\definecolor{hblue}{HTML}{738DBB}
+\definecolor{mblue}{HTML}{98ADD1}
+\definecolor{lblue}{HTML}{DDE8FA}
+\definecolor{hgray}{HTML}{585858}
+\definecolor{mgray}{HTML}{BCBCBC}
+\definecolor{lgray}{HTML}{F0F0F0}
+\definecolor{hyel}{HTML}{D1B765}
+\definecolor{myel}{HTML}{EEDDAA}
+\definecolor{lyel}{HTML}{FDF2D0}
+\definecolor{hpur}{HTML}{9174A3}
+\definecolor{mpur}{HTML}{C4B3CE}
+\definecolor{lpur}{HTML}{DFD5E6}
+\definecolor{myhgreen}{RGB}{0,102,0}
+
+% a box for evaluation summary
+\newcommand{\jbox}[1]{\begin{center}\begin{tikzpicture}\node[draw, fill=white, text width=7cm, inner sep=3pt, align=left, inner xsep=7pt] at (0,0) {\textit{#1}};\end{tikzpicture}\end{center}}
+
+
+\newif\ifshowcomments
+\showcommentstrue
+
+\ifshowcomments
+\newcommand{\yao}[1]{\mytodoblue{[yao: #1]}}
+\newcommand{\hong}[1]{\mytodoorange{[hong: #1]}}
+\else
+\newcommand{\yao}[1]{}
+\newcommand{\hong}[1]{}
+\fi
+
+
+
+\newcommand{\mytodoblue}[1]{\textcolor{blue}{\ding{46}~{\sf}~#1}}
+\newcommand{\mytodored}[1]{\textcolor{red}{\ding{46}~{\sf}~#1}}
+\newcommand{\mytodogreen}[1]{\textcolor{mygreen}{\ding{46}~{\sf}~#1}}
+\newcommand{\mytodoorange}[1]{\textcolor{orange}{\ding{46}~{\sf}~#1}}
+\newcommand{\mytodocyan}[1]{\textcolor{cyan}{\ding{46}~{\sf}~#1}}
+\newcommand{\mytodopink}[1]{\textcolor{purple}{\ding{46}~{\sf}~#1}}
+\newcommand{\syn}[1]{\text{{\fontfamily{lmr}\selectfont{\small\textit{#1}}}}}
+\newcommand{\tok}[1]{\text{{\fontfamily{lmr}\selectfont\small\textbf{#1}}}}
+\newcommand{\scmd}[1]{\text{{\fontfamily{lmr}\selectfont\small\textcolor{gray}{#1}}}}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\green}[1]{\textcolor{myhgreen}{#1}}

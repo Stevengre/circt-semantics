@@ -1,0 +1,278 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\mode<presentation>
+% \usetheme{Warsaw}
+% \usetheme{Madrid}
+% \usetheme{Boadilla}
+\usetheme{Frankfurt}
+
+\usecolortheme{default}
+\usefonttheme{serif}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+% \setbeamertemplate{headline}{
+%   \leavevmode%
+%   \begin{beamercolorbox}[wd=\paperwidth,ht=5ex,dp=1.125ex]{palette secondary}%
+%     \insertsectionnavigationhorizontal{\paperwidth}{}{\hskip0pt plus1filll}\vskip2pt
+%   \end{beamercolorbox}%
+% }
+
+\usepackage{fourier}
+\usepackage[normalem]{ulem}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\usepackage{ragged2e}
+\usepackage[english]{babel}
+\usepackage{amsmath,bm}
+\usepackage{upgreek}
+\usepackage{multicol}
+\usepackage{textcomp}
+\usepackage{bbm}
+\usepackage{hyperref}
+\usepackage{ctex}
+
+\newenvironment{nscenter}
+ {\parskip=0pt\par\nopagebreak\centering}
+ {\par\noindent\ignorespacesafterend}
+
+
+\title[A Complete Semantics of CIRCT Core Dialects]{A Complete Semantics of CIRCT Core Dialects}
+\author{Jianhong Zhao, Jinhui Kang}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents
+    % \begin{multicols}{2}
+    %     \tableofcontents
+    % \end{multicols}
+\end{frame}
+
+
+\section{Background}
+
+\begin{frame}
+    \frametitle{Situation: CIRCT is pretty!}    
+    \begin{itemize}
+        \item CIRCT (Circuit IR Compilers and Tools) is a novel infrastructure for building hardware compilers and tools.
+        \item It aims to do for hardware \textbf{as LLVM did} for software via unified, consistent, and interoperable intermediate representation based on MLIR (Multi-Level Intermediate Representation) dialects.
+        \item Since the performance, integration, and collaboration of CIRCT, novel hardware description languages, like \textbf{Chisel, Magma, and Moore}, use CIRCT to construct their compilers.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Problem: No Fomalization! No Certainty!}
+    \begin{itemize}
+        \item Towards a unified architecture to integrate the hardware tools, the \textbf{correctness of CIRCT is important}.
+        \item And it is \textbf{worthwhile} to verify the hardware in CIRCT dialects as verify the software in LLVM IR.
+        \item However, there is \textbf{no formal semantics} for CIRCT dialects, which means that there is \textbf{no certainty to prove} anything about CIRCT.
+    \end{itemize}
+\end{frame}
+
+\section{Goal \& Challenges}
+
+\begin{frame}
+    \frametitle{Goal \& Challenges:}
+    \begin{itemize}
+        \item Goal: Thus, we aim to construct the formal semantics for CIRCT dialects.
+        \item Existing Efforts:
+        \begin{itemize}
+            \item Intermediate Representation: LLVM, MLIR semantics
+            \item HDL: verilog, vhdl semantics
+            \item Semantics using K: C, Java ... 
+        \end{itemize}
+        \item Challenges in formalizing CIRCT
+        \begin{itemize}
+            \item MLIR Based
+            \item Early Stage
+            \item Ambiguous Documentation
+            \item Semantics Validation
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{MLIR Based}
+    \begin{itemize}
+        \item CIRCT is built on top of the LLVM compiler infrastructure and provides an intermediate representation based on MLIR dialects. Compared to traditional languages, MLIR dialects are \textbf{composable and unified} by the operation concept. This makes CIRCT a powerful tool for building hardware compilers and tools, as it allows for easy integration of different hardware description languages and transformations.
+        \item However, this also makes CIRCT challenging to formalize, as the unified structure ``operation" should have the \textbf{ability to capture arbitrary semantics} that other languages provide by different concepts, such as statements, expressions, and instructions. Moreover, the semantics of each dialect should be defined distinctly and composed in a \textbf{consistent manner}.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Early Stage}
+    \begin{itemize}
+        \item CIRCT is a new project and is still in its infancy. Although it is already used by some novel languages and maintained by the LLVM community, \textbf{the flaws} in the documentation and \textbf{the modification} of the infrastructure are inevitable. 
+        \item This requires the formal semantics to be \textbf{flexible and extensible}. And the formal semantics should be able to \textbf{adapt to the changes} in CIRCT.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Ambiguous Documentation}
+    \begin{itemize}
+        \item The flaws in the language reference are not the only problem. The CIRCT dialects explanation is \textbf{ambiguous and not enough}. For example, the \textit{hw.module} operation even misses the syntax and semantics explanation. This requires the formal semantics to be able to fill the gaps in the documentation.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Semantics Validation}
+    \begin{itemize}
+        \item The test in CIRCT is mainly focused on transformation and compilation, with \textbf{few semantic targeted tests} in the CIRCT test suite. Moreover, CIRCT provides intermediate representations rather than a language that can \textbf{perform simulations directly}. This makes it challenging to validate the formal semantics, along with the poor documentation and the early stage of CIRCT.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Any More? Any Incorrect?}
+    \begin{itemize}
+        \item 你好
+    \end{itemize}
+\end{frame}
+
+\section{Solution}
+\begin{frame}
+    \frametitle{Solution Overview}
+    \begin{itemize}
+        \item We present the first formal semantics of the \textbf{core dialects} in CIRCT, including \textbf{HW, Comb, Seq, and SV} dialects, since they are the \textbf{most stable} representations in the infrastructure and other dialects can \textbf{compile to} them. 
+        \item We employ the $\mathbb{K}$ framework to construct the semantics and generate various tools for it.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Solution Steps - 1}
+    \begin{enumerate}
+        \item We first formalize the core MLIR, including the syntax, preprocess of operations, and the builtin dialect, to provide a \textbf{solid and extendable foundation} for the semantics of the dialects and the consistent composition of them.
+        \item Then we formalize the semantics of the CIRCT core dialects, including HW, Comb, Seq, and SV dialects. With the previous foundation, we only need to focus on the \textbf{distinctive features} of each dialect.
+        \item Next, we introduce a \textbf{C++ interface} to simulate the hardware, like verilator, based on the CIRCT semantics.
+        \item Finally, we propose a \textbf{benchmark and co-simulation} framework to end-to-end validate the semantics, by comparing the simulation result with verilator. 
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Solution Steps - 2: Benchmark}
+    \begin{enumerate}
+        \item The benchmark includes the semantic \textbf{unit test for each operation} in the dialects to help the development of formal semantics and validate the correctness of each operation. 
+        \item The benchmark also includes some \textbf{open-source hardware designs}, including Rocket, BOOM, and Reiscinator, from https://github.com/circt/arc-tests to validate the effectiveness of the semantic. (Optional BOOM, Reiscinator, and tests from verilator)
+    \end{enumerate}
+\end{frame}
+
+\section{Contributions}
+
+\begin{frame}
+    \frametitle{Contributions}
+    \begin{enumerate}
+        \item We introduce \textbf{K-CIRCT, a framework for formalizing CIRCT dialects.} It provides the core concepts and preprocesses of MLIR semantics, which is the foundation to formalize and compose the dialect semantics. With the framework, we can focus on the semantics of each dialect without concerning the relationship and consistency.
+        \item We formalize the semantics of CIRCT core dialects, including HW, COMB, Seq, SV dialects. Since other CIRCT dialects can be compiled into the core dialects, this semantics is enough for real-world hardware (Rocket) simulation and verification.
+        \item We introduce a \textbf{C++ interface} to simulate the hardware, like verilator, based on the CIRCT semantics. 
+        \item We propose a benchmark and co-simulation framework of CIRCT core dialects semantics. The benchmark includes the operation-level test cases for individual operations and the chip-level test cases for the whole semantics.
+        % https://github.com/circt/arc-tests
+    \end{enumerate}
+\end{frame}
+
+\section{Preliminaries}
+\begin{frame}
+    \frametitle{Preliminaries}
+    \begin{itemize}
+        \item CIRCT
+        \item K Framework
+    \end{itemize}
+\end{frame}
+
+\section{Approach}
+
+\begin{frame}
+    \frametitle{Approach Structure}
+    \begin{itemize}
+        \item Overview
+        \item Scope of the Work
+        \item K-CIRCT
+        \begin{itemize}
+            \item Formalization of Core MLIR
+            \item Common Library for CIRCT
+        \end{itemize}
+        \item Formalization of Core CIRCT 
+        \begin{itemize}
+            \item Program Configuration
+            \item Semantics of Individual Operations (using a running example) (只有一个说明是否足够， HW、Comb、Seq、SV是否有一些有特点的Op需要说明)
+        \end{itemize}
+        \item Simulation Approach
+        \begin{itemize}
+            \item Semantics for Simulation
+            \item C++ Interface for Stimulation
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\section{Evaluation}
+\begin{frame}
+    \frametitle{RQs}
+    \begin{itemize}
+        \item \textbf{RQ.1 (Extendable Capability)}: How can K-CIRCT be used to formalize the semantics of CIRCT dialects and what is the associated labor cost?
+        \item \textbf{RQ.2 (Reliability)}: To what extent can we trust the core semantics of CIRCT?
+        \item \textbf{RQ.3 (Applications)}: What are the applications of the formal semantics of CIRCT?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{RQ.1 (Extendable Capability)}
+    \begin{itemize}
+        \item a discussion of how to formalize the semantics of CIRCT dialects using K-CIRCT. 体现出每个operation可以独立进行定义，而不需要考虑其他的operation。结构的优越性。库的完整性等。状态的可拓展性。
+        \item 有关代码量的统计，可以对比dialect feature外的代码量和dialect feature的代码量。
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{RQ.2 (Reliability)}
+    \begin{figure}
+        \includegraphics[width=\textwidth]{../fig/co-simulation.pdf}
+        \caption{Co-simulation Framework}
+    \end{figure}
+    \begin{itemize}
+        \item benchmark setup
+        \item co-simulation framework
+        \item validation result discussion
+        \item How many lines of code of the semantics? how intuitive and concise of the semantics?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{RQ.3 (Applications)}
+    \begin{itemize}
+        \item Simulation (Validation)
+        \item Symbolic Simulation
+        \item Hardware Verification
+        \item Equivalence Verification
+        \item Translation Validation 
+    \end{itemize}
+\end{frame}
+
+\section{Discussion}
+\begin{frame}
+    \frametitle{Discussion}
+    \begin{itemize}
+        \item Limitations:
+        \begin{itemize}
+            \item part of the dialects.
+            \item K framework 决定了我们语义的执行和验证效率。
+        \end{itemize}
+        \item Future Work:
+        \begin{itemize}
+            \item more dialects.
+            \item 执行与验证效率优化
+        \end{itemize}
+    \end{itemize}
+
+    
+
+\end{frame}
+
+\end{document}

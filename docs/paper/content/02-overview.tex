@@ -1,0 +1,71 @@
+% \section{Motivation}
+
+% \section{Premilinaries}   
+% \section{Premilinaries} 感觉不需要这个章节，我后面会讲语法语义，会和这里重复。而K相关的内容，讲语义的时候提一下就可以了
+
+% \subsection{CIRCT project}
+
+% based on mlir, early stage, bad document, sv a lot document, undefined combination of dialects
+
+% \subsection{K Framework}
+
+\section{K-CIRCT Overview}
+
+This section provides a concise overview of K-CIRCT, covering three essential aspects: (1) structural and extensible CIRCT semantics, (2) kimulator for enhanced usability, and (3) validation for ensured trustworthiness.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics{kcirct/fig/structure.pdf}
+    \caption{The structure of K-CIRCT}
+    \label{fig:structure}
+\end{figure}
+
+\smallskip
+\textbf{Extensible CIRCT Semantics.}
+These semantics are structured into three distinct definitions: (1) MLIR static semantics, (2) CIRCT static semantics, and (3) CIRCT dialects dynamic semantics. 
+
+First, the MLIR-level definition serves as a dialect-agnostic semantic representation, conveying essential syntax applicable to any generic MLIR program. This universality ensures compatibility with all MLIR-based applications. Furthermore, we normalize operations to obtain uniform structure, enabling dialect semantics to focus on operation behavior rather than syntax differences. In addition, we construct a symbol table within MLIR semantics, facilitating dialect semantics to access operations based on their symbol names.
+
+
+% maybe the pre-process should be in the MLIR Semantics? 
+% Not: because this is not a concept of MLIR, and not all the dialects need this phase.
+Second, CIRCT static semantics define the CIRCT-specific phases that drive the stimulation of all the other dialects within CIRCT. The semantics first introduce the pre-processing phase for operations executed before stimulation, such as macro operations that alter the content of the hardware module. To enable the pre-processing of CIRCT dialects without integrating their semantics into the CIRCT-level semantics, we present control components within the CIRCT-level semantics which the dialect semantics can use to launch their pre-processing. Following pre-processing, the semantics transition to the stimulation phase, where we locate a specific hardware module by searching for its symbol name in the symbol table and then inject the input values into the module.
+
+Thirdly, each CIRCT dialect has its own distinct semantics, enabling independent definitions of operations for extensibility. The prior phases pave the way for dialect semantics to concentrate on their specific concepts, including operations, types, and attributes. We have established the core dialects of CIRCT, including HW, COMB, SEQ, and SV, facilitating the simulation and verification of arbitrary hardware designs compiled using CIRCT, as CIRCT compiles into these dialects.
+
+
+Consequently, we establish the semantics for \red{???} operations of CIRCT, with corresponding statistics provided in Table~\ref{tab:statistics}. The table's rows denote various metrics, including source lines of code (SLOC), comment lines of code (CLOC), cell count (N cells), rule count (N rules), auxiliary rule count (N aux), and operation count (N ops). The columns consist of MLIR static semantics, CIRCT static semantics, and dynamic semantics for HW, COMB, SEQ, and SV, culminating in the total size.
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{c|c|c|c|c|c|c|c}
+               & MLIR & CIRCT & HW & COMB & SEQ & SV & Total \\ \hline
+       SLOC    & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} \\ 
+       CLOC    & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} \\ 
+       N cells & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} \\ 
+       N rules & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} \\ 
+       N aux & - & - & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} \\
+       N ops & - & - & \red{???} & \red{???} & \red{???} & \red{???} & \red{???} \\ 
+    \end{tabular}
+    \caption{Some statistics for our semantics.}
+    \label{tab:statistics}
+\end{table}
+
+\smallskip
+\textbf{Kimulator for Enhanced Usability.}
+Hardware developers commonly use programming languages to simulate hardware and produce VCD files for result analysis. However, the $\mathbb{K}$ framework, a versatile formal framework, does not provide this domain-specific solution.
+
+Thus, we present the kimulator, a tool to enhance the user experience of K-CIRCT. This tool offers a user-friendly interface akin to Verilator, allowing users to write C++ code for simulation and produce VCD files as output. To achieve this, we first develop C++ headers to provide various functions using formal semantics, including modifying input, launching semantics execution, and extracting output. Notably, we manipulate the input and output in Kore language, allowing the generated executor to continue its execution as time progresses, facilitating multiple stimulations. Then, we extend the MLIR static semantics to generate specific headers for hardware modules to be simulated.
+
+
+\smallskip
+\textbf{Validation for Ensured Trustworthiness.} Based on the kimulator, validation is pivotal for establishing the trustworthiness and reliability of K-CIRCT. In pursuit of this goal, we employ a comparative approach by feeding identical inputs into both kimulator and verilator to engage in co-simulation. This co-simulation process is executed in two phases: (1) \textit{Operation-Level Validation}: In this phase, we analyze individual operations to ensure their correctness and functionality. \red{(2) \textit{Hardware-Level Validation}: In the subsequent phase, we expand our validation scope to encompass combinations of instructions, simulating real-world hardware scenarios. This comprehensive approach ensures the robustness and completeness of K-CIRCT.}
+
+\smallskip
+\textbf{Summary}. In conclusion, we introduce K-CIRCT, an extensible, user-friendly, and trustworthy framework for CIRCT. This framework is built upon a foundation of hierarchical, isolated, and composable semantics, simplifying maintenance and enabling seamless expansion. The included semantics, such as HW, COMB, SEQ, and SV, not only demonstrate its extensibility but also enhance the usability of CIRCT for simulation and verification purposes. To facilitate practical experimentation and improve user experience, we present the Kimulator, featuring an intuitive C++ interface. To establish the trustworthiness of K-CIRCT, we conduct a comprehensive validation of its semantics through co-simulation. 
+
+
+
+
+
+
