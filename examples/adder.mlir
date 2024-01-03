@@ -29,6 +29,10 @@
     
     "hw.module"() ({
         ^bb0(%arg0: i8, %arg1: i8):
+           "sv.always"(%arg0) ({
+                "sv.error"() {message = "error"} : () -> ()
+            }) {events = [0 : i32]} : (i1) -> ()
+
             %0, %1 = "hw.instance"(%arg0, %arg1) {argNames = ["x", "y"], instanceName = "swap", moduleName = @Swap, parameters = [], resultNames = ["result1", "result2"]} : (i8, i8) -> (i8, i8)
             %2 = "comb.add"(%0, %1) : (i8, i8) -> i8
             "hw.output"(%2) : (i8) -> ()

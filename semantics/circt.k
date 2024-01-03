@@ -194,10 +194,12 @@ module CIRCT
     imports SEQ
     imports SV
 
+    // single test
     rule <k> circt </k>
         <symbol-table> M:Map </symbol-table>
         <circt-control>
             circtTest ID:SymbolRefId ( Vs:Values ) => .
+            ...
         </circt-control>
         <circt-frames>
             (
@@ -205,13 +207,41 @@ module CIRCT
                 <circt-frame>
                     ...
                     <circt-exec>
-                        initial ~> always ~> Vs ~> M [ SymbolRefId2String(ID) ]
+                        // initial ~> always ~> 
+                        Vs ~> M [ SymbolRefId2String(ID) ]
                     </circt-exec>
-                    <module> ID </module>
+                    <instance> "Top" </instance>
+                    <last-locals> {Old["Top"] orDefault .Map}:>Map </last-locals>
                     ...
                 </circt-frame>
             )
         </circt-frames>
+        <old> Old:Map </old>
+        requires SymbolRefId2String(ID) in_keys(M)
+    
+    // test list
+    rule <k> circt </k>
+        <symbol-table> M:Map </symbol-table>
+        <circt-control>
+            ListItem(circtTest ID:SymbolRefId (Vs:Values)) L:List => L
+            ...
+        </circt-control>
+        <circt-frames>
+            (
+                .Bag =>
+                <circt-frame>
+                    ...
+                    <circt-exec>
+                        // initial ~> always ~> 
+                        Vs ~> M [ SymbolRefId2String(ID) ]
+                    </circt-exec>
+                    <instance> "Top" </instance>
+                    <last-locals> {Old["Top"] orDefault .Map}:>Map </last-locals>
+                    ...
+                </circt-frame>
+            )
+        </circt-frames>
+        <old> Old:Map </old>
         requires SymbolRefId2String(ID) in_keys(M)
     
     rule <k> circt => stop "no such module" ~> ID </k>
@@ -224,22 +254,22 @@ module CIRCT
         </circt>
         requires notBool SymbolRefId2String(ID) in_keys(M)
     
-    rule <k> circt </k>
-        <circt-exec> 
-            initial => #if notBool ID in S #then M [ID] orDefault .OperationList #else .OperationList #fi
-            ...
-        </circt-exec>
-        <module> ID:SymbolRefId </module>
-        <initial> M:Map </initial>
-        <initialized> S:Set </initialized>
+    // rule <k> circt </k>
+    //     <circt-exec> 
+    //         initial => #if notBool ID in S #then M [ID] orDefault .OperationList #else .OperationList #fi
+    //         ...
+    //     </circt-exec>
+    //     <module> ID:SymbolRefId </module>
+    //     <initial> M:Map </initial>
+    //     <initialized> S:Set </initialized>
     
-    rule <k> circt </k>
-        <circt-exec> 
-            always => M [ID] orDefault .OperationList
-            ...
-        </circt-exec>
-        <module> ID:SymbolRefId </module>
-        <always> M:Map </always>
+    // rule <k> circt </k>
+    //     <circt-exec> 
+    //         always => M [ID] orDefault .OperationList
+    //         ...
+    //     </circt-exec>
+    //     <module> ID:SymbolRefId </module>
+    //     <always> M:Map </always>
 
     rule <k> circt </k>
         <circt-exec>
@@ -359,18 +389,26 @@ module CIRCT
             ...
         </circt-exec>
     
-    // all done
-    rule <k> circt => done </k>
+    // one clock done
+    rule <k> circt </k>
         <circt-frames>
             (
                 <circt-frame>
                     ...
                     <circt-exec> .K </circt-exec>
                     <circt-output> Out:List </circt-output>
+                    <circt-locals> Locals:Map </circt-locals>
+                    <instance> Inst:String </instance>
                     ...
                 </circt-frame>
                 => .Bag
             )
         </circt-frames>
         <result> L:List => L ListItem(Out) </result>
+        <old> M:Map => M [ Inst <- Locals ] </old>
+
+    // all clock done
+    rule <k> circt => done </k>
+        <circt-control> .List </circt-control>
+        <circt-frames> .Bag </circt-frames>
 endmodule

@@ -81,8 +81,7 @@ module MLIR-SYNTAX
                        | OpResultList CustomOperation // 10
                        | GenericOperation // 00
                        | CustomOperation // 00
-    //generic-operation ::= string-literal `(` value-use-list? `)`  successor-list? region-list? dictionary-attribute? `:` function-type
-
+    
     syntax GenericOperation ::= StringLiteral "(" ValueIdList ")" ":" FunctionType
                               | StringLiteral "(" ValueIdList ")" AttrDict ":" FunctionType
                               | StringLiteral "(" ValueIdList ")" RegionList ":" FunctionType
@@ -402,8 +401,7 @@ module SYNTAX-HELPER
     rule operationStandarize(_:Operation) 
         => .OpResults = "" (.ValueIdList) [.Successors] (.Regions) {.Map} : (.Types) -> (.Types) [owise]
 
-    rule operationStandarize(GP:GenericOperation) 
-        => operationStandarize(.OpResults = GP)
+    rule operationStandarize(GP:GenericOperation) => operationStandarize(.OpResults = GP)
     
     rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) : FT:FunctionType) 
         => Rs = N (Vs) [.Successors] (.Regions) {.Map} : functionTypeStandarize(FT)
