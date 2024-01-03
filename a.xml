@@ -2,6 +2,70 @@
   <k>
     done ~> .
   </k>
+  <circt>
+    <circt-control>
+      .List ~> .
+    </circt-control>
+    <circt-frames>
+      .CirctFrameCellList
+    </circt-frames>
+    <old>
+      "Top" |-> ( %0 |-> TV ( i8 , 3 )
+      %1 |-> TV ( i8 , 1 )
+      %2 |-> TV ( i8 , 4 )
+      %arg0 |-> TV ( i8 , 1 )
+      %arg1 |-> TV ( i8 , 3 ) )
+      "same1" |-> ( %arg0 |-> TV ( i8 , 1 ) )
+      "same2" |-> ( %arg0 |-> TV ( i8 , 3 ) )
+      "swap" |-> ( %0 |-> TV ( i8 , 1 )
+      %1 |-> TV ( i8 , 3 )
+      %arg0 |-> TV ( i8 , 1 )
+      %arg1 |-> TV ( i8 , 3 ) )
+    </old>
+    <registers>
+      .Map
+    </registers>
+    <macros>
+      "RANDOM" |-> ""
+      "foo" |-> ""
+    </macros>
+    <result>
+      ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
+      ListItem ( ListItem ( result ( res , TV ( i8 , 4 ) ) ) )
+    </result>
+    <always>
+      .Map
+    </always>
+    <initial>
+      "Adder" |-> { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "error" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions
+    </initial>
+    <initialized>
+      .Set
+    </initialized>
+    <sv-wires>
+      .Map
+    </sv-wires>
+    <trace>
+      .List
+    </trace>
+    <observation>
+      <ob-in>
+        "swap" |-> ListItem ( 1 )
+        ListItem ( 3 )
+        "swap/same1" |-> ListItem ( 1 )
+        "swap/same2" |-> ListItem ( 3 )
+      </ob-in>
+      <ob-out>
+        "swap" |-> ListItem ( result ( result1 , TV ( i8 , 3 ) ) )
+        ListItem ( result ( result2 , TV ( i8 , 1 ) ) )
+        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , 1 ) ) )
+        "swap/same2" |-> ListItem ( result ( res , TV ( i8 , 3 ) ) )
+      </ob-out>
+    </observation>
+    <sv-error>
+      .List
+    </sv-error>
+  </circt>
   <mlir>
     <mlir-program>
       .TopLevel ~> .
@@ -21,7 +85,7 @@
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "sv.always" ( %arg0 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "error" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { events |-> [ 0 : i32 , .AttributeValueList ] } : ( i1 , .Types ) -> ( .Types )  %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
       instanceName |-> "swap"
       moduleName |-> @Swap
       parameters |-> [ ]
@@ -47,51 +111,4 @@
       sym_name |-> "Swap" } : ( .Types ) -> ( .Types )
     </symbol-table>
   </mlir>
-  <circt>
-    <circt-control>
-      .
-    </circt-control>
-    <circt-frames>
-      .CirctFrameCellList
-    </circt-frames>
-    <registers>
-      .Map
-    </registers>
-    <macros>
-      "RANDOM" |-> ""
-      "foo" |-> ""
-    </macros>
-    <result>
-      ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
-    </result>
-    <always>
-      .Map
-    </always>
-    <initial>
-      .Map
-    </initial>
-    <initialized>
-      .Set
-    </initialized>
-    <sv-wires>
-      .Map
-    </sv-wires>
-    <trace>
-      .List
-    </trace>
-    <observation>
-      <ob-in>
-        "swap" |-> ListItem ( 2 )
-        ListItem ( 3 )
-        "swap/same1" |-> ListItem ( 2 )
-        "swap/same2" |-> ListItem ( 3 )
-      </ob-in>
-      <ob-out>
-        "swap" |-> ListItem ( result ( result1 , TV ( i8 , 3 ) ) )
-        ListItem ( result ( result2 , TV ( i8 , 2 ) ) )
-        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , 2 ) ) )
-        "swap/same2" |-> ListItem ( result ( res , TV ( i8 , 3 ) ) )
-      </ob-out>
-    </observation>
-  </circt>
 </T>

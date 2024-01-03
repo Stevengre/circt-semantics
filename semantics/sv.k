@@ -103,19 +103,103 @@ module SV
             ...
         </circt-locals>
     
+    // sv.error
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.error" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <sv-error>
+            L:List => L ListItem(Attr[#token("message", "BareId")])
+        </sv-error>
+    
     // sv.initial
     rule <k> circt </k>
         <circt-exec> 
-            "sv.initial" ( .ValueIdList ) ( _:Region ) { .Map } : ( .Types ) -> ( .Types )
-            => .List
+            "sv.initial" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => R
             ...
         </circt-exec>
 
     // sv.always
     rule <k> circt </k>
         <circt-exec> 
-            "sv.always" ( .ValueIdList ) ( _:Region ) { .Map } : ( .Types ) -> ( .Types )
-            => .List
+            "sv.always" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => R
             ...
         </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => Vs) ~> 
+            (.K => Attr[#token("events", "BareId")]) ~> 
+            "sv.always" ( Vs:ValueIdList ) ( _:Region ) { Attr:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    // todo
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => Old[V] orDefault false) ~>
+            (.K => Locals[V] orDefault false) ~>
+            (.K => {I}:>Int) ~> 
+            (V:ValueId , Vs:ValueIdList => Vs) ~> 
+            ([ I:IntegerLiteral : _:IntegerType , As:AttributeValueList ] => [ As ]) ~> 
+            "sv.always" ( _:ValueIdList ) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals> Locals:Map </circt-locals>
+        <last-locals> Old:Map </last-locals>
+        // requires size(Old) ==Int 0
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (false ~> _:KItem ~> _:Int => false)
+            ~> _:ValueIdList
+            ~> [ _:AttributeValueList ]
+            ~> "sv.always" ( _:ValueIdList ) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                TV ( _:IntegerType , Old:Int ) ~> 
+                TV ( _:IntegerType , New:Int ) ~> 
+                Event:Int
+                => eventCheck(Old, New:Int, Event:Int)
+            ) ~> 
+            _:ValueIdList ~> 
+            [ _:AttributeValueList ] ~> 
+            "sv.always" ( _:ValueIdList ) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (false => .K) ~> 
+            _:ValueIdList ~> 
+            [ _:AttributeValueList ] ~> 
+            "sv.always" ( _:ValueIdList ) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                .ValueIdList ~> 
+                [ .AttributeValueList ] ~> 
+                "sv.always" ( _:ValueIdList ) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ) => .List
+            ...
+        </circt-exec>
+
+    syntax Int ::= signalEvent(Int, Int) [function]
+    rule signalEvent(0, 1) => 1
+    rule signalEvent(1, 0) => -1
+    rule signalEvent(_:Int, _:Int) => 0 [owise]
+
+    syntax Bool ::= eventCheck(Int, Int, Int) [function]
+    rule eventCheck(_:Int, _:Int, _:Int) => false
 endmodule

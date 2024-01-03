@@ -108,6 +108,8 @@ module HW
                             {Attr[#token("moduleName", "BareId")] orDefault #token("@_", "SymbolRefId")}:>SymbolRefId
                         ) ] orDefault (stop "no such module")
                     </circt-exec>
+                    <last-locals> {Old[Attr[#token("instanceName", "BareId")]] orDefault .Map}:>Map </last-locals>
+                    <instance> {Attr[#token("instanceName", "BareId")]}:>String </instance>
                     ...
                 </circt-frame>
             )
@@ -121,6 +123,7 @@ module HW
             </circt-frame>
             ...
         </circt-frames>
+        <old> Old:Map </old>
         <trace> L:List => L ListItem(Attr[#token("instanceName", "BareId")]) </trace>
 
     
@@ -132,6 +135,8 @@ module HW
                     ...
                     <circt-exec> .K </circt-exec>
                     <circt-output> Out:List </circt-output>
+                    <circt-locals> Locals:Map </circt-locals>
+                    <instance> Inst:String </instance>
                     ...
                 </circt-frame>
                 => .Bag
@@ -151,6 +156,7 @@ module HW
         </circt-frames>
         <ob-out> M:Map => M [ getTrace(L ListItem(S)) <- Out] </ob-out>
         <trace> L:List ListItem(S:String) => L </trace>
+        <old> Old:Map => Old [Inst <- Locals] </old>
     
     syntax String ::= getTrace(List) [function]
     rule getTrace(ListItem(S1:String) ListItem(S2:String) L:List)
