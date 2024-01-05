@@ -1,0 +1,25 @@
+\usepackage{xcolor} % 引入xcolor包
+
+\newif\ifshowtodos
+\showtodostrue
+
+\definecolor{turquoise}{RGB}{64,224,208}
+\definecolor{darkteal}{RGB}{0,128,128}
+
+\ifshowtodos
+\newcommand{\ToResearch}[1]{\textcolor[RGB]{255,0,0}{[To Research: #1]}} % Red
+\newcommand{\ToCite}[1]{\textcolor[RGB]{0,128,0}{[To Cite: #1]}} % Green
+\newcommand{\ToRead}[1]{\textcolor[RGB]{0,0,255}{[To Read: #1]}} % Blue
+\newcommand{\ToWrite}[1]{\textcolor[RGB]{128,0,128}{[To Write: #1]}} % Purple
+\newcommand{\ToPreWork}[1]{\textcolor[RGB]{255,165,0}{[To PreWork: #1]}} % Orange
+\newcommand{\ToOpt}[1]{\textcolor[RGB]{255,20,147}{[To Opt: #1]}} % Deep Pink
+\newcommand{\ToStartMyDay}[1]{\colorbox{darkteal}{\textcolor{white}{[To Start My Day: #1]}}}
+\else
+\newcommand{\ToResearch}[1]{}
+\newcommand{\ToCite}[1]{}
+\newcommand{\ToRead}[1]{}
+\newcommand{\ToWrite}[1]{}
+\newcommand{\ToPreWork}[1]{}
+\newcommand{\ToOpt}[1]{}
+\newcommand{\ToStartMyDay}[1]{}
+\fi
