@@ -324,20 +324,20 @@ module MLIR
     // sv.always
     rule <k> mlir </k>
         <mlir-program>
-            Module:String
-            ~> (.OpResults = "sv.always" ( _:ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
+            _Module:String
+            ~> (.OpResults = "sv.always" ( _:ValueIdList ) [ .Successors ] ( _:Region ) { _:Map } : _:FunctionType => .K)
             ...
         </mlir-program>
-        <initial> M:Map => M [Module <- R] </initial>
+        // <initial> M:Map => M [Module <- R] </initial>
     
     // sv.initial
     rule <k> mlir </k>
         <mlir-program>
-            Module:String
-            ~> (.OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
+            _Module:String
+            ~> (.OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( _:Region ) { _:Map } : _:FunctionType => .K)
             ...
         </mlir-program>
-        <initial> M:Map => M [Module <- R] </initial>
+        // <initial> M:Map => M [Module <- R] </initial>
 
     rule <k> mlir </k>
         <mlir-program>

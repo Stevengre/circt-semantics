@@ -34,7 +34,13 @@ module CONFIGURATION
                 <ob-in> .Map </ob-in>
                 <ob-out> .Map </ob-out>
             </observation>
-            <sv-error> .List </sv-error>
+            <sv-log>
+                <sv-error> .List </sv-error>
+                <sv-warn> .List </sv-warn>
+                <sv-info> .List </sv-info>
+                <sv-fatal> .List </sv-fatal>
+            </sv-log>
+            <fd> .Map </fd>
         </circt>
         <mlir>
             <mlir-program> $PGM:TopLevel ~> .K </mlir-program>
