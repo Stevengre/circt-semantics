@@ -1,46 +1,95 @@
 <T>
   <k>
-    done ~> .
+    circt ~> .
   </k>
   <circt>
     <circt-control>
       .List ~> .
     </circt-control>
     <circt-frames>
-      .CirctFrameCellList
+      <circt-frame>
+        <circt-exec>
+          "sv.constantX" ( .ValueIdList ) { .Map } : ( .Types ) -> ( i1 , .Types ) ~> %11 , .OpResults = ~> { %12 , .OpResults = "sv.constantZ" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %13 , .OpResults = "comb.and" ( %10 , %11 , %12 , %t1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i1 , i1 , i1 , i1 , .Types ) -> ( i1 , .Types )  .OpResults = "sv.if" ( %13 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.fwrite" ( %0 , %13 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "%x" } : ( i32 , i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.fwrite" ( %0 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "There" } : ( i32 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } ~> .OpResults = ~> { .OperationList .BlockList } ~> .OpResults = ~> %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+          instanceName |-> "swap"
+          moduleName |-> @Swap
+          parameters |-> [ ]
+          resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList ~> .
+        </circt-exec>
+        <circt-locals>
+          %10 |-> TV ( i1 , 0 )
+          %arg0 |-> TV ( i8 , 4 )
+          %arg1 |-> TV ( i8 , 3 )
+          %t1 |-> TV ( i1 , 1 )
+          %t2 |-> TV ( i32 , -2147483646 )
+          %t3 |-> TV ( i42 , 11 )
+          %t4 |-> TV ( !hw.inout < i32 > , hw.inout ( "myReg2" , i32 , 0 ) )
+          %t5 |-> TV ( i4 , 1 )
+          %t6 |-> TV ( !hw.inout < i5 > , hw.inout ( "" , i5 , 0 ) )
+        </circt-locals>
+        <circt-output>
+          .List
+        </circt-output>
+        <last-locals>
+          %0 |-> TV ( i8 , 3 )
+          %1 |-> TV ( i8 , 2 )
+          %2 |-> TV ( i8 , 5 )
+          %arg0 |-> TV ( i8 , 2 )
+          %arg1 |-> TV ( i8 , 3 )
+          %t1 |-> TV ( i1 , 1 )
+          %t2 |-> TV ( i32 , -2147483646 )
+          %t3 |-> TV ( i42 , 11 )
+          %t4 |-> TV ( !hw.inout < i32 > , hw.inout ( "myReg2" , i32 , 0 ) )
+          %t5 |-> TV ( i4 , 1 )
+          %t6 |-> TV ( !hw.inout < i5 > , hw.inout ( "" , i5 , 0 ) )
+        </last-locals>
+        <instance>
+          "Top"
+        </instance>
+        <ports>
+          ListItem ( input a : i8 )
+          ListItem ( input b : i8 )
+          ListItem ( output res : i8 )
+        </ports>
+      </circt-frame>
     </circt-frames>
     <old>
       "Top" |-> ( %0 |-> TV ( i8 , 3 )
-      %1 |-> TV ( i8 , 1 )
-      %2 |-> TV ( i8 , 4 )
-      %arg0 |-> TV ( i8 , 1 )
-      %arg1 |-> TV ( i8 , 3 ) )
-      "same1" |-> ( %arg0 |-> TV ( i8 , 1 ) )
+      %1 |-> TV ( i8 , 2 )
+      %2 |-> TV ( i8 , 5 )
+      %arg0 |-> TV ( i8 , 2 )
+      %arg1 |-> TV ( i8 , 3 )
+      %t1 |-> TV ( i1 , 1 )
+      %t2 |-> TV ( i32 , -2147483646 )
+      %t3 |-> TV ( i42 , 11 )
+      %t4 |-> TV ( !hw.inout < i32 > , hw.inout ( "myReg2" , i32 , 0 ) )
+      %t5 |-> TV ( i4 , 1 )
+      %t6 |-> TV ( !hw.inout < i5 > , hw.inout ( "" , i5 , 0 ) ) )
+      "same1" |-> ( %arg0 |-> TV ( i8 , 2 ) )
       "same2" |-> ( %arg0 |-> TV ( i8 , 3 ) )
-      "swap" |-> ( %0 |-> TV ( i8 , 1 )
+      "swap" |-> ( %0 |-> TV ( i8 , 2 )
       %1 |-> TV ( i8 , 3 )
-      %arg0 |-> TV ( i8 , 1 )
+      %arg0 |-> TV ( i8 , 2 )
       %arg1 |-> TV ( i8 , 3 ) )
     </old>
     <registers>
       .Map
     </registers>
     <macros>
+      "PRINTF_COND_" |-> ""
       "RANDOM" |-> ""
       "foo" |-> ""
     </macros>
     <result>
       ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
-      ListItem ( ListItem ( result ( res , TV ( i8 , 4 ) ) ) )
     </result>
     <always>
       .Map
     </always>
     <initial>
-      "Adder" |-> { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "error" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions
+      .Map
     </initial>
     <initialized>
-      .Set
+      SetItem ( "Top" )
     </initialized>
     <sv-wires>
       .Map
@@ -50,21 +99,36 @@
     </trace>
     <observation>
       <ob-in>
-        "swap" |-> ListItem ( 1 )
+        "swap" |-> ListItem ( 2 )
         ListItem ( 3 )
-        "swap/same1" |-> ListItem ( 1 )
+        "swap/same1" |-> ListItem ( 2 )
         "swap/same2" |-> ListItem ( 3 )
       </ob-in>
       <ob-out>
         "swap" |-> ListItem ( result ( result1 , TV ( i8 , 3 ) ) )
-        ListItem ( result ( result2 , TV ( i8 , 1 ) ) )
-        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , 1 ) ) )
+        ListItem ( result ( result2 , TV ( i8 , 2 ) ) )
+        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , 2 ) ) )
         "swap/same2" |-> ListItem ( result ( res , TV ( i8 , 3 ) ) )
       </ob-out>
     </observation>
-    <sv-error>
-      .List
-    </sv-error>
+    <sv-log>
+      <sv-error>
+        ListItem ( "initial" )
+        ListItem ( "always" )
+      </sv-error>
+      <sv-warn>
+        .List
+      </sv-warn>
+      <sv-info>
+        .List
+      </sv-info>
+      <sv-fatal>
+        .List
+      </sv-fatal>
+    </sv-log>
+    <fd>
+      -2147483646 |-> ListItem ( "yes" )
+    </fd>
   </circt>
   <mlir>
     <mlir-program>
@@ -85,7 +149,8 @@
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "sv.always" ( %arg0 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "error" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { events |-> [ 0 : i32 , .AttributeValueList ] } : ( i1 , .Types ) -> ( .Types )  %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %t1 , .OpResults = "hw.constant" ( .ValueIdList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  %t2 , .OpResults = "hw.constant" ( .ValueIdList ) [ .Successors ] ( .Regions ) { value |-> -2147483646 : i32 } : ( .Types ) -> ( i32 , .Types )  %t3 , .OpResults = "sv.localparam" ( .ValueIdList ) [ .Successors ] ( .Regions ) { name |-> "param_x"
+      value |-> 11 : i42 } : ( .Types ) -> ( i42 , .Types )  %t4 , .OpResults = "sv.reg" ( .ValueIdList ) [ .Successors ] ( .Regions ) { name |-> "myReg2" } : ( .Types ) -> ( !hw.inout < i32 > , .Types )  %t5 , .OpResults = "hw.constant" ( .ValueIdList ) [ .Successors ] ( .Regions ) { value |-> 1 : i4 } : ( .Types ) -> ( i4 , .Types )  %t6 , .OpResults = "sv.indexed_part_select_inout" ( %t4 , %t5 , .ValueIdList ) [ .Successors ] ( .Regions ) { width |-> 5 : i32 } : ( !hw.inout < i32 > , i4 , .Types ) -> ( !hw.inout < i5 > , .Types )  .OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "initial" } : ( .Types ) -> ( .Types )  .OpResults = "sv.if" ( %t1 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.fwrite" ( %t2 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "yes" } : ( i32 , .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.fwrite" ( %t2 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "no" } : ( i32 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OpResults = "sv.always" ( %arg0 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "always" } : ( .Types ) -> ( .Types )  .OpResults = "sv.ifdef.procedural" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( .ValueIdAndTypeList ) : .OperationList  .BlockList } , { %10 , .OpResults = "sv.macro.ref" ( .ValueIdList ) [ .Successors ] ( .Regions ) { macroName |-> @PRINTF_COND_ } : ( .Types ) -> ( i1 , .Types )  %11 , .OpResults = "sv.constantX" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %12 , .OpResults = "sv.constantZ" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %13 , .OpResults = "comb.and" ( %10 , %11 , %12 , %t1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i1 , i1 , i1 , i1 , .Types ) -> ( i1 , .Types )  .OpResults = "sv.if" ( %13 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.fwrite" ( %0 , %13 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "%x" } : ( i32 , i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.fwrite" ( %0 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "There" } : ( i32 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { cond |-> #sv < macro.ident  "SYNTHESIS"  .DialectTypeContentsList > } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { events |-> [ 0 : i32 , .AttributeValueList ] } : ( i1 , .Types ) -> ( .Types )  %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
       instanceName |-> "swap"
       moduleName |-> @Swap
       parameters |-> [ ]

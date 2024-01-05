@@ -11,6 +11,7 @@
 
     "sv.macro.decl"() {sym_name = "RANDOM"} : () -> ()
     "sv.macro.decl"() {sym_name = "foo"} : () -> ()
+    "sv.macro.decl"() {sym_name = "PRINTF_COND_"} : () -> ()
 
     "sv.bind"() {instance = #hw.innerNameRef<@AB::@b1>} : () -> ()
     "hw.hierpath"() {namepath = [#hw.innerNameRef<@XMRRefOp::@bar>], sym_name = "ref2"} : () -> ()
@@ -29,8 +30,39 @@
     
     "hw.module"() ({
         ^bb0(%arg0: i8, %arg1: i8):
+            %t1 = "hw.constant"() {value = true} : () -> i1
+            %t2 = "hw.constant"() {value = -2147483646 : i32} : () -> i32
+            %t3 = "sv.localparam"() {name = "param_x", value = 11 : i42} : () -> i42
+            %t4 = "sv.reg"() {name = "myReg2"} : () -> !hw.inout<i32>
+            %t5 = "hw.constant"() {value = 1 : i4} : () -> i4
+            %t6 = "sv.indexed_part_select_inout"(%t4, %t5) {decrement, width = 5 : i32} : (!hw.inout<i32>, i4) -> !hw.inout<i5>
+
+            "sv.initial"() ({
+                "sv.error"() {message = "initial"} : () -> ()
+                "sv.if"(%t1) ({
+                    "sv.fwrite"(%t2) {format_string = "yes"} : (i32) -> ()
+                }, {
+                    "sv.fwrite"(%t2) {format_string = "no"} : (i32) -> ()
+                }) : (i1) -> ()
+            }) : () -> ()
+
            "sv.always"(%arg0) ({
-                "sv.error"() {message = "error"} : () -> ()
+                "sv.error"() {message = "always"} : () -> ()
+
+                "sv.ifdef.procedural"() ({
+                    ^bb0:
+                }, {
+                    %10 = "sv.macro.ref"() {macroName = @PRINTF_COND_} : () -> i1
+                    %11 = "sv.constantX"() : () -> i1
+                    %12 = "sv.constantZ"() : () -> i1
+                    %13 = "comb.and"(%10, %11, %12, %t1) : (i1, i1, i1, i1) -> i1
+                   
+                    "sv.if"(%13) ({
+                        "sv.fwrite"(%0, %13) {format_string = "%x"} : (i32, i1) -> ()
+                        }, {
+                    "sv.fwrite"(%0) {format_string = "There"} : (i32) -> ()
+                    }) : (i1) -> ()
+                }) {cond = #sv<macro.ident "SYNTHESIS">} : () -> ()
             }) {events = [0 : i32]} : (i1) -> ()
 
             %0, %1 = "hw.instance"(%arg0, %arg1) {argNames = ["x", "y"], instanceName = "swap", moduleName = @Swap, parameters = [], resultNames = ["result1", "result2"]} : (i8, i8) -> (i8, i8)
