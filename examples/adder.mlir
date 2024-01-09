@@ -30,6 +30,7 @@
     
     "hw.module"() ({
         ^bb0(%arg0: i8, %arg1: i8):
+            "sv.verbatim"() {format_string = "verbatim", symbols = []} : () -> ()
             %t1 = "hw.constant"() {value = true} : () -> i1
             %t2 = "hw.constant"() {value = -2147483646 : i32} : () -> i32
             %t3 = "sv.localparam"() {name = "param_x", value = 11 : i42} : () -> i42
@@ -39,11 +40,17 @@
 
             "sv.initial"() ({
                 "sv.error"() {message = "initial"} : () -> ()
-                "sv.if"(%t1) ({
-                    "sv.fwrite"(%t2) {format_string = "yes"} : (i32) -> ()
+                "sv.case"(%arg1) ({
+                    "sv.error"() {message = "case1"} : () -> ()
                 }, {
-                    "sv.fwrite"(%t2) {format_string = "no"} : (i32) -> ()
-                }) : (i1) -> ()
+                    "sv.error"() {message = "case2"} : () -> ()
+                }, {
+                    "sv.error"() {message = "case3"} : () -> ()
+                }) {
+                    casePatterns = [6 : i16, 9 : i16, unit],
+                    caseStyle = 2 : i32,
+                    validationQualifier = #sv<validation_qualifier plain>
+                } : (i8) -> ()
             }) : () -> ()
 
            "sv.always"(%arg0) ({
@@ -58,9 +65,9 @@
                     %13 = "comb.and"(%10, %11, %12, %t1) : (i1, i1, i1, i1) -> i1
                    
                     "sv.if"(%13) ({
-                        "sv.fwrite"(%0, %13) {format_string = "%x"} : (i32, i1) -> ()
-                        }, {
-                    "sv.fwrite"(%0) {format_string = "There"} : (i32) -> ()
+                        "sv.fwrite"(%t2, %13) {format_string = "%x"} : (i32, i1) -> ()
+                    }, {
+                        "sv.fwrite"(%t2) {format_string = "There"} : (i32) -> ()
                     }) : (i1) -> ()
                 }) {cond = #sv<macro.ident "SYNTHESIS">} : () -> ()
             }) {events = [0 : i32]} : (i1) -> ()
