@@ -39,7 +39,9 @@ module CONFIGURATION
                 <sv-warn> .List </sv-warn>
                 <sv-info> .List </sv-info>
                 <sv-fatal> .List </sv-fatal>
+                <sv-verbatim> .List </sv-verbatim>
             </sv-log>
+            <hw-hierpath> .Map </hw-hierpath>
             <fd> .Map </fd>
         </circt>
         <mlir>

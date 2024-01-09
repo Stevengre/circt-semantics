@@ -6,7 +6,7 @@ module SV
     rule <k> circt </k>
         <circt-exec> 
             "sv.constantX" ( .ValueIdList ) { .Map } : ( .Types ) -> ( T:Type )
-            => stop
+            => ListItem(TV(T, 0))
             ...
         </circt-exec>
 
@@ -15,7 +15,45 @@ module SV
     rule <k> circt </k>
         <circt-exec> 
             "sv.constantZ" ( .ValueIdList ) { .Map } : ( .Types ) -> ( T:Type )
-            => stop
+            => ListItem(TV(T, 0))
+            ...
+        </circt-exec>
+
+    
+    // sv.case
+    rule <k> circt </k>
+        <circt-exec> 
+            (.K => TV(T, V)) ~>
+            (.K => Attr[#token("casePatterns", "BareId")]) ~>
+            "sv.case" ( I:ValueId ) ( _:Regions ) { Attr:Map } : ( T:Type ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals> ... I |-> TV(T, V) ... </circt-locals>
+
+    rule <k> circt </k>
+        <circt-exec> 
+            (
+                TV(T, V:Int) ~>
+                [ X:Int : _:IntegerType, L:AttributeValueList ] ~>
+                "sv.case" ( I:ValueId ) ( R:Region, Rs:Regions ) { Attr:Map } : ( T:Type ) -> ( .Types )
+            ) => #if V ==Int X 
+                #then R 
+                #else 
+                    TV(T, V) ~>
+                    [ L ] ~>
+                    "sv.case" ( I ) ( Rs ) { Attr } : ( T ) -> ( .Types )
+                #fi
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            (
+                TV(T, _:Int) ~>
+                [ (unit, .AttributeValueList):AttributeValueList ] ~>
+                "sv.case" ( _:ValueId ) ( R:Region ) { _:Map } : ( T:Type ) -> ( .Types )
+            )
+            => R
             ...
         </circt-exec>
 
@@ -317,6 +355,18 @@ module SV
         <sv-fatal>
             L:List => L ListItem(Attr[#token("message", "BareId")])
         </sv-fatal>
+
+    
+    // sv.verbatim
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.verbatim" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <sv-verbatim>
+            L:List => L ListItem(Attr[#token("format_string", "BareId")])
+        </sv-verbatim>
 
 
     // sv.finish

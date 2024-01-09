@@ -5,6 +5,16 @@ module HW
     imports CIRCT-SYNTAX
     imports BITS
 
+    // hw.hierpath
+    rule <k> circt </k>
+        <circt-exec>
+            "hw.hierpath" (.ValueIdList) { Attr:Map } : (.Types) -> (.Types) => .List
+            ...
+        </circt-exec>
+        <hw-hierpath>
+            M:Map => M [ Attr[#token("sym_name", "BareId")] <- Attr[#token("namepath", "BareId")] ]
+        </hw-hierpath>
+
     // hw.wire, how to express observablility
     rule <k> circt </k>
         <circt-exec> 

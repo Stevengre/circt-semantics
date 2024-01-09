@@ -232,8 +232,11 @@ module MLIR
     //     <mlir-program> E:TopLevelElement T:TopLevel => E ~> T ... </mlir-program>
 
     rule <k> mlir </k>
-        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T ... </mlir-program>
-        <attr-alias> M:Map => M[Alias <- Attr] </attr-alias>
+        <mlir-program> 
+            Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T
+            ...
+        </mlir-program>
+        <attr-alias> M:Map => M [Alias <- Attr] </attr-alias>
 
     rule <k> mlir </k>
         <mlir-program>
@@ -243,10 +246,24 @@ module MLIR
     
     // rule <k> mlir </k>
     //     <mlir-program> .TopLevel => . ... </mlir-program>
+
+    rule <k> mlir </k>
+        <mlir-program>
+            .OpResults = S:StringLiteral ( VL:ValueIdList ) [ .Successors ] ( Rs:Regions ) { Attr:Map } : T:FunctionType
+            => S ( VL ) ( Rs ) { Attr } : T
+            ...
+        </mlir-program>
+    
+    rule <k> mlir </k>
+        <mlir-program>
+            S:StringLiteral ( VL:ValueIdList ) ( .Regions ) { Attr:Map } : T:FunctionType
+            => S ( VL ) { Attr } : T
+            ...
+        </mlir-program>
     
     rule <k> mlir </k>
         <mlir-program> 
-            .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] (R:Region) { _:Map } : (.Types) -> (.Types)
+            "builtin.module" ( .ValueIdList ) ( R:Region ) { _:Map } : (.Types) -> (.Types)
             => R
             ... 
         </mlir-program>
@@ -266,7 +283,7 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program> 
             (.K => Attr[#token("sym_name", "BareId")]) 
-            ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] (R:Region) { Attr:Map } : T:FunctionType => R)
+            ~> ("hw.module" ( .ValueIdList ) (R:Region) { Attr:Map } : T:FunctionType => R)
             ...
         </mlir-program>
         <symbol-table>
@@ -282,7 +299,7 @@ module MLIR
     // sv.macro.decl
     rule <k> mlir </k>
         <mlir-program>
-            .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { Attr:Map } : ( .Types ) -> ( .Types )
+            "sv.macro.decl" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
             => . 
             ... 
         </mlir-program>
@@ -291,7 +308,7 @@ module MLIR
     // sv.bind
     rule <k> mlir </k>
         <mlir-program>
-            .OpResults = "sv.bind" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types )
+            "sv.bind" ( .ValueIdList ) { _:Map } : ( .Types ) -> ( .Types )
             => . 
             ... 
         </mlir-program>
@@ -299,10 +316,13 @@ module MLIR
     // sv.hierpath
     rule <k> mlir </k>
         <mlir-program>
-            .OpResults = "hw.hierpath" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types )
+            "hw.hierpath" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
             => . 
             ... 
         </mlir-program>
+        <hw-hierpath>
+            M:Map => M [ Attr[#token("sym_name", "BareId")] <- Attr[#token("namepath", "BareId")] ]
+        </hw-hierpath>
         
 
     // block head
