@@ -11,11 +11,11 @@
     </circt-frames>
     <old>
       "Top" |-> ( %0 |-> TV ( i8 , 3 )
-      %1 |-> TV ( i8 , 4 )
-      %2 |-> TV ( i8 , 7 )
+      %1 |-> TV ( i8 , #x )
+      %2 |-> TV ( i8 , #x )
       %10 |-> TV ( i1 , 0 )
-      %11 |-> TV ( i1 , 0 )
-      %12 |-> TV ( i1 , 0 )
+      %11 |-> TV ( i1 , #x )
+      %12 |-> TV ( i1 , #z )
       %13 |-> TV ( i1 , 0 )
       %arg0 |-> TV ( i8 , 4 )
       %arg1 |-> TV ( i8 , 3 )
@@ -24,12 +24,13 @@
       %t3 |-> TV ( i42 , 11 )
       %t4 |-> TV ( !hw.inout < i32 > , hw.inout ( "myReg2" , i32 , 0 ) )
       %t5 |-> TV ( i4 , 1 )
-      %t6 |-> TV ( !hw.inout < i5 > , hw.inout ( "" , i5 , 0 ) ) )
-      "same1" |-> ( %arg0 |-> TV ( i8 , 4 ) )
+      %t6 |-> TV ( !hw.inout < i5 > , hw.inout ( "" , i5 , 0 ) )
+      %x |-> TV ( i8 , #x ) )
+      "same1" |-> ( %arg0 |-> TV ( i8 , #x ) )
       "same2" |-> ( %arg0 |-> TV ( i8 , 3 ) )
-      "swap" |-> ( %0 |-> TV ( i8 , 4 )
+      "swap" |-> ( %0 |-> TV ( i8 , #x )
       %1 |-> TV ( i8 , 3 )
-      %arg0 |-> TV ( i8 , 4 )
+      %arg0 |-> TV ( i8 , #x )
       %arg1 |-> TV ( i8 , 3 ) )
     </old>
     <registers>
@@ -41,8 +42,8 @@
       "foo" |-> ""
     </macros>
     <result>
-      ListItem ( ListItem ( result ( res , TV ( i8 , 5 ) ) ) )
-      ListItem ( ListItem ( result ( res , TV ( i8 , 7 ) ) ) )
+      ListItem ( ListItem ( result ( res , TV ( i8 , #x ) ) ) )
+      ListItem ( ListItem ( result ( res , TV ( i8 , #x ) ) ) )
     </result>
     <always>
       .Map
@@ -61,15 +62,15 @@
     </trace>
     <observation>
       <ob-in>
-        "swap" |-> ListItem ( 4 )
+        "swap" |-> ListItem ( #x )
         ListItem ( 3 )
-        "swap/same1" |-> ListItem ( 4 )
+        "swap/same1" |-> ListItem ( #x )
         "swap/same2" |-> ListItem ( 3 )
       </ob-in>
       <ob-out>
         "swap" |-> ListItem ( result ( result1 , TV ( i8 , 3 ) ) )
-        ListItem ( result ( result2 , TV ( i8 , 4 ) ) )
-        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , 4 ) ) )
+        ListItem ( result ( result2 , TV ( i8 , #x ) ) )
+        "swap/same1" |-> ListItem ( result ( res , TV ( i8 , #x ) ) )
         "swap/same2" |-> ListItem ( result ( res , TV ( i8 , 3 ) ) )
       </ob-out>
     </observation>
@@ -119,31 +120,31 @@
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : .OpResults = "sv.verbatim" ( .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "verbatim"
-      symbols |-> [ ] } : ( .Types ) -> ( .Types )  %t1 , .OpResults = "hw.constant" ( .ValueIdList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  %t2 , .OpResults = "hw.constant" ( .ValueIdList ) [ .Successors ] ( .Regions ) { value |-> -2147483646 : i32 } : ( .Types ) -> ( i32 , .Types )  %t3 , .OpResults = "sv.localparam" ( .ValueIdList ) [ .Successors ] ( .Regions ) { name |-> "param_x"
-      value |-> 11 : i42 } : ( .Types ) -> ( i42 , .Types )  %t4 , .OpResults = "sv.reg" ( .ValueIdList ) [ .Successors ] ( .Regions ) { name |-> "myReg2" } : ( .Types ) -> ( !hw.inout < i32 > , .Types )  %t5 , .OpResults = "hw.constant" ( .ValueIdList ) [ .Successors ] ( .Regions ) { value |-> 1 : i4 } : ( .Types ) -> ( i4 , .Types )  %t6 , .OpResults = "sv.indexed_part_select_inout" ( %t4 , %t5 , .ValueIdList ) [ .Successors ] ( .Regions ) { width |-> 5 : i32 } : ( !hw.inout < i32 > , i4 , .Types ) -> ( !hw.inout < i5 > , .Types )  .OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "initial" } : ( .Types ) -> ( .Types )  .OpResults = "sv.case" ( %arg1 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "case1" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "case2" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "case3" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { casePatterns |-> [ 6 : i16 , 9 : i16 , unit , .AttributeValueList ]
+      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .VarAndTypeList ) : .OpResults = "sv.verbatim" ( .VarList ) [ .Successors ] ( .Regions ) { format_string |-> "verbatim"
+      symbols |-> [ ] } : ( .Types ) -> ( .Types )  %t1 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  %t2 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> -2147483646 : i32 } : ( .Types ) -> ( i32 , .Types )  %t3 , .OpResults = "sv.localparam" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "param_x"
+      value |-> 11 : i42 } : ( .Types ) -> ( i42 , .Types )  %t4 , .OpResults = "sv.reg" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "myReg2" } : ( .Types ) -> ( !hw.inout < i32 > , .Types )  %t5 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> 1 : i4 } : ( .Types ) -> ( i4 , .Types )  %t6 , .OpResults = "sv.indexed_part_select_inout" ( %t4 , %t5 , .VarList ) [ .Successors ] ( .Regions ) { width |-> 5 : i32 } : ( !hw.inout < i32 > , i4 , .Types ) -> ( !hw.inout < i5 > , .Types )  .OpResults = "sv.initial" ( .VarList ) [ .Successors ] ( { .OpResults = "sv.error" ( .VarList ) [ .Successors ] ( .Regions ) { message |-> "initial" } : ( .Types ) -> ( .Types )  .OpResults = "sv.case" ( %arg1 , .VarList ) [ .Successors ] ( { .OpResults = "sv.error" ( .VarList ) [ .Successors ] ( .Regions ) { message |-> "case1" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.error" ( .VarList ) [ .Successors ] ( .Regions ) { message |-> "case2" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.error" ( .VarList ) [ .Successors ] ( .Regions ) { message |-> "case3" } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { casePatterns |-> [ 6 : i16 , 9 : i16 , unit , .AttributeValueList ]
       caseStyle |-> 2 : i32
-      validationQualifier |-> #sv < validation_qualifier  plain  .DialectTypeContentsList > } : ( i8 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OpResults = "sv.always" ( %arg0 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.error" ( .ValueIdList ) [ .Successors ] ( .Regions ) { message |-> "always" } : ( .Types ) -> ( .Types )  .OpResults = "sv.ifdef.procedural" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( .ValueIdAndTypeList ) : .OperationList  .BlockList } , { %10 , .OpResults = "sv.macro.ref" ( .ValueIdList ) [ .Successors ] ( .Regions ) { macroName |-> @PRINTF_COND_ } : ( .Types ) -> ( i1 , .Types )  %11 , .OpResults = "sv.constantX" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %12 , .OpResults = "sv.constantZ" ( .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %13 , .OpResults = "comb.and" ( %10 , %11 , %12 , %t1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i1 , i1 , i1 , i1 , .Types ) -> ( i1 , .Types )  .OpResults = "sv.if" ( %13 , .ValueIdList ) [ .Successors ] ( { .OpResults = "sv.fwrite" ( %t2 , %13 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "%x" } : ( i32 , i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.fwrite" ( %t2 , .ValueIdList ) [ .Successors ] ( .Regions ) { format_string |-> "There" } : ( i32 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { cond |-> #sv < macro.ident  "SYNTHESIS"  .DialectTypeContentsList > } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { events |-> [ 0 : i32 , .AttributeValueList ] } : ( i1 , .Types ) -> ( .Types )  %0 , %1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      validationQualifier |-> #sv < validation_qualifier  plain  .DialectTypeContentsList > } : ( i8 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  .OpResults = "sv.always" ( %arg0 , .VarList ) [ .Successors ] ( { .OpResults = "sv.error" ( .VarList ) [ .Successors ] ( .Regions ) { message |-> "always" } : ( .Types ) -> ( .Types )  .OpResults = "sv.ifdef.procedural" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( .VarAndTypeList ) : .OperationList  .BlockList } , { %10 , .OpResults = "sv.macro.ref" ( .VarList ) [ .Successors ] ( .Regions ) { macroName |-> @PRINTF_COND_ } : ( .Types ) -> ( i1 , .Types )  %11 , .OpResults = "sv.constantX" ( .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %12 , .OpResults = "sv.constantZ" ( .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i1 , .Types )  %13 , .OpResults = "comb.and" ( %10 , %11 , %12 , %t1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i1 , i1 , i1 , i1 , .Types ) -> ( i1 , .Types )  .OpResults = "sv.if" ( %13 , .VarList ) [ .Successors ] ( { .OpResults = "sv.fwrite" ( %t2 , %13 , .VarList ) [ .Successors ] ( .Regions ) { format_string |-> "%x" } : ( i32 , i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , { .OpResults = "sv.fwrite" ( %t2 , .VarList ) [ .Successors ] ( .Regions ) { format_string |-> "There" } : ( i32 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { cond |-> #sv < macro.ident  "SYNTHESIS"  .DialectTypeContentsList > } : ( .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { events |-> [ 0 : i32 , .AttributeValueList ] } : ( i1 , .Types ) -> ( .Types )  %x , .OpResults = "sv.constantX" ( .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( .Types ) -> ( i8 , .Types )  %0 , %1 , .OpResults = "hw.instance" ( %x , %arg1 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
       instanceName |-> "swap"
       moduleName |-> @Swap
       parameters |-> [ ]
-      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %1 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      resultNames |-> [ "result1" , "result2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "comb.add" ( %0 , %1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc6 , #loc7 , #loc8 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )
-      "Same" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : .OpResults = "hw.output" ( %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , output res : i8 , .ModulePortList >
+      "Same" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , .VarAndTypeList ) : .OpResults = "hw.output" ( %arg0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc , #loc1 , .AttributeValueList ]
       sym_name |-> "Same" } : ( .Types ) -> ( .Types )
-      "Swap" |-> "hw.module" ( .ValueIdList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
+      "Swap" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
       instanceName |-> "same1"
       moduleName |-> @Same
       parameters |-> [ ]
-      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "hw.instance" ( %arg1 , .ValueIdList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
+      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "hw.instance" ( %arg1 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
       instanceName |-> "same2"
       moduleName |-> @Same
       parameters |-> [ ]
-      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , %0 , .ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
+      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , %0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output result1 : i8 , output result2 : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc2 , #loc3 , #loc4 , #loc5 , .AttributeValueList ]
       sym_name |-> "Swap" } : ( .Types ) -> ( .Types )

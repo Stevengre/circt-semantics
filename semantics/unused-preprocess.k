@@ -20,20 +20,20 @@ module CIRCT-PREPROCESS
     
     rule <k> preprocess-2 
             ~> (
-                .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] ( Rs:Regions ) { Attr:Map } : FT:FunctionType
-                => "builtin.module" ( .ValueIdList ) ( Rs ) { Attr } : FT
+                .OpResults = "builtin.module" ( .VarList ) [ .Successors ] ( Rs:Regions ) { Attr:Map } : FT:FunctionType
+                => "builtin.module" ( .VarList ) ( Rs ) { Attr } : FT
             )
             ...
         </k>
     
     rule <k> (.K => preprocess-3 ~> R) 
             ~> preprocess-2 
-            ~> "builtin.module" ( .ValueIdList ) ( (R:Region, Rs:Regions => Rs) ) {_:Map} : _:FunctionType
+            ~> "builtin.module" ( .VarList ) ( (R:Region, Rs:Regions => Rs) ) {_:Map} : _:FunctionType
             ...
         </k>
     
     rule <k> preprocess-2 
-            ~> ("builtin.module" ( .ValueIdList ) ( .Regions ) {_:Map} : _:FunctionType => .K)
+            ~> ("builtin.module" ( .VarList ) ( .Regions ) {_:Map} : _:FunctionType => .K)
             ...
         </k>
     
@@ -53,7 +53,7 @@ module CIRCT-PREPROCESS
     
     rule <k> preprocess-3 ~>
             (
-                .OpResults = "sv.verbatim" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : _:FunctionType
+                .OpResults = "sv.verbatim" ( .VarList ) [ .Successors ] ( .Regions ) { _:Map } : _:FunctionType
                 => .
             ) ...
         </k>
@@ -61,8 +61,8 @@ module CIRCT-PREPROCESS
     rule <k> (.K => M[#token("cond", "BareId")] orDefault stop) ~>
             preprocess-3 ~>
             (
-                .OpResults = "sv.ifdef" ( .ValueIdList ) [ .Successors ] ( Rs:Regions ) { M:Map } : FT:FunctionType
-                => "sv.ifdef" ( .ValueIdList ) ( Rs ) { M } : FT
+                .OpResults = "sv.ifdef" ( .VarList ) [ .Successors ] ( Rs:Regions ) { M:Map } : FT:FunctionType
+                => "sv.ifdef" ( .VarList ) ( Rs ) { M } : FT
             )
             ...
         </k>
@@ -70,7 +70,7 @@ module CIRCT-PREPROCESS
     rule <k> (B:Bool => .K) ~> 
             preprocess-3 ~> 
             (
-                "sv.ifdef" ( .ValueIdList ) ( R1:Region, R2:Region, .Regions ) { _:Map } : _:FunctionType
+                "sv.ifdef" ( .VarList ) ( R1:Region, R2:Region, .Regions ) { _:Map } : _:FunctionType
                 => #if B #then R1 #else R2 #fi
             )
             ...
@@ -88,8 +88,8 @@ module CIRCT-PREPROCESS
     rule <k>
             preprocess-3 ~>
             (
-                .OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] ( Rs:Regions ) { Attr:Map } : FT:FunctionType
-                => "hw.module" ( .ValueIdList ) ( Rs ) { Attr } : FT
+                .OpResults = "hw.module" ( .VarList ) [ .Successors ] ( Rs:Regions ) { Attr:Map } : FT:FunctionType
+                => "hw.module" ( .VarList ) ( Rs ) { Attr } : FT
             )
             ...
         </k>
@@ -97,7 +97,7 @@ module CIRCT-PREPROCESS
     rule <k>
             preprocess-3 ~>
             (
-                "hw.module" ( _:ValueIdList ) ( _:Regions ) { _:Map } : _:FunctionType => .K
+                "hw.module" ( _:VarList ) ( _:Regions ) { _:Map } : _:FunctionType => .K
             )
             ...
         </k>
@@ -105,7 +105,7 @@ module CIRCT-PREPROCESS
     rule <k> 
             preprocess-3 ~> 
             (
-                .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { Attr:Map } : ( .Types ) -> ( .Types )
+                .OpResults = "sv.macro.decl" ( .VarList ) [ .Successors ] ( .Regions ) { Attr:Map } : ( .Types ) -> ( .Types )
                 => .K
             )
             ...

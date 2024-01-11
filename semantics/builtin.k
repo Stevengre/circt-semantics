@@ -115,8 +115,8 @@ module BUILTIN-DIALECT-SYNTAX
     // builtin.unrealized_conversion_cast
     syntax CustomOperation ::= "unrealized_conversion_cast" "to" Types
                              | "unrealized_conversion_cast" "to" Types AttrDict
-                             | "unrealized_conversion_cast" ValueIdList ":" Types "to" Types
-                             | "unrealized_conversion_cast" ValueIdList ":" Types "to" Types AttrDict
+                             | "unrealized_conversion_cast" VarList ":" Types "to" Types
+                             | "unrealized_conversion_cast" VarList ":" Types "to" Types AttrDict
 
     // ------------------------- Types ------------------------- //
     // FloatType

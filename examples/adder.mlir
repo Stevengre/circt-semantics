@@ -30,6 +30,7 @@
     
     "hw.module"() ({
         ^bb0(%arg0: i8, %arg1: i8):
+            
             "sv.verbatim"() {format_string = "verbatim", symbols = []} : () -> ()
             %t1 = "hw.constant"() {value = true} : () -> i1
             %t2 = "hw.constant"() {value = -2147483646 : i32} : () -> i32
@@ -71,8 +72,8 @@
                     }) : (i1) -> ()
                 }) {cond = #sv<macro.ident "SYNTHESIS">} : () -> ()
             }) {events = [0 : i32]} : (i1) -> ()
-
-            %0, %1 = "hw.instance"(%arg0, %arg1) {argNames = ["x", "y"], instanceName = "swap", moduleName = @Swap, parameters = [], resultNames = ["result1", "result2"]} : (i8, i8) -> (i8, i8)
+            %x = "sv.constantX"() : () -> i8
+            %0, %1 = "hw.instance"(%x, %arg1) {argNames = ["x", "y"], instanceName = "swap", moduleName = @Swap, parameters = [], resultNames = ["result1", "result2"]} : (i8, i8) -> (i8, i8)
             %2 = "comb.add"(%0, %1) : (i8, i8) -> i8
             "hw.output"(%2) : (i8) -> ()
     }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i8>, parameters = [], port_locs = [#loc6, #loc7, #loc8], sym_name = "Adder"} : () -> ()

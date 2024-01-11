@@ -1,5 +1,7 @@
 module CTRL
     imports INT
+    imports STRING
+
     syntax Ctrl ::= "mlir"
 
     syntax Ctrl ::= "preprocess"
@@ -14,6 +16,7 @@ module CTRL
     syntax Ctrl ::= "done"
                   | "done" Int
 
-    syntax Ctrl ::= "initial"
-                  | "always"
+    syntax Ctrl ::= "initial" | "always"
+
+    syntax Ctrl ::= "do" String
 endmodule
