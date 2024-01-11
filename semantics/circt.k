@@ -16,9 +16,17 @@ module CIRCT-SYNTAX-CORE
     imports LIST
     imports MLIR
 
+    syntax ConstX ::= "#x" [token]
+    syntax ConstZ ::= "#z" [token]
+
+    syntax CirctInt ::= Int | ConstX | ConstZ
+    syntax Value ::= CirctInt
+
     syntax Value ::= String
-                   | Int
                    | Bool
+                //    | Int
+                //    | ConstX
+                //    | ConstZ
 
     syntax TypeValue ::= "TV" "(" Type "," Value ")"
 
@@ -98,7 +106,7 @@ endmodule
 
 module HW-STRUCT
     imports CIRCT-SYNTAX-CORE
-    imports BITS
+    // imports BITS
 
     syntax HwStructType ::= "!hw.struct" "<" HwStructFields ">"
     syntax HwStructFields ::= List{HwStructField, ","}
@@ -130,7 +138,8 @@ module HW-STRUCT
     syntax Value ::= HwUnion
 
     syntax Value ::= HwUnionExtract(Value, Type) [function]
-    rule HwUnionExtract(X:Int, T:IntegerType) => Bits2UInt(bitsCast(X, getWidth(T)))
+    // rule HwUnionExtract(X:Int, T:IntegerType) => Bits2UInt(bitsCast(X, getWidth(T)))
+    rule HwUnionExtract(X:Int, T:IntegerType) => X &Int (2 ^Int getWidth(T) -Int 1)
 
     syntax Type ::= getFieldType(HwStructFields, Int) [function]
     rule getFieldType(_:BareId : _:Type, Fs:HwStructFields, I:Int) => getFieldType(Fs, I -Int 1) requires I >Int 0
@@ -276,7 +285,7 @@ module CIRCT
             (.K => getAttrValue(Attr, #token("module_type", "BareId")))
             ~> _:Values 
             ~> (
-                "hw.module" (Vs:ValueIdList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
+                "hw.module" (Vs:VarList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
                 => "hw.module" (Vs) (Rs) {Attr} : FT
             )
             ...
@@ -286,7 +295,7 @@ module CIRCT
         <circt-exec> 
             !hw.modty< P:ModulePort, PL:ModulePortList => PL >
             ~> _:Values
-            ~> "hw.module" (_:ValueIdList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
+            ~> "hw.module" (_:VarList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
             ...
         </circt-exec>
         <ports> L:List => L ListItem(P) </ports>
@@ -296,7 +305,7 @@ module CIRCT
             (!hw.modty< .ModulePortList > => .K)
             ~> _:Values
             ~> (
-                "hw.module" (_:ValueIdList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
+                "hw.module" (_:VarList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
                 => B
             )
             ...
@@ -305,13 +314,13 @@ module CIRCT
     rule <k> circt </k>
         <circt-exec> 
             (V:Value, Vs:Values => Vs)
-            ~> _:CaretId (I:ValueId : T:Type, Is:ValueIdAndTypeList => Is) : _:OperationList
+            ~> _:CaretId (I:Var : T:Type, Is:VarAndTypeList => Is) : _:OperationList
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
     
     rule <k> circt </k>
         <circt-exec> 
-            (.Values ~> _:CaretId (.ValueIdAndTypeList) : Ops:OperationList) => Ops
+            (.Values ~> _:CaretId (.VarAndTypeList) : Ops:OperationList) => Ops
         </circt-exec>
 
     rule <k> circt </k> 
@@ -335,7 +344,7 @@ module CIRCT
     rule <k> circt </k>
         <circt-exec> 
             (ListItem( TV(T:Type, V:Value) ) L:List => L)
-            ~> (I:ValueId, Rs:OpResults => Rs) =
+            ~> (I:Var, Rs:OpResults => Rs) =
             ...
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
@@ -344,7 +353,7 @@ module CIRCT
     rule <k> circt </k>
         <circt-exec> 
             (L:List => range(L, I, 0))
-            ~> (A:ValueId : I:Int, Rs:OpResults => Rs) =
+            ~> (A:Var : I:Int, Rs:OpResults => Rs) =
             ...
         </circt-exec>
         <circt-locals> M:Map => M [A <- range(L, 0, size(L) -Int I)] </circt-locals>
@@ -357,14 +366,14 @@ module CIRCT
     
     // rule <k> circt </k>
     //     <circt-exec> 
-    //         S:StringLiteral ( VIL:ValueIdList ) [ .Successors ] ( .Regions ) { .Map } : FT:FunctionType
+    //         S:StringLiteral ( VIL:VarList ) [ .Successors ] ( .Regions ) { .Map } : FT:FunctionType
     //         => S ( VIL ) : FT
     //         ...
     //     </circt-exec>
     
     rule <k> circt </k>
         <circt-exec> 
-            S:StringLiteral ( VIL:ValueIdList ) [ .Successors ] ( .Regions ) { Attr:Map } : FT:FunctionType
+            S:StringLiteral ( VIL:VarList ) [ .Successors ] ( .Regions ) { Attr:Map } : FT:FunctionType
             => S ( VIL ) { Attr } : FT
             ...
         </circt-exec>
@@ -372,7 +381,7 @@ module CIRCT
 
     rule <k> circt </k>
         <circt-exec> 
-            S:StringLiteral ( VIL:ValueIdList ) [ .Successors ] ( R:Region, Rs:Regions ) { Attr:Map } : FT:FunctionType
+            S:StringLiteral ( VIL:VarList ) [ .Successors ] ( R:Region, Rs:Regions ) { Attr:Map } : FT:FunctionType
             => S ( VIL ) (R, Rs) { Attr } : FT
             ...
         </circt-exec>
