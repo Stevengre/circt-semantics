@@ -17,11 +17,22 @@ module CONFIGURATION
                     <circt-locals> .Map </circt-locals>
                     <circt-output> .List </circt-output>
                     <last-locals> .Map </last-locals>
-                    <instance> "_" </instance>
-                    <ports> .List </ports>
+                    <name> "_" </name>
+                    <ports-in> .List </ports-in>
+                    <ports-out> .List </ports-out>
                 </circt-frame>
             </circt-frames>
-            <old> .Map </old>
+            <state>
+                <instance multiplicity="*" type="Map">
+                    <inst-name> "" </inst-name>
+                    <inst-vars> .Map </inst-vars>
+                    <inst-in> .Map </inst-in>
+                    <inst-out> .Map </inst-out>
+                    <inst-regs> .Map </inst-regs>
+                    <inst-wires> .Map </inst-wires>
+                </instance>
+            </state>
+            // <old> .Map </old>
             <registers> .Map </registers>
             <macros> .Map </macros>
             <result> .List </result>
@@ -46,7 +57,6 @@ module CONFIGURATION
         </circt>
         <mlir>
             <mlir-program> $PGM:TopLevel ~> .K </mlir-program>
-            // <standard-ops> .OperationList </standard-ops>
             <attr-alias> .Map </attr-alias> // key: AttributeAlias; value: AttributeValue
             <type-alias> .Map </type-alias> // key: TypeAlias; value: Type
             <symbol-table> .Map </symbol-table>
