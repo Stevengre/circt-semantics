@@ -31,23 +31,29 @@ module HW
             ~> "hw.output" ( _:VarList ) { _:Map } : ( _:Types ) -> ( .Types )
             ...
         </circt-exec>
-        <ports> L:List </ports>
+        <ports-out> L:List </ports-out>
+    
+    // rule <k> circt </k>
+    //     <circt-exec>
+    //         (ListItem(input _:BareId : _:Type) L:List => L)
+    //         ~> "hw.output" ( _Is:VarList ) { _:Map } : ( _:Types ) -> ( .Types )
+    //         ...
+    //     </circt-exec>
     
     rule <k> circt </k>
         <circt-exec>
-            (ListItem(input _:BareId : _:Type) L:List => L)
-            ~> "hw.output" ( _Is:VarList ) { _:Map } : ( _:Types ) -> ( .Types )
-            ...
-        </circt-exec>
-    
-    rule <k> circt </k>
-        <circt-exec>
-            (ListItem(output Name:BareId : _:Type) L:List => L)
+            (ListItem(X:BareId) L:List => L)
             ~> "hw.output" ( I:Var, Is:VarList => Is ) { _:Map } : ( _:Types ) -> ( .Types )
             ...
         </circt-exec>
-        <circt-output> Out:List => Out ListItem(result(Name, {Locals[I]}:>TypeValue)) </circt-output>
+        <circt-output> Out:List => Out ListItem(result(X, {Locals[I]}:>TypeValue)) </circt-output>
         <circt-locals> Locals:Map </circt-locals>
+        <name> Name:String </name>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-out> M:Map => M [X <- I] </inst-out>
+            ...
+        </instance>
         requires I in_keys(Locals)
     
     rule <k> circt </k>
@@ -101,16 +107,17 @@ module HW
         <circt-exec> 
             _:Values
             ~> (.List => .K)
-            ~> "hw.instance" ( .VarList ) { _:Map } : _:FunctionType
+            ~> (.K => getTrace(L ListItem(Attr[#token("instanceName", "BareId")])))
+            ~> "hw.instance" ( .VarList ) { Attr:Map } : _:FunctionType
             ...
         </circt-exec>
-
-    // hw.instance, new frame
+        <trace> L:List </trace>        
+    
+    // hw.instance, new frame, instance non-initialized
     rule <k> circt </k>
         <symbol-table> M:Map </symbol-table>
         <circt-frames>
-            (
-                .Bag =>
+            (.Bag =>
                 <circt-frame>
                     ...
                     <circt-exec> 
@@ -118,23 +125,74 @@ module HW
                             {Attr[#token("moduleName", "BareId")] orDefault #token("@_", "SymbolRefId")}:>SymbolRefId
                         ) ] orDefault (stop "no such module")
                     </circt-exec>
-                    <last-locals> {Old[Attr[#token("instanceName", "BareId")]] orDefault .Map}:>Map </last-locals>
-                    <instance> {Attr[#token("instanceName", "BareId")]}:>String </instance>
+                    <last-locals> Old </last-locals>
+                    <name> Name </name>
                     ...
                 </circt-frame>
             )
             <circt-frame>
                 ...
                 <circt-exec> 
-                    Vs:Values ~> "hw.instance" ( .VarList ) { Attr:Map } : _:FunctionType
+                    Vs:Values ~> 
+                    Name:String ~>
+                    "hw.instance" ( .VarList ) { Attr:Map } : _:FunctionType
                     ...
                 </circt-exec>
                 ...
             </circt-frame>
             ...
         </circt-frames>
-        <old> Old:Map </old>
+        // <old> Old:Map </old>
         <trace> L:List => L ListItem(Attr[#token("instanceName", "BareId")]) </trace>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-vars> Old:Map => .Map </inst-vars>
+            <inst-in> _ => .Map </inst-in>
+            <inst-out> _ => .Map </inst-out>
+            <inst-regs> _ => .Map </inst-regs>
+            <inst-wires> _ => .Map </inst-wires>
+        </instance>
+    
+    // hw.instance, new frame, instance non-initialized
+    rule <k> circt </k>
+        <symbol-table> M:Map </symbol-table>
+        <circt-frames>
+            (.Bag =>
+                <circt-frame>
+                    <circt-exec> 
+                        Vs ~> M [ SymbolRefId2String(
+                            {Attr[#token("moduleName", "BareId")] orDefault #token("@_", "SymbolRefId")}:>SymbolRefId
+                        ) ] orDefault (stop "no such module")
+                    </circt-exec>
+                    <last-locals> .Map </last-locals>
+                    <name> Name </name>
+                    ...
+                </circt-frame>
+            )
+            <circt-frame>
+                <circt-exec> 
+                    Vs:Values ~> 
+                    Name:String ~>
+                    "hw.instance" ( .VarList ) { Attr:Map } : _:FunctionType
+                    ...
+                </circt-exec>
+                ...
+            </circt-frame>
+            ...
+        </circt-frames>
+        // <old> Old:Map </old>
+        <trace> L:List => L ListItem(Attr[#token("instanceName", "BareId")]) </trace>
+        <state>
+            ...
+            (.Bag =>
+                <instance>
+                    <inst-name> Name </inst-name>
+                    ...
+                </instance>
+            )
+            ...
+        </state>
+        [owise]
 
     
     // hw.instance finish, clear frame
@@ -142,21 +200,20 @@ module HW
         <circt-frames>
             (
                 <circt-frame>
-                    ...
                     <circt-exec> .K </circt-exec>
                     <circt-output> Out:List </circt-output>
                     <circt-locals> Locals:Map </circt-locals>
-                    <instance> Inst:String </instance>
+                    <name> Name:String </name>
                     ...
                 </circt-frame>
                 => .Bag
             )
             <circt-frame>
-                ...
                 <circt-exec>
                     (.K => .List)
                     ~> (.K => Out)
                     ~> _:Values 
+                    ~> Name:String
                     ~> "hw.instance" ( .VarList ) { _Attr:Map } : _:FunctionType
                     ...
                 </circt-exec>
@@ -164,22 +221,22 @@ module HW
             </circt-frame>
             ...
         </circt-frames>
-        <ob-out> M:Map => M [ getTrace(L ListItem(S)) <- Out] </ob-out>
-        <trace> L:List ListItem(S:String) => L </trace>
-        <old> Old:Map => Old [Inst <- Locals] </old>
-    
-    syntax String ::= getTrace(List) [function]
-    rule getTrace(ListItem(S1:String) ListItem(S2:String) L:List)
-        => S1 +String "/" +String getTrace(ListItem(S2:String) L)
-    rule getTrace(ListItem(S:String) .List) => S
-    rule getTrace(.List) => ""
-        
+        <ob-out> M:Map => M [ Name <- Out ] </ob-out>
+        <trace> L:List ListItem(_:String) => L </trace>
+        // <old> Old:Map => Old [Name <- Locals] </old>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-vars> _ => Locals </inst-vars>
+            ...
+        </instance>
+            
 
     rule <k> circt </k>
         <circt-exec>
             (L1:List => L1 ListItem(V))
             ~> (ListItem(result(_:BareId, V:TypeValue)) L2:List => L2)
             ~> _:Values 
+            ~> _:String
             ~> "hw.instance" ( .VarList ) { _:Map } : _:FunctionType
             ...
         </circt-exec>
@@ -187,7 +244,10 @@ module HW
     rule <k> circt </k>
         <circt-exec>
             _:List
-            ~> (.List ~> _:Values ~> "hw.instance" ( .VarList ) { _:Map } : _:FunctionType => .K)
+            ~> (
+                .List ~> _:Values ~> _:String ~> "hw.instance" ( .VarList ) { _:Map } : _:FunctionType
+                => .K
+            )
             ...
         </circt-exec>    
 

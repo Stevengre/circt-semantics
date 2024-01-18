@@ -53,6 +53,12 @@ module CIRCT-SYNTAX-CORE
     rule Values2List(.Values) => .List
 
     syntax Result ::= "result" "(" BareId "," TypeValue ")"
+
+    syntax String ::= getTrace(List) [function]
+    rule getTrace(ListItem(S1:String) ListItem(S2:String) L:List)
+        => S1 +String "/" +String getTrace(ListItem(S2:String) L)
+    rule getTrace(ListItem(S:String) .List) => S
+    rule getTrace(.List) => ""
 endmodule
 
 
@@ -193,6 +199,8 @@ module CIRCT-SYNTAX
 
     // syntax Value ::= getAttrValue(Map, String) [function]
     // rule getAttrValue(M:Map, I:String) => toValue({M[#token(I, "BareId")]}:>AttributeValue)
+
+    syntax BareId ::= String2BareId(String) [function, total, hook(STRING.string2token)]
 endmodule
 
 
@@ -207,28 +215,35 @@ module CIRCT
     rule <k> circt </k>
         <symbol-table> M:Map </symbol-table>
         <circt-control>
-            circtTest ID:SymbolRefId ( Vs:Values ) => .
+            circtTest ID:SymbolRefId ( Vs:Values ) => .K
             ...
         </circt-control>
         <circt-frames>
-            (
-                .Bag =>
-                <circt-frame>
-                    ...
-                    <circt-exec>
-                        // initial ~> always ~> 
-                        Vs ~> M [ SymbolRefId2String(ID) ]
-                    </circt-exec>
-                    <instance> "Top" </instance>
-                    <last-locals> {Old["Top"] orDefault .Map}:>Map </last-locals>
-                    ...
-                </circt-frame>
-            )
+            .Bag =>
+            <circt-frame>
+                <circt-exec>
+                    // initial ~> always ~> 
+                    #if SymbolRefId2String(ID) in_keys(M) 
+                    #then  Vs ~> M [ SymbolRefId2String(ID) ]
+                    #else stop "no such module"
+                    #fi
+                </circt-exec>
+                <name> "Top" </name>
+                <last-locals> .Map </last-locals>
+                ...
+            </circt-frame>
         </circt-frames>
-        <old> Old:Map </old>
-        requires SymbolRefId2String(ID) in_keys(M)
+        // <old> Old:Map </old>
+        <state>
+            .Bag =>
+            <instance>
+                <inst-name> "Top" </inst-name>
+                ...
+            </instance>
+        </state>
+        [owise]
     
-    // test list
+    // test list, first clock
     rule <k> circt </k>
         <symbol-table> M:Map </symbol-table>
         <circt-control>
@@ -236,32 +251,80 @@ module CIRCT
             ...
         </circt-control>
         <circt-frames>
-            (
-                .Bag =>
-                <circt-frame>
-                    ...
-                    <circt-exec>
-                        // initial ~> always ~> 
-                        Vs ~> M [ SymbolRefId2String(ID) ]
-                    </circt-exec>
-                    <instance> "Top" </instance>
-                    <last-locals> {Old["Top"] orDefault .Map}:>Map </last-locals>
-                    ...
-                </circt-frame>
-            )
+            .Bag =>
+            <circt-frame>
+                <circt-exec>
+                    // initial ~> always ~> 
+                    #if SymbolRefId2String(ID) in_keys(M) 
+                    #then  Vs ~> M [ SymbolRefId2String(ID) ]
+                    #else stop "no such module"
+                    #fi
+                </circt-exec>
+                <name> "Top" </name>
+                <last-locals> .Map </last-locals>
+                ...
+            </circt-frame>
         </circt-frames>
-        <old> Old:Map </old>
-        requires SymbolRefId2String(ID) in_keys(M)
-    
-    rule <k> circt => stop "no such module" ~> ID </k>
-        <symbol-table> M:Map </symbol-table>
-        <circt>
-            <circt-control>
-                circtTest ID:SymbolRefId ( _:Values ) => .
-            </circt-control>
+        <trace> .List => ListItem("Top") </trace>
+        // <old> Old:Map </old>
+        <state>
             ...
-        </circt>
-        requires notBool SymbolRefId2String(ID) in_keys(M)
+            (.Bag => 
+                <instance>
+                    <inst-name> "Top" </inst-name>
+                    <inst-vars> .Map </inst-vars>
+                    <inst-in> .Map </inst-in>
+                    <inst-out> .Map </inst-out>
+                    <inst-regs> .Map </inst-regs>
+                    <inst-wires> .Map </inst-wires>
+                </instance>
+            )
+        </state>
+        [owise]
+
+    // test list, subsequent clocks
+    rule <k> circt </k>
+        <symbol-table> M:Map </symbol-table>
+        <circt-control>
+            ListItem(circtTest ID:SymbolRefId (Vs:Values)) L:List => L
+            ...
+        </circt-control>
+        <circt-frames>
+            .Bag =>
+            <circt-frame>
+                ...
+                <circt-exec>
+                    // initial ~> always ~> 
+                    #if SymbolRefId2String(ID) in_keys(M) 
+                    #then  Vs ~> M [ SymbolRefId2String(ID) ]
+                    #else stop "no such module"
+                    #fi
+                </circt-exec>
+                <name> "Top" </name>
+                <last-locals> Old </last-locals>
+                ...
+            </circt-frame>
+        </circt-frames>
+        <trace> .List => ListItem("Top") </trace>
+        // <old> Old:Map </old>
+        <instance>
+            <inst-name> "Top" </inst-name>
+            <inst-vars> Old:Map => .Map </inst-vars>
+            <inst-in> _ => .Map </inst-in>
+            <inst-out> _ => .Map </inst-out>
+            <inst-regs> _ => .Map </inst-regs>
+            <inst-wires> _ => .Map </inst-wires>
+        </instance>
+    
+    // rule <k> circt => stop "no such module" ~> ID </k>
+    //     <symbol-table> M:Map </symbol-table>
+    //     <circt>
+    //         <circt-control>
+    //             circtTest ID:SymbolRefId ( _:Values ) => .
+    //         </circt-control>
+    //         ...
+    //     </circt>
+    //     requires notBool SymbolRefId2String(ID) in_keys(M)
     
     // rule <k> circt </k>
     //     <circt-exec> 
@@ -293,16 +356,25 @@ module CIRCT
     
     rule <k> circt </k>
         <circt-exec> 
-            !hw.modty< P:ModulePort, PL:ModulePortList => PL >
+            !hw.modty< (input P:BareId : _:Type):ModulePort, PL:ModulePortList => PL >
             ~> _:Values
             ~> "hw.module" (_:VarList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
             ...
         </circt-exec>
-        <ports> L:List => L ListItem(P) </ports>
+        <ports-in> L:List => L ListItem(P) </ports-in>
     
     rule <k> circt </k>
         <circt-exec> 
-            (!hw.modty< .ModulePortList > => .K)
+            !hw.modty< (output P:BareId : _:Type):ModulePort, PL:ModulePortList => PL >
+            ~> _:Values
+            ~> "hw.module" (_:VarList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
+            ...
+        </circt-exec>
+        <ports-out> L:List => L ListItem(P) </ports-out>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            (!hw.modty< .ModulePortList > => L)
             ~> _:Values
             ~> (
                 "hw.module" (_:VarList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
@@ -310,17 +382,30 @@ module CIRCT
             )
             ...
         </circt-exec>
+        <ports-in> L:List </ports-in>
     
     rule <k> circt </k>
         <circt-exec> 
-            (V:Value, Vs:Values => Vs)
-            ~> _:CaretId (I:Var : T:Type, Is:VarAndTypeList => Is) : _:OperationList
+            (ListItem(X:BareId) L:List => L) ~>
+            (V:Value, Vs:Values => Vs) ~>
+            _:CaretId (I:Var : T:Type, Is:VarAndTypeList => Is) : _:OperationList
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
+        <name> Name:String </name>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-in> M1:Map => M1 [X <- I] </inst-in>
+            ...
+        </instance>
+        
     
     rule <k> circt </k>
         <circt-exec> 
-            (.Values ~> _:CaretId (.VarAndTypeList) : Ops:OperationList) => Ops
+            (
+                .List ~>
+                .Values ~> 
+                _:CaretId (.VarAndTypeList) : Ops:OperationList
+            ) => Ops
         </circt-exec>
 
     rule <k> circt </k> 
@@ -348,6 +433,44 @@ module CIRCT
             ...
         </circt-exec>
         <circt-locals> M:Map => M [I <- TV(T, V)] </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            (
+                ListItem( TV(!hw.inout< T >, hw.inout(Reg:String, T, V)) )
+                ~> "reg"
+                ~> I:Var =
+            ) => .K
+            ...
+        </circt-exec>
+        <circt-locals> 
+            Locals:Map => Locals [I <- TV(!hw.inout< T >, hw.inout(Reg, T, V))]
+        </circt-locals>
+        <name> Name:String </name>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-regs> M:Map => M [Reg <- I] </inst-regs>
+            ...
+        </instance>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            (
+                ListItem( TV(!hw.inout< T >, hw.inout(Wire, T, V)) )
+                ~> "wire"
+                ~> I:Var =
+            ) => .K
+            ...
+        </circt-exec>
+        <circt-locals> 
+            Locals:Map => Locals [I <- TV(!hw.inout< T >, hw.inout(Wire, T, V))]
+        </circt-locals>
+        <name> Name:String </name>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-wires> M:Map => M [Wire <- I] </inst-wires>
+            ...
+        </instance>
     
     // %35:2 = "hw.struct_explode"(%32) : (!hw.struct<foo: i19, bar: i7>) -> (i19, i7)
     rule <k> circt </k>
@@ -403,18 +526,23 @@ module CIRCT
         <circt-frames>
             (
                 <circt-frame>
-                    ...
                     <circt-exec> .K </circt-exec>
                     <circt-output> Out:List </circt-output>
                     <circt-locals> Locals:Map </circt-locals>
-                    <instance> Inst:String </instance>
+                    <name> Name:String </name>
                     ...
                 </circt-frame>
                 => .Bag
             )
         </circt-frames>
         <result> L:List => L ListItem(Out) </result>
-        <old> M:Map => M [ Inst <- Locals ] </old>
+        <trace> Trace:List ListItem(_) => Trace </trace>
+        // <old> M:Map => M [ getTrace(Trace ListItem(Mod)) <- Locals ] </old>
+        <instance>
+            <inst-name> Name </inst-name>
+            <inst-vars> _ => Locals </inst-vars>
+            ...
+        </instance>
 
     // all clock done
     rule <k> circt => done </k>

@@ -2,6 +2,134 @@ module SV
     imports CONFIGURATION
     imports CIRCT-SYNTAX
 
+    // sv.xmr
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => ListItem("Top")) ~>
+            (.K => Attr[#token("path", "BareId")]) ~>
+            "sv.xmr" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (L:List => L ListItem(S)) ~>
+            [S:String , AL:AttributeValueList => AL] ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (L:List ~> [.AttributeValueList] => .K) ~>
+            (.K => getTrace(L)) ~>
+            (.K => Attr[#token("terminal", "BareId")]) ~>
+            "sv.xmr" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => M[String2BareId(Terminal)] orDefault "not port-in") ~>
+            Path:String ~>
+            Terminal:String ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+        <instance>
+            <inst-name> Path </inst-name>
+            <inst-in> M:Map </inst-in>
+            ...
+        </instance>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            ("not port-in" => M[String2BareId(Terminal)] orDefault "not port-out") ~>
+            Path:String ~>
+            Terminal:String ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+        <instance>
+            <inst-name> Path </inst-name>
+            <inst-out> M:Map </inst-out>
+            ...
+        </instance>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            ("not port-out" => M[Terminal] orDefault "not reg") ~>
+            Path:String ~>
+            Terminal:String ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+        <instance>
+            <inst-name> Path </inst-name>
+            <inst-regs> M:Map </inst-regs>
+            ...
+        </instance>
+
+    rule <k> circt </k>
+        <circt-exec>
+            ("not reg" => M[Terminal] orDefault "not wire") ~>
+            Path:String ~>
+            Terminal:String ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+        <instance>
+            <inst-name> Path </inst-name>
+            <inst-wires> M:Map </inst-wires>
+            ...
+        </instance>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            ("not wire" => "no such net") ~>
+            _Path:String ~>
+            _Terminal:String ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => M[V] orDefault "no such var") ~>
+            V:Var ~> Path:String ~> _Terminal:String ~>
+            "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _:IntegerType > )
+            ...
+        </circt-exec>
+        <instance>
+            <inst-name> Path </inst-name>
+            <inst-vars> M:Map </inst-vars>
+            ...
+        </instance>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                TV(T, V) ~>
+                _:Var ~>
+                _:String ~>
+                Terminal:String ~>
+                "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            ) => ListItem( TV(!hw.inout < T >, hw.inout(Terminal, T, V)) )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                TV(!hw.inout < T >, hw.inout(Terminal, T, V)) ~>
+                _:Var ~>
+                _:String ~>
+                Terminal:String ~>
+                "sv.xmr" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            ) => ListItem( TV(!hw.inout < T >, hw.inout(Terminal, T, V)) )
+            ...
+        </circt-exec>
+
     // sv.constantX, todo
     rule <k> circt </k>
         <circt-exec> 
@@ -275,11 +403,11 @@ module SV
     // sv.wire, how to express a inout value?
     rule <k> circt </k>
         <circt-exec> 
-            "sv.wire" ( .VarList ) {M:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            "sv.wire" ( .VarList ) {Attr:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
             => ListItem( TV(
                 !hw.inout< T >,
-                hw.inout({M[#token("name", "BareId")]}:>String, T, 0)
-            ) )
+                hw.inout({Attr[#token("name", "BareId")]}:>String, T, 0)
+            ) ) ~> "wire"
             ...
         </circt-exec>
     
@@ -287,11 +415,11 @@ module SV
     // sv.reg
     rule <k> circt </k>
         <circt-exec> 
-            "sv.reg" ( .VarList ) {M:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            "sv.reg" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:IntegerType > )
             => ListItem( TV(
                 !hw.inout< T >,
-                hw.inout({M[#token("name", "BareId")]}:>String, T, 0)
-            ) )
+                hw.inout({Attr[#token("name", "BareId")]}:>String, T, 0)
+            ) ) ~> "reg"
             ...
         </circt-exec>
     
@@ -400,7 +528,7 @@ module SV
             => #if Inst in S #then .List #else R #fi
             ...
         </circt-exec>
-        <instance> Inst:String </instance>
+        <name> Inst:String </name>
         <initialized> S:Set => S SetItem(Inst) </initialized>
 
 
