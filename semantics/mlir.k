@@ -309,7 +309,7 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program>
             "sv.bind" ( .VarList ) { _:Map } : ( .Types ) -> ( .Types )
-            => . 
+            => .K
             ... 
         </mlir-program>
     
@@ -317,7 +317,7 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program>
             "hw.hierpath" ( .VarList ) { Attr:Map } : ( .Types ) -> ( .Types )
-            => . 
+            => .K
             ... 
         </mlir-program>
         <hw-hierpath>

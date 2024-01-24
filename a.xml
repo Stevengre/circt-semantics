@@ -12,25 +12,26 @@
     <state>
       <instance>
         <inst-name>
-          "Top"
+          "Adder"
         </inst-name>
         <inst-vars>
-          %0#0 |-> TV ( i8 , 3 )
+          %0#0 |-> TV ( i8 , 5 )
           %0#1 |-> TV ( i8 , 1 )
-          %1#0 |-> TV ( i8 , 3 )
+          %1#0 |-> TV ( i8 , 5 )
           %1#1 |-> TV ( i8 , 1 )
-          %2 |-> TV ( !hw.inout < i8 > , hw.inout ( "y" , i8 , 0 ) )
-          %3 |-> TV ( i8 , 0 )
+          %2 |-> TV ( !hw.inout < i8 > , hw.inout ( "y" , i8 , 1 ) )
+          %3 |-> TV ( !hw.inout < i8 > , hw.inout ( "z" , i8 , 0 ) )
           %4 |-> TV ( i8 , 1 )
+          %5 |-> TV ( i8 , 6 )
           %arg0 |-> TV ( i8 , 1 )
-          %arg1 |-> TV ( i8 , 3 )
+          %arg1 |-> TV ( i8 , 5 )
         </inst-vars>
         <inst-in>
           a |-> %arg0
           b |-> %arg1
         </inst-in>
         <inst-out>
-          res |-> %4
+          result |-> %5
         </inst-out>
         <inst-regs>
           .Map
@@ -40,16 +41,16 @@
         </inst-wires>
       </instance> <instance>
         <inst-name>
-          "Top/swap1"
+          "Adder/swap1"
         </inst-name>
         <inst-vars>
           %0 |-> TV ( i8 , 1 )
           %arg0 |-> TV ( i8 , 1 )
-          %arg1 |-> TV ( i8 , 3 )
+          %arg1 |-> TV ( i8 , 5 )
         </inst-vars>
         <inst-in>
           xx |-> %arg0
-          y |-> %arg1
+          yy |-> %arg1
         </inst-in>
         <inst-out>
           res1 |-> %arg1
@@ -63,10 +64,10 @@
         </inst-wires>
       </instance> <instance>
         <inst-name>
-          "Top/swap1/wrap"
+          "Adder/swap1/wrap"
         </inst-name>
         <inst-vars>
-          %0 |-> TV ( !hw.inout < i8 > , hw.inout ( "y" , i8 , 0 ) )
+          %0 |-> TV ( !hw.inout < i8 > , hw.inout ( "y" , i8 , 1 ) )
           %1 |-> TV ( !hw.inout < i8 > , hw.inout ( "z" , i8 , 0 ) )
           %arg0 |-> TV ( i8 , 1 )
         </inst-vars>
@@ -84,16 +85,16 @@
         </inst-wires>
       </instance> <instance>
         <inst-name>
-          "Top/swap2"
+          "Adder/swap2"
         </inst-name>
         <inst-vars>
           %0 |-> TV ( i8 , 1 )
           %arg0 |-> TV ( i8 , 1 )
-          %arg1 |-> TV ( i8 , 3 )
+          %arg1 |-> TV ( i8 , 5 )
         </inst-vars>
         <inst-in>
           xx |-> %arg0
-          y |-> %arg1
+          yy |-> %arg1
         </inst-in>
         <inst-out>
           res1 |-> %arg1
@@ -107,10 +108,10 @@
         </inst-wires>
       </instance> <instance>
         <inst-name>
-          "Top/swap2/wrap"
+          "Adder/swap2/wrap"
         </inst-name>
         <inst-vars>
-          %0 |-> TV ( !hw.inout < i8 > , hw.inout ( "y" , i8 , 0 ) )
+          %0 |-> TV ( !hw.inout < i8 > , hw.inout ( "y" , i8 , 1 ) )
           %1 |-> TV ( !hw.inout < i8 > , hw.inout ( "z" , i8 , 0 ) )
           %arg0 |-> TV ( i8 , 1 )
         </inst-vars>
@@ -135,8 +136,8 @@
       .Map
     </macros>
     <result>
-      ListItem ( ListItem ( result ( res , TV ( i8 , 1 ) ) ) )
-      ListItem ( ListItem ( result ( res , TV ( i8 , 1 ) ) ) )
+      ListItem ( ListItem ( #result ( result , TV ( i8 , 3 ) ) ) )
+      ListItem ( ListItem ( #result ( result , TV ( i8 , 6 ) ) ) )
     </result>
     <always>
       .Map
@@ -155,17 +156,20 @@
     </trace>
     <observation>
       <ob-in>
-        "Top/swap1" |-> ListItem ( 1 ) ListItem ( 3 )
-        "Top/swap1/wrap" |-> ListItem ( 1 )
-        "Top/swap2" |-> ListItem ( 1 ) ListItem ( 3 )
-        "Top/swap2/wrap" |-> ListItem ( 1 )
+        "Adder/swap1" |-> ListItem ( 1 )
+        ListItem ( 5 )
+        "Adder/swap1/wrap" |-> ListItem ( 1 )
+        "Adder/swap2" |-> ListItem ( 1 )
+        ListItem ( 5 )
+        "Adder/swap2/wrap" |-> ListItem ( 1 )
       </ob-in>
       <ob-out>
-        "Top/swap1" |-> ListItem ( result ( res1 , TV ( i8 , 3 ) ) ) ListItem ( result ( res2 , TV ( i8 , 1 ) ) )
-        "Top/swap1/wrap" |-> ListItem ( result ( res , TV ( i8 , 1 ) ) )
-        "Top/swap2" |-> ListItem ( result ( res1 , TV ( i8 , 3 ) ) )
-        ListItem ( result ( res2 , TV ( i8 , 1 ) ) )
-        "Top/swap2/wrap" |-> ListItem ( result ( res , TV ( i8 , 1 ) ) )
+        "Adder/swap1" |-> ListItem ( #result ( res1 , TV ( i8 , 5 ) ) )
+        ListItem ( #result ( res2 , TV ( i8 , 1 ) ) )
+        "Adder/swap1/wrap" |-> ListItem ( #result ( res , TV ( i8 , 1 ) ) )
+        "Adder/swap2" |-> ListItem ( #result ( res1 , TV ( i8 , 5 ) ) )
+        ListItem ( #result ( res2 , TV ( i8 , 1 ) ) )
+        "Adder/swap2/wrap" |-> ListItem ( #result ( res , TV ( i8 , 1 ) ) )
       </ob-out>
     </observation>
     <sv-log>
@@ -186,47 +190,69 @@
       </sv-verbatim>
     </sv-log>
     <hw-hierpath>
-      .Map
+      "ref1" |-> [ #hw.innerNameRef < @Adder :: @sym_swap1  .DialectTypeContentsList > , #hw.innerNameRef < @Swap :: @sym_wrap  .DialectTypeContentsList > , #hw.innerNameRef < @Wrap :: @sym_x  .DialectTypeContentsList > , .AttributeValueList ]
+      "ref2" |-> [ #hw.innerNameRef < @Adder :: @sym_swap2  .DialectTypeContentsList > , #hw.innerNameRef < @Swap :: @sym_wrap  .DialectTypeContentsList > , #hw.innerNameRef < @Wrap :: @sym_y  .DialectTypeContentsList > , .AttributeValueList ]
     </hw-hierpath>
     <fd>
       .Map
     </fd>
+    <symrefs>
+      "Adder::sym_swap1" |-> "swap1"
+      "Adder::sym_swap2" |-> "swap2"
+      "Swap::sym_wrap" |-> "wrap"
+      "Wrap::sym_x" |-> "y"
+      "Wrap::sym_y" |-> "z"
+    </symrefs>
   </circt>
   <mlir>
     <mlir-program>
       .TopLevel ~> .
     </mlir-program>
     <attr-alias>
-      .Map
+      #loc1 |-> loc ( "a.mlir" : 1 : 33 )
+      #loc2 |-> loc ( "a.mlir" : 7 : 20 )
+      #loc3 |-> loc ( "a.mlir" : 7 : 32 )
+      #loc4 |-> loc ( "a.mlir" : 7 : 45 )
+      #loc5 |-> loc ( "a.mlir" : 7 : 59 )
+      #loc6 |-> loc ( "a.mlir" : 15 : 21 )
+      #loc7 |-> loc ( "a.mlir" : 15 : 32 )
+      #loc8 |-> loc ( "a.mlir" : 15 : 44 )
+      #loc |-> loc ( "a.mlir" : 1 : 20 )
     </attr-alias>
     <type-alias>
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .VarAndTypeList ) : %0#0 , %0#1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .VarAndTypeList ) : %0#0 , %0#1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , "yy" , .AttributeValueList ]
+      inner_sym |-> #hw < innerSym  @sym_swap1  .DialectTypeContentsList >
       instanceName |-> "swap1"
       moduleName |-> @Swap
       parameters |-> [ ]
-      resultNames |-> [ "res1" , "res2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %1#0 , %1#1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , "y" , .AttributeValueList ]
+      resultNames |-> [ "res1" , "res2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %1#0 , %1#1 , .OpResults = "hw.instance" ( %arg0 , %arg1 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , "yy" , .AttributeValueList ]
+      inner_sym |-> #hw < innerSym  @sym_swap2  .DialectTypeContentsList >
       instanceName |-> "swap2"
       moduleName |-> @Swap
       parameters |-> [ ]
-      resultNames |-> [ "res1" , "res2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "sv.xmr" ( .VarList ) [ .Successors ] ( .Regions ) { path |-> [ "swap1" , "wrap" , .AttributeValueList ]
-      terminal |-> "y" } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  %3 , .OpResults = "sv.read_inout" ( %2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , .Types ) -> ( i8 , .Types )  %4 , .OpResults = "comb.add" ( %1#1 , %3 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %4 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      resultNames |-> [ "res1" , "res2" , .AttributeValueList ] } : ( i8 , i8 , .Types ) -> ( i8 , i8 , .Types )  %2 , .OpResults = "sv.xmr.ref" ( .VarList ) [ .Successors ] ( .Regions ) { ref |-> @ref1
+      verbatimSuffix |-> "" } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  %3 , .OpResults = "sv.xmr.ref" ( .VarList ) [ .Successors ] ( .Regions ) { ref |-> @ref2
+      verbatimSuffix |-> ".x.y.z[42]" } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  %4 , .OpResults = "sv.read_inout" ( %2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , .Types ) -> ( i8 , .Types )  %5 , .OpResults = "comb.add" ( %1#0 , %4 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %5 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input a : i8 , input b : i8 , output result : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc6 , #loc7 , #loc8 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )
-      "Swap" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "x" , .AttributeValueList ]
+      "Swap" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .VarList ) [ .Successors ] ( .Regions ) { argNames |-> [ "xx" , .AttributeValueList ]
+      inner_sym |-> #hw < innerSym  @sym_wrap  .DialectTypeContentsList >
       instanceName |-> "wrap"
       moduleName |-> @Wrap
       parameters |-> [ ]
-      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %arg1 , %0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input y : i8 , output res1 : i8 , output res2 : i8 , .ModulePortList >
+      resultNames |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %arg1 , %0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , input yy : i8 , output res1 : i8 , output res2 : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc2 , #loc3 , #loc4 , #loc5 , .AttributeValueList ]
       sym_name |-> "Swap" } : ( .Types ) -> ( .Types )
-      "Wrap" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , .VarAndTypeList ) : %0 , .OpResults = "sv.reg" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "y"
-      sv.attributes |-> [ #sv.attribute < "dont_merge"  .DialectTypeContentsList > , .AttributeValueList ] } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  %1 , .OpResults = "sv.wire" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "z"
-      sv.attributes |-> [ #sv.attribute < "dont_merge"  .DialectTypeContentsList > , .AttributeValueList ] } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  .OpResults = "hw.output" ( %arg0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , output res : i8 , .ModulePortList >
+      "Wrap" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i8 , .VarAndTypeList ) : %0 , .OpResults = "sv.reg" ( .VarList ) [ .Successors ] ( .Regions ) { inner_sym |-> #hw < innerSym  @sym_x  .DialectTypeContentsList >
+      name |-> "y"
+      sv.attributes |-> [ #sv.attribute < "dont_merge"  .DialectTypeContentsList > , .AttributeValueList ] } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  %1 , .OpResults = "sv.wire" ( .VarList ) [ .Successors ] ( .Regions ) { inner_sym |-> #hw < innerSym  @sym_y  .DialectTypeContentsList >
+      name |-> "z"
+      sv.attributes |-> [ #sv.attribute < "dont_merge"  .DialectTypeContentsList > , .AttributeValueList ] } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  .OpResults = "sv.assign" ( %0 , %arg0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , i8 , .Types ) -> ( .Types )  .OpResults = "hw.output" ( %arg0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input xx : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc , #loc1 , .AttributeValueList ]
       sym_name |-> "Wrap" } : ( .Types ) -> ( .Types )
