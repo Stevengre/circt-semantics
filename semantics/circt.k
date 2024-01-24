@@ -52,13 +52,17 @@ module CIRCT-SYNTAX-CORE
     rule Values2List(V:Value, Vs:Values) => ListItem(V) Values2List(Vs)
     rule Values2List(.Values) => .List
 
-    syntax Result ::= "result" "(" BareId "," TypeValue ")"
+    syntax Result ::= "#result" "(" BareId "," TypeValue ")"
 
     syntax String ::= getTrace(List) [function]
-    rule getTrace(ListItem(S1:String) ListItem(S2:String) L:List)
-        => S1 +String "/" +String getTrace(ListItem(S2:String) L)
+    rule getTrace(ListItem(S1:String) ListItem(S2:String) L:List) => S1 +String "/" +String getTrace(ListItem(S2:String) L)
     rule getTrace(ListItem(S:String) .List) => S
     rule getTrace(.List) => ""
+
+    syntax String ::= getInnerSymString(DialectAttribute) [function]
+    rule getInnerSymString(#token("#hw", "AttributeAlias") < #token("innerSym", "BareId") SymId:SymbolRefId >) 
+        => SymbolRefId2String(SymId)
+
 endmodule
 
 
@@ -71,6 +75,7 @@ module HW-INOUT
     syntax HwInOut ::= "hw.inout" "(" String "," Type "," Value ")"
     syntax Value ::= HwInOut
 endmodule
+
 
 
 module HW-ARRAY
@@ -106,8 +111,8 @@ module HW-ARRAY
     syntax Values ::= ValuesFromList(List) [function]
     rule ValuesFromList(ListItem(V:Value) L:List) => V, ValuesFromList(L)
     rule ValuesFromList(.List) => .Values
-
 endmodule
+
 
 
 module HW-STRUCT
@@ -151,6 +156,7 @@ module HW-STRUCT
     rule getFieldType(_:BareId : _:Type, Fs:HwStructFields, I:Int) => getFieldType(Fs, I -Int 1) requires I >Int 0
     rule getFieldType(_:BareId : T:Type, _:HwStructFields, 0) => T
 endmodule
+
 
 
 module HW-ENUM
@@ -204,6 +210,7 @@ module CIRCT-SYNTAX
 endmodule
 
 
+
 module CIRCT
     // imports CIRCT-PREPROCESS
     imports COMB
@@ -228,16 +235,16 @@ module CIRCT
                     #else stop "no such module"
                     #fi
                 </circt-exec>
-                <name> "Top" </name>
+                <name> SymbolRefId2String(ID) </name>
                 <last-locals> .Map </last-locals>
+                <module> ID </module>
                 ...
             </circt-frame>
         </circt-frames>
-        // <old> Old:Map </old>
         <state>
             .Bag =>
             <instance>
-                <inst-name> "Top" </inst-name>
+                <inst-name> SymbolRefId2String(ID) </inst-name>
                 ...
             </instance>
         </state>
@@ -260,23 +267,19 @@ module CIRCT
                     #else stop "no such module"
                     #fi
                 </circt-exec>
-                <name> "Top" </name>
+                <name> SymbolRefId2String(ID) </name>
                 <last-locals> .Map </last-locals>
+                <module> ID </module>
                 ...
             </circt-frame>
         </circt-frames>
-        <trace> .List => ListItem("Top") </trace>
-        // <old> Old:Map </old>
+        <trace> .List => ListItem(SymbolRefId2String(ID)) </trace>
         <state>
             ...
             (.Bag => 
                 <instance>
-                    <inst-name> "Top" </inst-name>
-                    <inst-vars> .Map </inst-vars>
-                    <inst-in> .Map </inst-in>
-                    <inst-out> .Map </inst-out>
-                    <inst-regs> .Map </inst-regs>
-                    <inst-wires> .Map </inst-wires>
+                    <inst-name> SymbolRefId2String(ID) </inst-name>
+                    ...
                 </instance>
             )
         </state>
@@ -300,48 +303,23 @@ module CIRCT
                     #else stop "no such module"
                     #fi
                 </circt-exec>
-                <name> "Top" </name>
+                <name> SymbolRefId2String(ID) </name>
                 <last-locals> Old </last-locals>
+                <module> ID </module>
                 ...
             </circt-frame>
         </circt-frames>
-        <trace> .List => ListItem("Top") </trace>
-        // <old> Old:Map </old>
+        <trace> .List => ListItem(SymbolRefId2String(ID)) </trace>
         <instance>
-            <inst-name> "Top" </inst-name>
+            <inst-name> Name:String </inst-name>
             <inst-vars> Old:Map => .Map </inst-vars>
             <inst-in> _ => .Map </inst-in>
             <inst-out> _ => .Map </inst-out>
             <inst-regs> _ => .Map </inst-regs>
             <inst-wires> _ => .Map </inst-wires>
         </instance>
+        requires Name ==String SymbolRefId2String(ID)
     
-    // rule <k> circt => stop "no such module" ~> ID </k>
-    //     <symbol-table> M:Map </symbol-table>
-    //     <circt>
-    //         <circt-control>
-    //             circtTest ID:SymbolRefId ( _:Values ) => .
-    //         </circt-control>
-    //         ...
-    //     </circt>
-    //     requires notBool SymbolRefId2String(ID) in_keys(M)
-    
-    // rule <k> circt </k>
-    //     <circt-exec> 
-    //         initial => #if notBool ID in S #then M [ID] orDefault .OperationList #else .OperationList #fi
-    //         ...
-    //     </circt-exec>
-    //     <module> ID:SymbolRefId </module>
-    //     <initial> M:Map </initial>
-    //     <initialized> S:Set </initialized>
-    
-    // rule <k> circt </k>
-    //     <circt-exec> 
-    //         always => M [ID] orDefault .OperationList
-    //         ...
-    //     </circt-exec>
-    //     <module> ID:SymbolRefId </module>
-    //     <always> M:Map </always>
 
     rule <k> circt </k>
         <circt-exec>
@@ -537,7 +515,6 @@ module CIRCT
         </circt-frames>
         <result> L:List => L ListItem(Out) </result>
         <trace> Trace:List ListItem(_) => Trace </trace>
-        // <old> M:Map => M [ getTrace(Trace ListItem(Mod)) <- Locals ] </old>
         <instance>
             <inst-name> Name </inst-name>
             <inst-vars> _ => Locals </inst-vars>

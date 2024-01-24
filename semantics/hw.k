@@ -5,15 +5,6 @@ module HW
     imports CIRCT-SYNTAX
     imports BITS
 
-    // hw.hierpath
-    rule <k> circt </k>
-        <circt-exec>
-            "hw.hierpath" (.VarList) { Attr:Map } : (.Types) -> (.Types) => .List
-            ...
-        </circt-exec>
-        <hw-hierpath>
-            M:Map => M [ Attr[#token("sym_name", "BareId")] <- Attr[#token("namepath", "BareId")] ]
-        </hw-hierpath>
 
     // hw.wire, how to express observablility
     rule <k> circt </k>
@@ -32,21 +23,14 @@ module HW
             ...
         </circt-exec>
         <ports-out> L:List </ports-out>
-    
-    // rule <k> circt </k>
-    //     <circt-exec>
-    //         (ListItem(input _:BareId : _:Type) L:List => L)
-    //         ~> "hw.output" ( _Is:VarList ) { _:Map } : ( _:Types ) -> ( .Types )
-    //         ...
-    //     </circt-exec>
-    
+        
     rule <k> circt </k>
         <circt-exec>
             (ListItem(X:BareId) L:List => L)
             ~> "hw.output" ( I:Var, Is:VarList => Is ) { _:Map } : ( _:Types ) -> ( .Types )
             ...
         </circt-exec>
-        <circt-output> Out:List => Out ListItem(result(X, {Locals[I]}:>TypeValue)) </circt-output>
+        <circt-output> Out:List => Out ListItem(#result(X, {Locals[I]}:>TypeValue)) </circt-output>
         <circt-locals> Locals:Map </circt-locals>
         <name> Name:String </name>
         <instance>
@@ -72,10 +56,26 @@ module HW
     // hw.instance
     rule <k> circt </k>
         <circt-exec> 
-            (.K => .List) 
-            ~> "hw.instance" ( _Is:VarList ) { _:Map } : _:FunctionType
+            (.K => Attr[#token("inner_sym", "BareId")] ~> Attr[#token("instanceName", "BareId")]) 
+            ~> "hw.instance" ( _Is:VarList ) { Attr:Map } : _:FunctionType
             ...
         </circt-exec>
+        
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                (#token("#hw", "AttributeAlias") < #token("innerSym", "BareId") SymId:SymbolRefId >):DialectAttribute 
+                ~> Sym:String 
+                => .List
+            ) ~>
+            "hw.instance" ( _Is:VarList ) { _:Map } : _:FunctionType
+            ...
+        </circt-exec>
+        <symrefs> 
+            M:Map => M [ SymbolRefId2String(Mod) +String "::" +String SymbolRefId2String(SymId) <- Sym ]
+        </symrefs>
+        <module> Mod:SymbolRefId </module>
+
     
     rule <k> circt </k>
         <circt-exec> 
@@ -127,6 +127,7 @@ module HW
                     </circt-exec>
                     <last-locals> Old </last-locals>
                     <name> Name </name>
+                    <module> {Attr[#token("moduleName", "BareId")]}:>SymbolRefId </module>
                     ...
                 </circt-frame>
             )
@@ -142,7 +143,6 @@ module HW
             </circt-frame>
             ...
         </circt-frames>
-        // <old> Old:Map </old>
         <trace> L:List => L ListItem(Attr[#token("instanceName", "BareId")]) </trace>
         <instance>
             <inst-name> Name </inst-name>
@@ -166,6 +166,7 @@ module HW
                     </circt-exec>
                     <last-locals> .Map </last-locals>
                     <name> Name </name>
+                    <module> {Attr[#token("moduleName", "BareId")]}:>SymbolRefId </module>
                     ...
                 </circt-frame>
             )
@@ -180,7 +181,6 @@ module HW
             </circt-frame>
             ...
         </circt-frames>
-        // <old> Old:Map </old>
         <trace> L:List => L ListItem(Attr[#token("instanceName", "BareId")]) </trace>
         <state>
             ...
@@ -223,7 +223,6 @@ module HW
         </circt-frames>
         <ob-out> M:Map => M [ Name <- Out ] </ob-out>
         <trace> L:List ListItem(_:String) => L </trace>
-        // <old> Old:Map => Old [Name <- Locals] </old>
         <instance>
             <inst-name> Name </inst-name>
             <inst-vars> _ => Locals </inst-vars>
@@ -234,7 +233,7 @@ module HW
     rule <k> circt </k>
         <circt-exec>
             (L1:List => L1 ListItem(V))
-            ~> (ListItem(result(_:BareId, V:TypeValue)) L2:List => L2)
+            ~> (ListItem(#result(_:BareId, V:TypeValue)) L2:List => L2)
             ~> _:Values 
             ~> _:String
             ~> "hw.instance" ( .VarList ) { _:Map } : _:FunctionType
@@ -251,15 +250,16 @@ module HW
             ...
         </circt-exec>    
 
+
     // hw.aggregate_constant
-    // todo
     rule <k> circt </k>
         <circt-exec> 
             "hw.aggregate_constant" ( .VarList ) { M:Map } : ( .Types ) -> ( T:Type )
             => ListItem( TV(T, getAttrValue(M, #token("fields", "BareId"))) )
             ...
         </circt-exec>
-    
+
+
     // hw.array_get
     rule <k> circt </k>
         <circt-exec>
@@ -319,7 +319,8 @@ module HW
             ...
         </circt-exec>
 
-    // "hw.bitcast" ( %0 , .VarList ) { .Map } : ( i64 , .Types ) -> ( !hw.array < 64x i1 > , .Types )
+
+    // "hw.bitcast" ( %0 ) { .Map } : ( i64 ) -> ( !hw.array < 64x i1 > )
     rule <k> circt </k>
         <circt-exec>
             "hw.bitcast" ( I:Var ) { .Map } : ( T1:Type ) -> ( T2:Type )
@@ -331,6 +332,7 @@ module HW
             I |-> TV(T1, V)
             ...
         </circt-locals>
+
 
     syntax Value ::= HwBitcast(Value, Type, Type) [function]
     rule HwBitcast(X:Int, T1:IntegerType, (!hw.array< _:HwArraySizePrefix T2:IntegerType>):HwArrayType) 
@@ -361,7 +363,7 @@ module HW
         requires Offs >=Int W
     
 
-    // "hw.array_concat" ( %4 , %3 , .VarList ) { .Map } : ( !hw.array < 8x i1 > , !hw.array < 64x i1 > , .Types ) -> ( !hw.array < 72x i1 > , .Types )
+    // "hw.array_concat" ( %4 , %3 , .VarList ) { .Map } : ( !hw.array < 8x i1 > , !hw.array < 64x i1 > ) -> ( !hw.array < 72x i1 > )
     rule <k> circt </k>
         <circt-exec>
             (.K => .List)
@@ -407,6 +409,7 @@ module HW
             ...
         </circt-exec>
 
+
     // hw.array_slice
     rule <k> circt </k>
         <circt-exec>
@@ -445,6 +448,7 @@ module HW
             ...
         </circt-exec>
 
+
     // hw.struct_extract
     rule <k> circt </k>
         <circt-exec>
@@ -457,6 +461,7 @@ module HW
         </circt-exec>
         <circt-locals> ... A |-> TV(T1, V) ... </circt-locals>
     
+
     // hw.struct_inject
     rule <k> circt </k>
         <circt-exec>
@@ -469,6 +474,7 @@ module HW
         </circt-exec>
         <circt-locals> ... A1 |-> TV(T1, V1) A2 |-> TV(T2, V2) ... </circt-locals>
     
+
     // hw.struct_explode
     rule <k> circt </k>
         <circt-exec>
@@ -501,6 +507,7 @@ module HW
             ...
         </circt-exec>
 
+
     // hw.enum.constant
     rule <k> circt </k>
         <circt-exec>
@@ -525,6 +532,7 @@ module HW
             ...
         </circt-exec>
     
+
     // hw.enum.cmp
     rule <k> circt </k>
         <circt-exec>
@@ -539,6 +547,7 @@ module HW
             ...
         </circt-locals>
 
+
     // hw.union_extract
     rule <k> circt </k>
         <circt-exec>
@@ -547,6 +556,7 @@ module HW
             ...
         </circt-exec>
         <circt-locals> ... A |-> TV(T1, V) ... </circt-locals>
+
 
     // hw.union_create
     rule <k> circt </k>

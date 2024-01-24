@@ -2,10 +2,148 @@ module SV
     imports CONFIGURATION
     imports CIRCT-SYNTAX
 
+    // sv.bpassign
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.bpassign" ( Reg:Var , X:Var ) { _:Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            Reg |-> TV(!hw.inout < T >, hw.inout(_:String, T, _ => V))
+            X |-> TV(T, V)
+            ...
+        </circt-locals>
+    
+
+    // sv.passign
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.passign" ( Reg:Var , X:Var ) { _:Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            Reg |-> TV(!hw.inout < T >, hw.inout(_:String, T, _ => V))
+            X |-> TV(T, V)
+            ...
+        </circt-locals>
+
+
+    // sv.for
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => V1 ~> V2 ~> V3 ~> B) ~>
+            "sv.for" (Low:Var, High:Var, Step:Var) ( { .OperationList B:Block } ) { _:Map } : ( T:Type, T:Type, T:Type ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            Low |->  TV(T, V1)
+            High |-> TV(T, V2)
+            Step |-> TV(T, V3)
+            ...
+        </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => OPs) ~>
+            (V1:Int => V1 +Int V3) ~> 
+            V2:Int ~>
+            V3:Int ~> 
+            _:CaretId ( I:Var : T:Type ) : OPs:OperationList ~>
+            "sv.for" (_:VarList) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals> M:Map => M[I <- TV(T, V1)] </circt-locals>
+        requires V1 <Int V2
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                V1:Int ~> V2:Int ~> _V3:Int ~>
+                _:CaretId ( _:Var : _:Type ) : _:OperationList ~>
+                "sv.for" (_:VarList) ( _:Region ) { _:Map } : ( _:Types ) -> ( .Types )
+            ) => .List
+            ...
+        </circt-exec>
+        requires V1 >=Int V2
+
+
+    // sv.assign
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.assign" ( X1:Var , X2:Var ) { .Map } : ( !hw.inout < T1:Type > , T2:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X1 |-> TV(!hw.inout<T1>, hw.inout(_:String, T1, (_ => V2)))
+            X2 |-> TV(T2, V2)
+            ...
+        </circt-locals>
+
+    
+    // sv.xmr.ref
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => .List) ~>
+            (.K => M [ SymbolRefId2String({Attr[#token("ref", "BareId")]}:>SymbolRefId) ]) ~>
+            "sv.xmr.ref" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < _T:Type > )
+            ...
+        </circt-exec>
+        <hw-hierpath> M:Map </hw-hierpath>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (L1:List => L1 ListItem(SymbolRefId2String(Mod) +String "::" +String SymbolRefId2String(Ins))) ~>
+            [ #hw.innerNameRef < Mod:SymbolRefId :: Ins:SymbolRefId > , AL:AttributeValueList => AL ] ~>
+            "sv.xmr.ref" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:Type > )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            _:List ~>
+            ([.AttributeValueList] => .List) ~>
+            "sv.xmr.ref" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:Type > )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (ListItem(Ref:String) L1:List => L1) ~>
+            (L:List => L ListItem(M [Ref])) ~>
+            "sv.xmr.ref" ( .VarList ) { _:Map } : ( .Types ) -> ( !hw.inout < _T:Type > )
+            ...
+        </circt-exec>
+        <symrefs> M:Map </symrefs>
+        requires Ref in_keys(M)
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                .List ~>
+                L:List ListItem(Terminal:String) ~>
+                "sv.xmr.ref" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:Type > )
+            ) => (
+                getTrace(ListItem(Mod) L) ~>
+                Terminal ~>
+                "sv.xmr" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T > )
+            )
+            ...
+        </circt-exec>
+        <trace> ListItem(Mod:String) _:List </trace>
+        
+
+
     // sv.xmr
     rule <k> circt </k>
         <circt-exec>
-            (.K => ListItem("Top")) ~>
+            (.K => .List) ~>
             (.K => Attr[#token("path", "BareId")]) ~>
             "sv.xmr" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
             ...
@@ -129,8 +267,9 @@ module SV
             ) => ListItem( TV(!hw.inout < T >, hw.inout(Terminal, T, V)) )
             ...
         </circt-exec>
+    
 
-    // sv.constantX, todo
+    // sv.constantX
     rule <k> circt </k>
         <circt-exec> 
             "sv.constantX" ( .VarList ) { .Map } : ( .Types ) -> ( T:Type )
@@ -139,7 +278,7 @@ module SV
         </circt-exec>
 
 
-    // sv.constantZ, todo
+    // sv.constantZ
     rule <k> circt </k>
         <circt-exec> 
             "sv.constantZ" ( .VarList ) { .Map } : ( .Types ) -> ( T:Type )
@@ -312,6 +451,14 @@ module SV
         <macros> M:Map </macros>
 
 
+    // sv.macro.ref.se
+    rule <k> circt </k>
+        <circt-exec> 
+            ("sv.macro.ref.se" => "sv.macro.ref") ( .VarList ) { _:Map } : ( .Types ) -> ( _:Type )
+            ...
+        </circt-exec>
+
+
     // sv.macro.ref, ident
     rule <k> circt </k>
         <circt-exec> 
@@ -400,7 +547,26 @@ module SV
         </macros>
     
 
-    // sv.wire, how to express a inout value?
+    // sv.wire
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.wire" ( .VarList ) {Attr:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            => ListItem( TV(
+                !hw.inout< T >,
+                hw.inout({Attr[#token("name", "BareId")]}:>String, T, 0)
+            ) ) ~> "wire"
+            ...
+        </circt-exec>
+        <module> Mod:SymbolRefId </module>
+        <symrefs> 
+            M:Map => M [ 
+                SymbolRefId2String(Mod) +String "::" 
+                    +String getInnerSymString({Attr[#token("inner_sym", "BareId")]}:>DialectAttribute) 
+                <- Attr[#token("name", "BareId")] 
+            ]
+        </symrefs>
+        requires #token("inner_sym", "BareId") in_keys(Attr)
+    
     rule <k> circt </k>
         <circt-exec> 
             "sv.wire" ( .VarList ) {Attr:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
@@ -410,7 +576,20 @@ module SV
             ) ) ~> "wire"
             ...
         </circt-exec>
+        requires notBool (#token("inner_sym", "BareId") in_keys(Attr))
     
+
+    // sv.logic
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.logic" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            => ListItem( TV(
+                !hw.inout< T >,
+                hw.inout({Attr[#token("name", "BareId")]}:>String, T, 0)
+            ) ) ~> "reg"
+            ...
+        </circt-exec>
+
     
     // sv.reg
     rule <k> circt </k>
@@ -422,7 +601,27 @@ module SV
             ) ) ~> "reg"
             ...
         </circt-exec>
+        <module> Mod:SymbolRefId </module>
+        <symrefs> 
+            M:Map => M [ 
+                SymbolRefId2String(Mod) +String "::" 
+                    +String getInnerSymString({Attr[#token("inner_sym", "BareId")]}:>DialectAttribute) 
+                <- Attr[#token("name", "BareId")] 
+            ]
+        </symrefs>
+        requires #token("inner_sym", "BareId") in_keys(Attr)
     
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.reg" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            => ListItem( TV(
+                !hw.inout< T >,
+                hw.inout({Attr[#token("name", "BareId")]}:>String, T, 0)
+            ) ) ~> "reg"
+            ...
+        </circt-exec>
+        requires notBool (#token("inner_sym", "BareId") in_keys(Attr))
+        
 
     // sv.read_inout, but where to read?
     rule <k> circt </k>
@@ -530,6 +729,23 @@ module SV
         </circt-exec>
         <name> Inst:String </name>
         <initialized> S:Set => S SetItem(Inst) </initialized>
+    
+
+    // sv.alwayscomb
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.alwayscomb" ( .VarList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => R
+            ...
+        </circt-exec>
+    
+    
+    // sv.alwaysff
+    rule <k> circt </k>
+        <circt-exec> 
+            ("sv.alwaysff" => "sv.always") ( _:Var, .VarList ) ( _R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            ...
+        </circt-exec>
 
 
     // sv.always
@@ -542,9 +758,9 @@ module SV
     
     rule <k> circt </k>
         <circt-exec>
-            (.K => Vs) ~> 
+            (.K => V, Vs) ~> 
             (.K => Attr[#token("events", "BareId")]) ~> 
-            "sv.always" ( Vs:VarList ) ( _:Region ) { Attr:Map } : ( _:Types ) -> ( .Types )
+            "sv.always" ( V:Var, Vs:VarList ) ( _:Region ) { Attr:Map } : ( _:Types ) -> ( .Types )
             ...
         </circt-exec>
     

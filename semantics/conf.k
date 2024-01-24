@@ -20,6 +20,7 @@ module CONFIGURATION
                     <name> "_" </name>
                     <ports-in> .List </ports-in>
                     <ports-out> .List </ports-out>
+                    <module> #token("@_", "SymbolRefId") </module>
                 </circt-frame>
             </circt-frames>
             <state>
@@ -32,7 +33,6 @@ module CONFIGURATION
                     <inst-wires> .Map </inst-wires>
                 </instance>
             </state>
-            // <old> .Map </old>
             <registers> .Map </registers>
             <macros> .Map </macros>
             <result> .List </result>
@@ -54,6 +54,7 @@ module CONFIGURATION
             </sv-log>
             <hw-hierpath> .Map </hw-hierpath>
             <fd> .Map </fd>
+            <symrefs> .Map </symrefs>
         </circt>
         <mlir>
             <mlir-program> $PGM:TopLevel ~> .K </mlir-program>
