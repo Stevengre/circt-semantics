@@ -2,6 +2,111 @@ module SV
     imports CONFIGURATION
     imports CIRCT-SYNTAX
 
+
+    // sv.assert.concurrent
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => Old[Clk] orDefault false) ~>
+            (.K => Locals [Clk] orDefault false) ~>
+            (.K => Attr[#token("event", "BareId")]) ~>
+            "sv.assert.concurrent" ( Clk:Var , _Cond:Var ) { Attr:Map } : ( _:Type , _:Type ) -> ( .Types )
+            ...
+        </circt-exec>
+        <last-locals> Old:Map </last-locals>
+        <circt-locals> Locals:Map </circt-locals>
+    
+    // sv.assert.concurrent, no last value (no event)
+    rule <k> circt </k>
+        <circt-exec>
+            false ~> TV(_, _) ~> (_:IntegerLiteral : _:IntegerType):BuiltinAttribute ~>
+            "sv.assert.concurrent" ( _Clk:Var , _Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+    
+    // sv.assert.concurrent, event check
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                TV(_, Old:Int) 
+                ~> TV(_, New:Int) 
+                ~> (Event:IntegerLiteral : _:IntegerType):BuiltinAttribute
+                => eventCheck(Old, New, {Event}:>Int)
+            ) ~>
+            "sv.assert.concurrent" ( _:Var , _:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    // sv.assert.concurrent, event hit
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => #if V ==Int 0 #then false #else true #fi) ~>
+            true ~>
+            "sv.assert.concurrent" ( _:Var , Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            Cond |-> TV(#token("i1", "SignlessIntegerType"), V:Int)
+            ...
+        </circt-locals>
+    
+    // sv.assert.concurrent, no event hit
+    rule <k> circt </k>
+        <circt-exec>
+            false ~>
+            "sv.assert.concurrent" ( _:Var , Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+    
+    // sv.assert.concurrent, condition true
+    rule <k> circt </k>
+        <circt-exec>
+            true ~> true ~>
+            "sv.assert.concurrent" ( _:Var , _:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+    
+    // sv.assert.concurrent, condition false
+    rule <k> circt </k>
+        <circt-exec>
+            false ~> true ~>
+            "sv.assert.concurrent" ( _:Var , _:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            => stop ~> "assertion error"
+            ...
+        </circt-exec>
+
+
+    // sv.assert
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => #if V ==Int 0 #then false #else true #fi) ~>
+            "sv.assert" ( X:Var ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X |-> TV(#token("i1", "SignlessIntegerType"), V:Int)
+            ...
+        </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            false ~> "sv.assert" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
+            => stop ~> "assertion error"
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            true ~> "sv.assert" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+
+
     // sv.bpassign
     rule <k> circt </k>
         <circt-exec>
