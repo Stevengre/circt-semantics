@@ -11,6 +11,12 @@
   "hw.module"() ({
   ^bb0(%arg0: i1, %arg1: i8, %arg2: i8):
     %0 = "hw.constant"() {value = true} : () -> i1
+    "sv.cover.concurrent"(%arg0, %0) {event = 0 : i32} : (i1, i1) -> ()
+    "sv.initial"() ({
+      "sv.cover"(%0) {defer = 0 : i32} : (i1) -> ()
+    }) : () -> ()
+
+    %0 = "hw.constant"() {value = true} : () -> i1
     "sv.assert.concurrent"(%arg0, %0) {event = 0 : i32} : (i1, i1) -> ()
     %1 = "comb.add"(%arg1, %arg2) : (i8, i8) -> i8
     "hw.output"(%1) : (i8) -> ()
