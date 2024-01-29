@@ -1,47 +1,13 @@
 <T>
   <k>
-    circt ~> .
+    done ~> .
   </k>
   <circt>
     <circt-control>
       .List ~> .
     </circt-control>
     <circt-frames>
-      <circt-frame>
-        <circt-exec>
-          false ~> "sv.assert.concurrent" ( %arg0 , %0 , .VarList ) { event |-> 0 : i32 } : ( i1 , i1 , .Types ) -> ( .Types ) ~> .OpResults = ~> %1 , .OpResults = "comb.add" ( %arg1 , %arg2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList ~> .
-        </circt-exec>
-        <circt-locals>
-          %0 |-> TV ( i1 , 1 )
-          %arg0 |-> TV ( i1 , 0 )
-          %arg1 |-> TV ( i8 , 1 )
-          %arg2 |-> TV ( i8 , 5 )
-        </circt-locals>
-        <circt-output>
-          .List
-        </circt-output>
-        <last-locals>
-          %0 |-> TV ( i1 , 1 )
-          %1 |-> TV ( i8 , 3 )
-          %arg0 |-> TV ( i1 , 0 )
-          %arg1 |-> TV ( i8 , 1 )
-          %arg2 |-> TV ( i8 , 2 )
-        </last-locals>
-        <name>
-          "Adder"
-        </name>
-        <ports-in>
-          ListItem ( clk )
-          ListItem ( a )
-          ListItem ( b )
-        </ports-in>
-        <ports-out>
-          ListItem ( res )
-        </ports-out>
-        <module>
-          @Adder
-        </module>
-      </circt-frame>
+      .CirctFrameCellList
     </circt-frames>
     <state>
       <instance>
@@ -49,7 +15,11 @@
           "Adder"
         </inst-name>
         <inst-vars>
-          .Map
+          %0 |-> TV ( i1 , 1 )
+          %1 |-> TV ( i8 , 6 )
+          %arg0 |-> TV ( i1 , 0 )
+          %arg1 |-> TV ( i8 , 1 )
+          %arg2 |-> TV ( i8 , 5 )
         </inst-vars>
         <inst-in>
           a |-> %arg1
@@ -57,7 +27,7 @@
           clk |-> %arg0
         </inst-in>
         <inst-out>
-          .Map
+          res |-> %1
         </inst-out>
         <inst-regs>
           .Map
@@ -75,6 +45,7 @@
     </macros>
     <result>
       ListItem ( ListItem ( #result ( res , TV ( i8 , 3 ) ) ) )
+      ListItem ( ListItem ( #result ( res , TV ( i8 , 6 ) ) ) )
     </result>
     <always>
       .Map
@@ -83,13 +54,13 @@
       .Map
     </initial>
     <initialized>
-      .Set
+      SetItem ( "Adder" )
     </initialized>
     <sv-wires>
       .Map
     </sv-wires>
     <trace>
-      ListItem ( "Adder" )
+      .List
     </trace>
     <observation>
       <ob-in>
@@ -145,7 +116,7 @@
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i1 , %arg1 : i8 , %arg2 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  .OpResults = "sv.assert.concurrent" ( %arg0 , %0 , .VarList ) [ .Successors ] ( .Regions ) { event |-> 0 : i32 } : ( i1 , i1 , .Types ) -> ( .Types )  %1 , .OpResults = "comb.add" ( %arg1 , %arg2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input clk : i1 , input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i1 , %arg1 : i8 , %arg2 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  .OpResults = "sv.cover.concurrent" ( %arg0 , %0 , .VarList ) [ .Successors ] ( .Regions ) { event |-> 0 : i32 } : ( i1 , i1 , .Types ) -> ( .Types )  .OpResults = "sv.initial" ( .VarList ) [ .Successors ] ( { .OpResults = "sv.cover" ( %0 , .VarList ) [ .Successors ] ( .Regions ) { defer |-> 0 : i32 } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  %0 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  .OpResults = "sv.assert.concurrent" ( %arg0 , %0 , .VarList ) [ .Successors ] ( .Regions ) { event |-> 0 : i32 } : ( i1 , i1 , .Types ) -> ( .Types )  %1 , .OpResults = "comb.add" ( %arg1 , %arg2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input clk : i1 , input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc6 , #loc7 , #loc8 , #loc9 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )

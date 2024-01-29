@@ -1,6 +1,91 @@
 module SV
     imports CONFIGURATION
     imports CIRCT-SYNTAX
+    imports K-IO
+
+    
+    // sv.readmem, read data from file
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => Attr[#token("base", "BareId")]) ~>
+            (.K => Attr[#token("filename", "BareId")]) ~>
+            "sv.readmem" ( _:Var ) { Attr:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => #open(FileName)) ~>
+            (_:Int : _:IntegerType):BuiltinAttribute ~>
+            FileName:String ~>
+            "sv.readmem" ( _:Var ) { _:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => #if Base ==Int 0 
+                #then #read(Fd, getWidth(T)) 
+                #else #read(Fd, getWidth(T) /Int 4)  #fi
+            ) ~>
+            Fd:Int ~>
+            (Base:Int : _:IntegerType):BuiltinAttribute ~>
+            _:String ~>
+            "sv.readmem" ( _:Var ) { _:Map } : ( !hw.inout < T:IntegerType > ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                Mem:String ~> Fd:Int ~>
+                (_Base:Int : _:IntegerType):BuiltinAttribute ~>
+                _:String
+                => #close(Fd) ~> "fd closed"
+            ) ~> 
+            "sv.readmem" ( X:Var ) { _:Map } : ( !hw.inout < T:IntegerType > ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X |-> TV(!hw.inout < T >, hw.inout(_:String, T, _ => String2Int(Mem)))
+            ...
+        </circt-locals>
+    
+     rule <k> circt </k>
+        <circt-exec>
+            "fd closed" ~> 
+            "sv.readmem" ( _:Var ) { _:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        
+
+    // sv.generate.case
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.generate.case" ( .VarList ) { _:Map } : ( .Types ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+
+
+    // sv.generate
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.generate" ( .VarList ) ( R:Region ) {_:Map } : ( .Types ) -> ( .Types )
+            => R
+            ...
+        </circt-exec>
+
+
+    // sv.ordered
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.ordered" ( .VarList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => R
+            ...
+        </circt-exec>
 
 
     // sv.assert.concurrent
@@ -55,7 +140,7 @@ module SV
     rule <k> circt </k>
         <circt-exec>
             false ~>
-            "sv.assert.concurrent" ( _:Var , Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            "sv.assert.concurrent" ( _:Var , _Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
             => .List
             ...
         </circt-exec>
@@ -94,14 +179,55 @@ module SV
     
     rule <k> circt </k>
         <circt-exec>
-            false ~> "sv.assert" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
-            => stop ~> "assertion error"
+            B:Bool ~> 
+            "sv.assert" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
+            => #if B #then .List #else stop ~> "assertion error" #fi
             ...
         </circt-exec>
+
+    
+    // sv.assume
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => #if V ==Int 0 #then false #else true #fi) ~>
+            "sv.assume" ( X:Var ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X |-> TV(#token("i1", "SignlessIntegerType"), V:Int)
+            ...
+        </circt-locals>
     
     rule <k> circt </k>
         <circt-exec>
-            true ~> "sv.assert" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
+            B:Bool ~> 
+            "sv.assume" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
+            => #if B #then .List #else stop ~> "assumption error" #fi
+            ...
+        </circt-exec>
+    
+    // sv.assume.concurrent
+    rule <k> circt </k>
+        <circt-exec>
+            ("sv.assume.concurrent" => "sv.assert.concurrent") ( _Clk:Var , _Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            ...
+        </circt-exec>
+    
+
+    // sv.cover, meaningless
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.cover" ( _:Var ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+
+
+    // sv.cover.concurrent, meaningless
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.cover.concurrent" ( _Clk:Var , _Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
             => .List
             ...
         </circt-exec>
