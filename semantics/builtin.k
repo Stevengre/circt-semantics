@@ -18,13 +18,15 @@ module BUILTIN-DIALECT-SYNTAX
     // syntax AttributeValueList ::= AttributeValue 
                                 // | AttributeValue "," AttributeValueList
     // DenseArrayAttr
-    syntax BuiltinAttribute ::= "array" "<" IntegerType ">"
-                              | "array" "<" DimensionList IntegerType ">" // diff from official
-                              | "array" "<" FloatType ">"
-                              | "array" "<" IntegerType ":" TensorLiteral ">"
-                              | "array" "<" FloatType ":" TensorLiteral ">"
-                              | "array" "<" IntegerType ":" ">"
-                              | "array" "<" FloatType ":" ">"
+    syntax BuiltinArray ::= "array" "<" IntegerType ">"
+                          | "array" "<" ArraySizePrefix IntegerType ">" // diff from official
+                          | "array" "<" FloatType ">"
+                          | "array" "<" IntegerType ":" TensorLiteral ">"
+                          | "array" "<" FloatType ":" TensorLiteral ">"
+                          | "array" "<" IntegerType ":" ">"
+                          | "array" "<" FloatType ":" ">"
+    
+    syntax Type ::= BuiltinArray
     
     // DenseIntOrFPElementsAttr
     syntax TensorLiteralElement ::= IntegerLiteral | FloatLiteral | BoolLiteral
@@ -147,7 +149,7 @@ module BUILTIN-DIALECT-SYNTAX
                          | "memref" "<" "*x" Type "," AttributeValue ">"
     
     syntax DimensionElement ::= Dimension "x" [token] 
-                              | r"[0-9]+x" [token,avoid] 
+                              | r"[0-9]+x" [token,prefer] 
                               | "?x" [token] // TODO: kind of weird
     syntax DimensionList ::= DimensionElement | DimensionElement DimensionList 
     // NoneType

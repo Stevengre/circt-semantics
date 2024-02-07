@@ -335,15 +335,15 @@ module HW
 
 
     syntax Value ::= HwBitcast(Value, Type, Type) [function]
-    rule HwBitcast(X:Int, T1:IntegerType, (!hw.array< _:HwArraySizePrefix T2:IntegerType>):HwArrayType) 
+    rule HwBitcast(X:Int, T1:IntegerType, (!hw.array< _:ArraySizePrefix T2:IntegerType>):HwArrayType) 
         => [ List2Values(IntSlice(X, 0, getWidth(T2), getWidth(T1))) ]
     
     rule HwBitcast(X:Map, T1:HwStructType, T2:Type) => fromBits(toBits(X, T1), T2)
     
     syntax Bits ::= toBits(Value, Type) [function]
-    rule toBits(M:Map, !hw.struct < F:BareId : T:Type, Fs:HwStructFields >)
+    rule toBits(M:Map, !hw.struct < F:BareId : T:Type, Fs:StructFields >)
         => toBits({M[F]}:>Value, T:Type) concatBits toBits(M:Map, !hw.struct < Fs >)
-    rule toBits(_:Map, !hw.struct < .HwStructFields>) => bits(0, 0)
+    rule toBits(_:Map, !hw.struct < .StructFields>) => bits(0, 0)
     rule toBits(X:Int, T:IntegerType) => Int2Bits(X, getWidth(T))
 
     syntax Value ::= fromBits(Bits, Type) [function]
@@ -425,14 +425,14 @@ module HW
         <circt-exec>
             (.K => .Map)
             ~> (.K => Fs)
-            ~> "hw.struct_create" ( _:VarList ) { .Map } : ( _:Types ) -> ( !hw.struct < Fs:HwStructFields > )
+            ~> "hw.struct_create" ( _:VarList ) { .Map } : ( _:Types ) -> ( !hw.struct < Fs:StructFields > )
             ...
         </circt-exec>
 
     rule <k> circt </k>
         <circt-exec>
             (M:Map => M [F <- V])
-            ~> (F:BareId : T:Type, Fs:HwStructFields => Fs)
+            ~> (F:BareId : T:Type, Fs:StructFields => Fs)
             ~> "hw.struct_create" ( (I:Var , Vs:VarList => Vs) ) { .Map } : ( (T:Type, Ts:Types => Ts) ) -> ( _:HwStructType )
             ...
         </circt-exec>
@@ -442,7 +442,7 @@ module HW
         <circt-exec>
             (
                 M:Map
-                ~> .HwStructFields
+                ~> .StructFields
                 ~> "hw.struct_create" ( .VarList ) { .Map } : ( .Types ) -> ( T:HwStructType )
             ) => ListItem( TV(T, M) )
             ...
@@ -489,7 +489,7 @@ module HW
     rule <k> circt </k>
         <circt-exec>
             (L:List => L ListItem(TV(T, {M[F]}:>Value)))
-            ~> !hw.struct< (F:BareId : T:Type, Fs:HwStructFields => Fs) >
+            ~> !hw.struct< (F:BareId : T:Type, Fs:StructFields => Fs) >
             ~> M:Map
             ~> "hw.struct_explode" ( _:Var ) { _:Map } : ( _:HwStructType ) -> ( T:Type, Ts:Types => Ts )
             ...
@@ -499,7 +499,7 @@ module HW
         <circt-exec>
             _:List
             ~> (
-                !hw.struct< .HwStructFields >
+                !hw.struct< .StructFields >
                 ~> _:Map
                 ~> "hw.struct_explode" ( _:Var ) { _:Map } : ( _:HwStructType ) -> ( .Types ) 
                 => .K

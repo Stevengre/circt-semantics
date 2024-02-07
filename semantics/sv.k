@@ -3,6 +3,43 @@ module SV
     imports CIRCT-SYNTAX
     imports K-IO
 
+
+    // sv.struct_field_inout
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => V [String2BareId({Attr[#token("field", "BareId")]}:>String)]) ~>
+            "sv.struct_field_inout" ( X:Var ) { Attr:Map } : ( !hw.inout < struct < Fs:StructFields > > ) -> ( !hw.inout < _T:IntegerType > )
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X |-> TV(!hw.inout < !hw.struct < Fs:StructFields > >, hw.inout(_:String, !hw.struct < Fs:StructFields >, V:Map))
+            ...
+        </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            V:Value ~>
+            "sv.struct_field_inout" ( _:Var ) { _:Map } : ( !hw.inout < struct < _:StructFields > > ) -> ( !hw.inout < T:IntegerType > )
+            => ListItem( TV(!hw.inout < T >, hw.inout("", T, V)) )
+            ...
+        </circt-exec>
+
+
+    // sv.array_index_inout
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.array_index_inout" ( Arr:Var , Index:Var ) { .Map } : ( !hw.inout < array < Size:ArraySizePrefix T1:IntegerType > > , T2:Type ) -> ( !hw.inout < T1:IntegerType > )
+            => ListItem(TV( !hw.inout < T1 > , hw.inout("", T1, HwArrayGet(V1, V2)) ))
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            Arr |-> TV(!hw.inout < !hw.array < Size T1 > >, hw.inout(_:String, !hw.array < Size T1 >, V1:HwArray))
+            Index |-> TV(T2, V2:Int)
+            ...
+        </circt-locals>
+
     
     // sv.readmem, read data from file
     rule <k> circt </k>
@@ -314,6 +351,32 @@ module SV
             ... 
             X1 |-> TV(!hw.inout<T1>, hw.inout(_:String, T1, (_ => V2)))
             X2 |-> TV(T2, V2)
+            ...
+        </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.assign" ( X1:Var , X2:Var ) { .Map } : ( !hw.inout < array < Size:ArraySizePrefix T:IntegerType > >  , !hw.array < Size:ArraySizePrefix T:IntegerType > ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ...
+            X1 |-> TV( !hw.inout < !hw.array < Size T > > , hw.inout( _:String , !hw.array < Size T > , (_ => V2)) )
+            X2 |-> TV( !hw.array < Size T >, V2:Value )
+            ...
+        </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.assign" ( X1:Var , X2:Var ) { .Map } : ( !hw.inout < struct < Fs:StructFields > > , !hw.struct < Fs:StructFields > ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ...
+            X1 |-> TV( !hw.inout < !hw.struct < Fs > > , hw.inout( _:String , !hw.struct < Fs > , (_ => V2)) )
+            X2 |-> TV( !hw.struct < Fs >, V2:Value)
             ...
         </circt-locals>
 
@@ -852,6 +915,28 @@ module SV
             ...
         </circt-exec>
         requires notBool (#token("inner_sym", "BareId") in_keys(Attr))
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.reg" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < array< Size:ArraySizePrefix T:IntegerType > > )
+            => ListItem( TV(
+                !hw.inout< !hw.array< Size T > >,
+                hw.inout({Attr[#token("name", "BareId")]}:>String, !hw.array< Size T >, 0)
+            ) ) ~> "reg"
+            ...
+        </circt-exec>
+        requires notBool (#token("inner_sym", "BareId") in_keys(Attr))
+
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.reg" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < struct< Fs:StructFields > > )
+            => ListItem( TV(
+                !hw.inout < !hw.struct< Fs > >,
+                hw.inout({Attr[#token("name", "BareId")]}:>String, !hw.struct < Fs >, 0)
+            ) ) ~> "reg"
+            ...
+        </circt-exec>
         
 
     // sv.read_inout, but where to read?

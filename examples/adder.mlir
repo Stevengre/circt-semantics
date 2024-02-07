@@ -10,15 +10,14 @@
 "builtin.module"() ({
   "hw.module"() ({
   ^bb0(%arg0: i1, %arg1: i8, %arg2: i8):
-    %0 = "hw.constant"() {value = true} : () -> i1
-    "sv.cover.concurrent"(%arg0, %0) {event = 0 : i32} : (i1, i1) -> ()
-    "sv.initial"() ({
-      "sv.cover"(%0) {defer = 0 : i32} : (i1) -> ()
-    }) : () -> ()
-
-    %0 = "hw.constant"() {value = true} : () -> i1
-    "sv.assert.concurrent"(%arg0, %0) {event = 0 : i32} : (i1, i1) -> ()
-    %1 = "comb.add"(%arg1, %arg2) : (i8, i8) -> i8
-    "hw.output"(%1) : (i8) -> ()
+    %0 = "hw.struct_create"(%arg1, %arg2) : (i8, i8) -> !hw.struct<aa: i8, bb: i8>
+    %1 = "sv.reg"() {name = "reg"} : () -> !hw.inout<struct<aa: i8, bb: i8>>
+    "sv.assign"(%1, %0) : (!hw.inout<struct<aa: i8, bb: i8>>, !hw.struct<aa: i8, bb: i8>) -> ()
+    %2 = "sv.struct_field_inout"(%1) {field = "aa"} : (!hw.inout<struct<aa: i8, bb: i8>>) -> !hw.inout<i8>
+    %3 = "sv.struct_field_inout"(%1) {field = "bb"} : (!hw.inout<struct<aa: i8, bb: i8>>) -> !hw.inout<i8>
+    %4 = "sv.read_inout"(%2) : (!hw.inout<i8>) -> i8
+    %5 = "sv.read_inout"(%3) : (!hw.inout<i8>) -> i8
+    %6 = "comb.add"(%4, %5) : (i8, i8) -> i8
+    "hw.output"(%6) : (i8) -> ()
   }) {module_type = !hw.modty<input clk : i1, input a : i8, input b : i8, output res : i8>, parameters = [], port_locs = [#loc6, #loc7, #loc8, #loc9], sym_name = "Adder"} : () -> ()
 }) : () -> ()

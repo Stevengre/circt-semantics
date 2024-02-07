@@ -34,6 +34,8 @@ module MLIR-SYNTAX-CORE
     syntax SymbolRefIdList ::= SymbolRefId | SymbolRefId "::" SymbolRefIdList
     // syntax SymbolRefIdList ::= List{SymbolRefId, "::"}
     // syntax SymbolRefId ::= SymbolRefId "::" SymbolRefId [token]
+    
+    syntax ArraySizePrefix ::= r"[1-9][0-9]*x" [token]
 endmodule
 
 
@@ -50,9 +52,9 @@ module MLIR-ATTR
     syntax AttributeValue ::= HwModty
     syntax Value ::= HwModty
 
-    syntax StructType ::= "struct" "<"  ">"
-    syntax Field ::= BareId ":" Type
-    syntax FieldList ::= List{Field, ","}
+    syntax StructType ::= "struct" "<" StructFields ">"
+    syntax StructField ::= BareId ":" Type
+    syntax StructFields ::= List{StructField, ","}
     
     syntax UarrayType ::= "uarray" "<" ArraySizeX Type ">"
     syntax ArraySizeX ::= r"[1-9][0-9]*x" [token]
