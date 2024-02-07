@@ -15,8 +15,15 @@
           "Adder"
         </inst-name>
         <inst-vars>
-          %0 |-> TV ( i1 , 1 )
-          %1 |-> TV ( i8 , 6 )
+          %0 |-> TV ( !hw.struct < aa : i8 , bb : i8 , .StructFields > , aa |-> 1
+          bb |-> 5 )
+          %1 |-> TV ( !hw.inout < !hw.struct < aa : i8 , bb : i8 , .StructFields > > , hw.inout ( "reg" , !hw.struct < aa : i8 , bb : i8 , .StructFields > , aa |-> 1
+          bb |-> 5 ) )
+          %2 |-> TV ( !hw.inout < i8 > , hw.inout ( "" , i8 , 1 ) )
+          %3 |-> TV ( !hw.inout < i8 > , hw.inout ( "" , i8 , 5 ) )
+          %4 |-> TV ( i8 , 1 )
+          %5 |-> TV ( i8 , 5 )
+          %6 |-> TV ( i8 , 6 )
           %arg0 |-> TV ( i1 , 0 )
           %arg1 |-> TV ( i8 , 1 )
           %arg2 |-> TV ( i8 , 5 )
@@ -27,10 +34,10 @@
           clk |-> %arg0
         </inst-in>
         <inst-out>
-          res |-> %1
+          res |-> %6
         </inst-out>
         <inst-regs>
-          .Map
+          "reg" |-> %1
         </inst-regs>
         <inst-wires>
           .Map
@@ -54,7 +61,7 @@
       .Map
     </initial>
     <initialized>
-      SetItem ( "Adder" )
+      .Set
     </initialized>
     <sv-wires>
       .Map
@@ -116,7 +123,7 @@
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i1 , %arg1 : i8 , %arg2 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  .OpResults = "sv.cover.concurrent" ( %arg0 , %0 , .VarList ) [ .Successors ] ( .Regions ) { event |-> 0 : i32 } : ( i1 , i1 , .Types ) -> ( .Types )  .OpResults = "sv.initial" ( .VarList ) [ .Successors ] ( { .OpResults = "sv.cover" ( %0 , .VarList ) [ .Successors ] ( .Regions ) { defer |-> 0 : i32 } : ( i1 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  %0 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> true } : ( .Types ) -> ( i1 , .Types )  .OpResults = "sv.assert.concurrent" ( %arg0 , %0 , .VarList ) [ .Successors ] ( .Regions ) { event |-> 0 : i32 } : ( i1 , i1 , .Types ) -> ( .Types )  %1 , .OpResults = "comb.add" ( %arg1 , %arg2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input clk : i1 , input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i1 , %arg1 : i8 , %arg2 : i8 , .VarAndTypeList ) : %0 , .OpResults = "hw.struct_create" ( %arg1 , %arg2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( !hw.struct < aa : i8 , bb : i8 , .StructFields > , .Types )  %1 , .OpResults = "sv.reg" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "reg" } : ( .Types ) -> ( !hw.inout < struct < aa : i8 , bb : i8 , .StructFields > > , .Types )  .OpResults = "sv.assign" ( %1 , %0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < struct < aa : i8 , bb : i8 , .StructFields > > , !hw.struct < aa : i8 , bb : i8 , .StructFields > , .Types ) -> ( .Types )  %2 , .OpResults = "sv.struct_field_inout" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { field |-> "aa" } : ( !hw.inout < struct < aa : i8 , bb : i8 , .StructFields > > , .Types ) -> ( !hw.inout < i8 > , .Types )  %3 , .OpResults = "sv.struct_field_inout" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { field |-> "bb" } : ( !hw.inout < struct < aa : i8 , bb : i8 , .StructFields > > , .Types ) -> ( !hw.inout < i8 > , .Types )  %4 , .OpResults = "sv.read_inout" ( %2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , .Types ) -> ( i8 , .Types )  %5 , .OpResults = "sv.read_inout" ( %3 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , .Types ) -> ( i8 , .Types )  %6 , .OpResults = "comb.add" ( %4 , %5 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %6 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input clk : i1 , input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
       parameters |-> [ ]
       port_locs |-> [ #loc6 , #loc7 , #loc8 , #loc9 , .AttributeValueList ]
       sym_name |-> "Adder" } : ( .Types ) -> ( .Types )

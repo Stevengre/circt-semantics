@@ -84,8 +84,8 @@ module HW-ARRAY
     syntax HwArray ::= "[" Values "]"
     syntax Value ::= HwArray
 
-    syntax HwArraySizePrefix ::= r"[1-9][0-9]*x" [token]
-    syntax HwArrayType ::= "!hw.array" "<" HwArraySizePrefix Type ">"
+    // syntax ArraySizePrefix ::= r"[1-9][0-9]*x" [token]
+    syntax HwArrayType ::= "!hw.array" "<" ArraySizePrefix Type ">"
     syntax Type ::= HwArrayType
 
     // syntax Int ::= getHwArrayElemWidth(HwArrayType)
@@ -99,10 +99,10 @@ module HW-ARRAY
     rule HwArraySlice([_:Value, Vs:Values], LowIndex:Int, HighIndex:Int)
         => [ ValuesFromList(range(toList(Vs), LowIndex, size(toList(Vs)) -Int HighIndex)) ]
     
-    syntax String ::= "HwArraySizePrefix2String" "(" HwArraySizePrefix ")" [function, hook(STRING.token2string)]
+    syntax String ::= "ArraySizePrefix2String" "(" ArraySizePrefix ")" [function, hook(STRING.token2string)]
     syntax Int ::= HwArraySize(HwArrayType) [function]
-    rule HwArraySize(!hw.array < S:HwArraySizePrefix _:Type >)
-        => String2Int(substrString(HwArraySizePrefix2String(S), 0, lengthString(HwArraySizePrefix2String(S)) -Int 1))
+    rule HwArraySize(!hw.array < S:ArraySizePrefix _:Type >)
+        => String2Int(substrString(ArraySizePrefix2String(S), 0, lengthString(ArraySizePrefix2String(S)) -Int 1))
 
     syntax List ::= toList(Values) [function]
     rule toList(V:Value, Vs:Values) => ListItem(V) toList(Vs)
@@ -119,9 +119,9 @@ module HW-STRUCT
     imports CIRCT-SYNTAX-CORE
     // imports BITS
 
-    syntax HwStructType ::= "!hw.struct" "<" HwStructFields ">"
-    syntax HwStructFields ::= List{HwStructField, ","}
-    syntax HwStructField ::= BareId ":" Type
+    syntax HwStructType ::= "!hw.struct" "<" StructFields ">"
+    // syntax HwStructFields ::= List{HwStructField, ","}
+    // syntax HwStructField ::= BareId ":" Type
 
     syntax Type ::= HwStructType
 
@@ -129,19 +129,19 @@ module HW-STRUCT
     syntax Value ::= HwStruct
 
     syntax Value ::= HwStructExtract(HwStruct, HwStructType, Int) [function]
-    rule HwStructExtract(M:Map, !hw.struct< _:HwStructField, Fs:HwStructFields >, Index:Int)
+    rule HwStructExtract(M:Map, !hw.struct< _:StructField, Fs:StructFields >, Index:Int)
         => HwStructExtract(M, !hw.struct< Fs >, Index -Int 1)
         requires Index >Int 0
-    rule HwStructExtract(M:Map, !hw.struct< F:BareId : _:Type, _:HwStructFields >, 0) => {M[F]}:>Value
+    rule HwStructExtract(M:Map, !hw.struct< F:BareId : _:Type, _:StructFields >, 0) => {M[F]}:>Value
 
     syntax Value ::= HwStructInject(HwStruct, Value, HwStructType, Int) [function]
-    rule HwStructInject(M:Map, V:Value, !hw.struct< _:HwStructField, Fs:HwStructFields >, Index:Int)
+    rule HwStructInject(M:Map, V:Value, !hw.struct< _:StructField, Fs:StructFields >, Index:Int)
         => HwStructInject(M, V, !hw.struct< Fs >, Index -Int 1)
         requires Index >Int 0
-    rule HwStructInject(M:Map, V:Value, !hw.struct< F:BareId : _:Type, _:HwStructFields >, 0) => M[F <- V]
+    rule HwStructInject(M:Map, V:Value, !hw.struct< F:BareId : _:Type, _:StructFields >, 0) => M[F <- V]
 
     
-    syntax HwUnionType ::= "!hw.union" "<" HwStructFields ">"
+    syntax HwUnionType ::= "!hw.union" "<" StructFields ">"
     syntax Type ::= HwUnionType
 
     // syntax HwUnion ::= "hw.union" "(" Int "," HwUnionType ")"
@@ -152,9 +152,9 @@ module HW-STRUCT
     // rule HwUnionExtract(X:Int, T:IntegerType) => Bits2UInt(bitsCast(X, getWidth(T)))
     rule HwUnionExtract(X:Int, T:IntegerType) => X &Int (2 ^Int getWidth(T) -Int 1)
 
-    syntax Type ::= getFieldType(HwStructFields, Int) [function]
-    rule getFieldType(_:BareId : _:Type, Fs:HwStructFields, I:Int) => getFieldType(Fs, I -Int 1) requires I >Int 0
-    rule getFieldType(_:BareId : T:Type, _:HwStructFields, 0) => T
+    syntax Type ::= getFieldType(StructFields, Int) [function]
+    rule getFieldType(_:BareId : _:Type, Fs:StructFields, I:Int) => getFieldType(Fs, I -Int 1) requires I >Int 0
+    rule getFieldType(_:BareId : T:Type, _:StructFields, 0) => T
 endmodule
 
 
