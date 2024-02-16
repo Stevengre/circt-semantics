@@ -8,16 +8,19 @@
 #loc7 = loc("a.mlir":15:32)
 #loc8 = loc("a.mlir":15:44)
 "builtin.module"() ({
-  "hw.module"() ({
+   "hw.module"() ({
   ^bb0(%arg0: i1, %arg1: i8, %arg2: i8):
-    %0 = "hw.struct_create"(%arg1, %arg2) : (i8, i8) -> !hw.struct<aa: i8, bb: i8>
-    %1 = "sv.reg"() {name = "reg"} : () -> !hw.inout<struct<aa: i8, bb: i8>>
-    "sv.assign"(%1, %0) : (!hw.inout<struct<aa: i8, bb: i8>>, !hw.struct<aa: i8, bb: i8>) -> ()
-    %2 = "sv.struct_field_inout"(%1) {field = "aa"} : (!hw.inout<struct<aa: i8, bb: i8>>) -> !hw.inout<i8>
-    %3 = "sv.struct_field_inout"(%1) {field = "bb"} : (!hw.inout<struct<aa: i8, bb: i8>>) -> !hw.inout<i8>
-    %4 = "sv.read_inout"(%2) : (!hw.inout<i8>) -> i8
-    %5 = "sv.read_inout"(%3) : (!hw.inout<i8>) -> i8
-    %6 = "comb.add"(%4, %5) : (i8, i8) -> i8
-    "hw.output"(%6) : (i8) -> ()
+    %0 = "sv.reg"() {name = "reg_a"} : () -> !hw.inout<i8>
+    %1 = "sv.reg"() {name = "reg_b"} : () -> !hw.inout<i8>
+    "sv.initial"() ({
+      "sv.force"(%0, %arg2) : (!hw.inout<i8>, i8) -> ()
+      "sv.force"(%1, %arg1) : (!hw.inout<i8>, i8) -> ()
+      // "sv.release"(%0) : (!hw.inout<i8>) -> ()
+      // "sv.release"(%1) : (!hw.inout<i8>) -> ()
+    }) : () -> ()
+    %2 = "sv.read_inout"(%0) : (!hw.inout<i8>) -> i8
+    %3 = "sv.read_inout"(%1) : (!hw.inout<i8>) -> i8
+    %4 = "comb.add"(%2, %3) : (i8, i8) -> i8
+    "hw.output"(%4) : (i8) -> ()
   }) {module_type = !hw.modty<input clk : i1, input a : i8, input b : i8, output res : i8>, parameters = [], port_locs = [#loc6, #loc7, #loc8, #loc9], sym_name = "Adder"} : () -> ()
 }) : () -> ()

@@ -21,6 +21,7 @@ module CONFIGURATION
                     <ports-in> .List </ports-in>
                     <ports-out> .List </ports-out>
                     <module> #token("@_", "SymbolRefId") </module>
+                    <forced> .Map </forced>
                 </circt-frame>
             </circt-frames>
             <state>

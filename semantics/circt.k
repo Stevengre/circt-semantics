@@ -422,8 +422,9 @@ module CIRCT
             ...
         </circt-exec>
         <circt-locals> 
-            Locals:Map => Locals [I <- TV(!hw.inout< T >, hw.inout(Reg, T, V))]
+            Locals:Map => Locals [I <- {Old[I] orDefault TV(!hw.inout< T >, hw.inout(Reg, T, V))}:>TypeValue]
         </circt-locals>
+        <last-locals> Old:Map </last-locals>
         <name> Name:String </name>
         <instance>
             <inst-name> Name </inst-name>

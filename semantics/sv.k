@@ -3,6 +3,36 @@ module SV
     imports CIRCT-SYNTAX
     imports K-IO
 
+    // sv.release
+     rule <k> circt </k>
+        <circt-exec>
+            "sv.release" ( X:Var ) { .Map } : ( !hw.inout < T:Type > ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X |-> TV ( !hw.inout < T > , hw.inout( _:String , T , _ => V ) )
+            ...
+        </circt-locals>
+        <forced> ... X |-> V ... </forced>
+
+
+    // sv.force
+    rule <k> circt </k>
+        <circt-exec>
+            "sv.force" ( X1:Var , X2:Var ) { .Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types )
+            => .List
+            ...
+        </circt-exec>
+        <circt-locals>
+            ... 
+            X1 |-> TV ( !hw.inout < T > , hw.inout( _:String , T , V1 => V2 ) )
+            X2 |-> TV ( T , V2 )
+            ...
+        </circt-locals>
+        <forced> M:Map => M [X1 <- V1] </forced>
+
 
     // sv.struct_field_inout
     rule <k> circt </k>
