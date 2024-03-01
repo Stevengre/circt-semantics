@@ -1,10 +1,14 @@
 from resource.circt_modules.adder_nested.expected.adder import adder_model
+from kirct.kimulator.vcd import *
+from pathlib import Path
 
 
 def test_model_nested_eval() -> None:
     # Given
     # todo: the ports' name cannot be something like 'in', since the krun will return an error.
     adder_model.signals['io_a'].signal_value = 6
+    tfp = KimulatorVCD(adder_model, 99)
+    tfp.open(str(Path('.').joinpath("test.vcd")))
     # When
     adder_model.eval()
     # Then
@@ -14,6 +18,8 @@ def test_model_nested_eval() -> None:
     adder_model.context.time_inc(1)
     adder_model.io_a = 5
     adder_model.eval()
+    tfp.dump(0)
+    tfp.close()
     # Then
     assert adder_model.res_out2 == 7
     assert adder_model.res_out1 == 8
