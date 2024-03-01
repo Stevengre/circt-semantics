@@ -18,13 +18,15 @@ module BUILTIN-DIALECT-SYNTAX
     // syntax AttributeValueList ::= AttributeValue 
                                 // | AttributeValue "," AttributeValueList
     // DenseArrayAttr
-    syntax BuiltinAttribute ::= "array" "<" IntegerType ">"
-                              | "array" "<" DimensionList IntegerType ">" // diff from official
-                              | "array" "<" FloatType ">"
-                              | "array" "<" IntegerType ":" TensorLiteral ">"
-                              | "array" "<" FloatType ":" TensorLiteral ">"
-                              | "array" "<" IntegerType ":" ">"
-                              | "array" "<" FloatType ":" ">"
+    syntax BuiltinArray ::= "array" "<" IntegerType ">"
+                          | "array" "<" ArraySizePrefix IntegerType ">" // diff from official
+                          | "array" "<" FloatType ">"
+                          | "array" "<" IntegerType ":" TensorLiteral ">"
+                          | "array" "<" FloatType ":" TensorLiteral ">"
+                          | "array" "<" IntegerType ":" ">"
+                          | "array" "<" FloatType ":" ">"
+    
+    syntax Type ::= BuiltinArray
     
     // DenseIntOrFPElementsAttr
     syntax TensorLiteralElement ::= IntegerLiteral | FloatLiteral | BoolLiteral
@@ -115,8 +117,8 @@ module BUILTIN-DIALECT-SYNTAX
     // builtin.unrealized_conversion_cast
     syntax CustomOperation ::= "unrealized_conversion_cast" "to" Types
                              | "unrealized_conversion_cast" "to" Types AttrDict
-                             | "unrealized_conversion_cast" ValueIdList ":" Types "to" Types
-                             | "unrealized_conversion_cast" ValueIdList ":" Types "to" Types AttrDict
+                             | "unrealized_conversion_cast" VarList ":" Types "to" Types
+                             | "unrealized_conversion_cast" VarList ":" Types "to" Types AttrDict
 
     // ------------------------- Types ------------------------- //
     // FloatType
@@ -147,7 +149,7 @@ module BUILTIN-DIALECT-SYNTAX
                          | "memref" "<" "*x" Type "," AttributeValue ">"
     
     syntax DimensionElement ::= Dimension "x" [token] 
-                              | r"[0-9]+x" [token,avoid] 
+                              | r"[0-9]+x" [token,prefer] 
                               | "?x" [token] // TODO: kind of weird
     syntax DimensionList ::= DimensionElement | DimensionElement DimensionList 
     // NoneType
@@ -216,7 +218,13 @@ module BUILTIN-DIALECT-HELPER
     rule getIntegerTypeSize (T:SignedIntegerType) => String2Int(substrString(IntegerType2String(T), 2, lengthString(IntegerType2String(T))))
     rule getIntegerTypeSize (T:UnsignedIntegerType) => String2Int(substrString(IntegerType2String(T), 2, lengthString(IntegerType2String(T))))
     rule getIntegerTypeSize (T:SignlessIntegerType) => String2Int(substrString(IntegerType2String(T), 1, lengthString(IntegerType2String(T))))
-    syntax String ::= "IntegerType2String" "(" IntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "SignedIntegerType2String" "(" SignedIntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "UnsignedType2String" "(" UnsignedIntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "SignlessIntegerType2String" "(" SignlessIntegerType ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "IntegerType2String" "(" IntegerType ")" [function, total]
+    rule IntegerType2String(SI:SignedIntegerType) => SignedIntegerType2String(SI)
+    rule IntegerType2String(II:UnsignedIntegerType) => UnsignedType2String(II)
+    rule IntegerType2String(LI:SignlessIntegerType) => SignlessIntegerType2String(LI)
 endmodule
 
 module BUILTIN-DIALECT

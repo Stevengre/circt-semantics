@@ -5,7 +5,7 @@ module SEQ
     // todo
     // rule <k> circt </k>
     //     <circt-exec> 
-    //         "seq.firreg" ( I:ValueId, _:ValueId, _:ValueId, _:ValueId ) { _:Map } : ( _:Types ) -> ( T:Type )
+    //         "seq.firreg" ( I:Var, _:Var, _:Var, _:Var ) { _:Map } : ( _:Types ) -> ( T:Type )
     //         => ListItem( TV(T, V) )
     //         ...
     //     </circt-exec>
@@ -17,7 +17,7 @@ module SEQ
 
     rule <k> circt </k>
         <circt-exec> 
-            "seq.firreg" ( Next:ValueId, _Clk:ValueId, _Rst:ValueId, _RstV:ValueId ) { _:Map } : ( _:Types ) -> ( T:Type )
+            "seq.firreg" ( Next:Var, _Clk:Var, _Rst:Var, _RstV:Var ) { _:Map } : ( _:Types ) -> ( T:Type )
             => ListItem( {M[Next] orDefault TV(T, 0)}:>TypeValue )
             ...
         </circt-exec>
@@ -25,7 +25,7 @@ module SEQ
     
     rule <k> circt </k>
         <circt-exec> 
-            "seq.firreg" ( Next:ValueId, _Clk:ValueId ) { _:Map } : ( _:Types ) -> ( T:Type )
+            "seq.firreg" ( Next:Var, _Clk:Var ) { _:Map } : ( _:Types ) -> ( T:Type )
             => ListItem( {M[Next] orDefault TV(T, 0)}:>TypeValue )
             ...
         </circt-exec>

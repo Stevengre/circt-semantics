@@ -3,33 +3,32 @@ requires "bits.k"
 
 module COMB
     imports CIRCT-SYNTAX
-    imports CONFIGURATION
     imports BITS
     imports MAP
 
     syntax Value ::= Bits
     // syntax Value ::= AttributeValue
-    syntax ValueList ::= List{Value, ","}
-    syntax BitsVec ::= lookupValuesAsBitsVec(ValueIdList) [function]
-    syntax Bits ::= lookupValueAsBits(ValueId) [function]
-                  | lookupValueAsBits(ValueId, Type) [function]
+    // syntax ValueList ::= List{Value, ","}
+    syntax BitsVec ::= lookupValuesAsBitsVec(VarList) [function]
+    syntax Bits ::= lookupValueAsBits(Var) [function]
+                  | lookupValueAsBits(Var, Type) [function]
 
-    rule [[ lookupValueAsBits(A:ValueId) => bits(V, getWidth(T)) ]]
+    rule [[ lookupValueAsBits(A:Var) => bits(V, getWidth(T)) ]]
         <circt-locals> ... A |-> TV(T, V) ... </circt-locals>
     
-    rule [[ lookupValueAsBits(A:ValueId, T:Type) => bits(V, getWidth(T)) ]]
+    rule [[ lookupValueAsBits(A:Var, T:Type) => bits(V, getWidth(T)) ]]
         <circt-locals> ... A |-> TV(T, V) ... </circt-locals>
 
-    rule lookupValuesAsBitsVec(.ValueIdList) => .BitsVec
-    rule [[ lookupValuesAsBitsVec(A:ValueId, As:ValueIdList) 
+    rule lookupValuesAsBitsVec(.VarList) => .BitsVec
+
+    rule [[ lookupValuesAsBitsVec(A:Var, As:VarList) 
         => bits(V, getWidth(T)), lookupValuesAsBitsVec(As) ]]
         <circt-locals> ... A |-> TV(T, V) ... </circt-locals>
     
-    // todo
-    rule [[ lookupValuesAsBitsVec(A:ValueId, As:ValueIdList) 
-        => bits(0, 1), lookupValuesAsBitsVec(As) ]]
-        <circt-locals> M:Map </circt-locals>
-    requires notBool A in_keys(M)
+    // rule [[ lookupValuesAsBitsVec(A:Var, As:VarList) 
+    //     => bits(0, 1), lookupValuesAsBitsVec(As) ]]
+    //     <circt-locals> M:Map </circt-locals>
+    // requires notBool A in_keys(M)
 
     syntax Bool ::= icmp(Int, Int, Int) [function]
                   | icmp(Int, Bits, Bits) [function]
@@ -57,44 +56,83 @@ module COMB
     // rule ValueList2BitsVec(.ValueList) => .BitsVec
 
     // comb.add
+    // rule <k> circt </k>
+    //     <circt-exec> 
+    //         "comb.add" (As:VarList) {_:Map} : (_Ts:Types) -> (T2:Type) 
+    //         => ListItem( TV(T2, Bits2Int(BitsAdd(lookupValuesAsBitsVec(As)))) )
+    //         ...
+    //     </circt-exec>
+
     rule <k> circt </k>
         <circt-exec> 
-            "comb.add" (As:ValueIdList) {_:Map} : (_Ts:Types) -> (T2:Type) 
-            => ListItem( TV(T2, Bits2Int(BitsAdd(lookupValuesAsBitsVec(As)))) )
+            do "lookupValuesAsBitsVec"
+            ~> (V:Var, Vs:VarList => Vs):VarList
+            ~> (T:Type, Ts:Types => Ts):Types
+            ~> (L:List => L ListItem(bits({X}:>CirctInt, getWidth(T))))
+            ...
+        </circt-exec>
+        <circt-locals> ... V |-> TV(T, X) ... </circt-locals>
+    
+    rule <k> circt </k>
+        <circt-exec> 
+            do "lookupValuesAsBitsVec" ~> .VarList ~> .Types => .K
+            ...
+        </circt-exec>
+    
+    // comb.add
+    rule <k> circt </k>
+        <circt-exec>
+            (.K => do "lookupValuesAsBitsVec") ~>
+            (.K => Vs) ~>
+            (.K => Ts) ~>
+            (.K => .List) ~>
+            "comb.add" (Vs:VarList) {_:Map} : (Ts:Types) -> (_:Type)
+            ...
+        </circt-exec>
+    
+    rule <k> circt </k>
+        <circt-exec>
+            L:List ~> "comb.add" (_:VarList) {_:Map} : (_:Types) -> (T:Type)
+            => ListItem(TV(T, Bits2Int(BitsAdd(L))))
             ...
         </circt-exec>
     
     // comb.and
-    rule <circt-exec> 
-            "comb.and" (As:ValueIdList) {_:Map} : (_Ts:Types) -> (T2:Type)
+    rule <k> circt </k>
+        <circt-exec>  
+            "comb.and" (As:VarList) {_:Map} : (_Ts:Types) -> (T2:Type)
             => ListItem( TV(T2, Bits2Int(BitsAnd(lookupValuesAsBitsVec(As)))) )
             ...
         </circt-exec>
 
     // comb.or
-    rule <circt-exec> 
-            "comb.or" (As:ValueIdList) {_:Map} : (_Ts:Types) -> (T2:Type) 
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.or" (As:VarList) {_:Map} : (_Ts:Types) -> (T2:Type) 
             => ListItem( TV(T2, Bits2Int(BitsOr(lookupValuesAsBitsVec(As)))) )
             ...
         </circt-exec>
     
     // comb.xor
-    rule <circt-exec> 
-            "comb.xor" (As:ValueIdList) {_:Map} : (_Ts:Types) -> (T2:Type)
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.xor" (As:VarList) {_:Map} : (_Ts:Types) -> (T2:Type)
             => ListItem( TV(T2, Bits2Int(BitsXor(lookupValuesAsBitsVec(As)))) )
             ...
         </circt-exec>
     
     // comb.mul
-    rule <circt-exec> 
-            "comb.mul" (As:ValueIdList) { _:Map } : (_Ts:Types) -> (T2:Type) 
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.mul" (As:VarList) { _:Map } : (_Ts:Types) -> (T2:Type) 
             => ListItem( TV(T2, Bits2Int(BitsMul(lookupValuesAsBitsVec(As)))) )
             ...
         </circt-exec>
         
     // comb.extract
-    rule <circt-exec> 
-            "comb.extract" (A:ValueId) {_:Map} : (_T:Type) -> (T2:Type)
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.extract" (A:Var) {_:Map} : (_T:Type) -> (T2:Type)
             => ListItem( TV(
                 T2, 
                 Bits2Int(bitsCast(lookupValueAsBits(A), getWidth(T2)))
@@ -103,8 +141,9 @@ module COMB
         </circt-exec>
 
     // comb.replicate
-    rule <circt-exec> 
-            "comb.replicate" (A:ValueId) {_:Map} : (T:Type) -> (T2:Type)
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.replicate" (A:Var) {_:Map} : (T:Type) -> (T2:Type)
             => ListItem( TV(
                 T2,
                 Bits2Int(BitsDup(
@@ -116,11 +155,12 @@ module COMB
         </circt-exec>
 
     // comb.shrs
-    rule <circt-exec> 
-            "comb.shrs" ( A0:ValueId, A1:ValueId ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.shrs" ( A0:Var, A1:Var ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(
                 T2, Bits2Int(
-                    bits(V0, getWidth(T0)) >>Bits bits(V1, getWidth(T1))
+                    bits({V0}:>CirctInt, getWidth(T0)) >>Bits bits({V1}:>CirctInt, getWidth(T1))
                 )
             ) )
             ...
@@ -133,11 +173,12 @@ module COMB
         </circt-locals>
     
     // comb.shru
-    rule <circt-exec> 
-            "comb.shru" ( A0:ValueId, A1:ValueId ) {_:Map}: ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.shru" ( A0:Var, A1:Var ) {_:Map}: ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(
                 T2, 
-                Bits2Int( bits(V0, getWidth(T0)) >>>Bits bits(V1, getWidth(T1)) )
+                Bits2Int( bits({V0}:>CirctInt, getWidth(T0)) >>>Bits bits({V1}:>CirctInt, getWidth(T1)) )
             ) )
             ...
         </circt-exec>
@@ -149,11 +190,12 @@ module COMB
         </circt-locals>
     
     // comb.shl
-    rule <circt-exec> 
-            "comb.shl" ( A0:ValueId, A1:ValueId ) {_:Map}: ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.shl" ( A0:Var, A1:Var ) {_:Map}: ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(
                 T2, Bits2Int(
-                    bits(V0, getWidth(T0)) <<Bits bits(V1, getWidth(T1))
+                    bits({V0}:>CirctInt, getWidth(T0)) <<Bits bits({V1}:>CirctInt, getWidth(T1))
                 )
             ) )
             ...
@@ -166,19 +208,21 @@ module COMB
         </circt-locals>
     
     // comb.concat
-    rule <circt-exec> 
-            "comb.concat" ( As:ValueIdList ) { _:Map } : ( _Ts:Types ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.concat" ( As:VarList ) { _:Map } : ( _Ts:Types ) -> ( T2:Type )
             => ListItem( TV(T2, Bits2Int(BitsConcat(lookupValuesAsBitsVec(As)))) )
             ...
         </circt-exec>
 
     // comb.divs
-    rule <circt-exec> 
-            "comb.divs" ( A0:ValueId, A1:ValueId ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.divs" ( A0:Var, A1:Var ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(
                 T2, 
                 Bits2Int(bitsCast(
-                    bits(V0, getWidth(T0)) divsBits bits(V1, getWidth(T1)),
+                    bits({V0}:>CirctInt, getWidth(T0)) divsBits bits({V1}:>CirctInt, getWidth(T1)),
                     getWidth(T2)
                 ))
             ) )
@@ -192,12 +236,13 @@ module COMB
         </circt-locals>
     
     // comb.divu
-    rule <circt-exec> 
-            "comb.divu" ( A0:ValueId, A1:ValueId ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec> 
+            "comb.divu" ( A0:Var, A1:Var ) {_:Map} : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(
                 T2, 
                 Bits2Int(bitsCast(
-                    bits(V0, getWidth(T0)) divuBits bits(V1, getWidth(T1)),
+                    bits({V0}:>CirctInt, getWidth(T0)) divuBits bits({V1}:>CirctInt, getWidth(T1)),
                     getWidth(T2)
                 ))
             ) )
@@ -211,10 +256,11 @@ module COMB
         </circt-locals>
     
     // comb.mods
-    rule <circt-exec>
-            "comb.mods" ( A0:ValueId, A1:ValueId ) { _:Map } : ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec>
+            "comb.mods" ( A0:Var, A1:Var ) { _:Map } : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(T2, Bits2Int(bitsCast(
-                bits(V0, getWidth(T0)) modsBits bits(V1, getWidth(T1)),
+                bits({V0}:>CirctInt, getWidth(T0)) modsBits bits({V1}:>CirctInt, getWidth(T1)),
                 getWidth(T2)
             ))) )
             ...
@@ -226,11 +272,11 @@ module COMB
             ... 
         </circt-locals>
 
-    // comb.modu
-    rule <circt-exec>
-            "comb.modu" ( A0:ValueId, A1:ValueId ) { _:Map } : ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec>
+            "comb.modu" ( A0:Var, A1:Var ) { _:Map } : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(T2, Bits2Int(bitsCast(
-                bits(V0, getWidth(T0)) moduBits bits(V1, getWidth(T1)),
+                bits({V0}:>CirctInt, getWidth(T0)) moduBits bits({V1}:>CirctInt, getWidth(T1)),
                 getWidth(T2)
             ))) )
             ...
@@ -243,10 +289,11 @@ module COMB
         </circt-locals>
 
     // comb.sub
-    rule <circt-exec>
-            "comb.sub" ( A0:ValueId, A1:ValueId ) { _:Map } : ( T0:Type, T1:Type ) -> ( T2:Type )
+    rule <k> circt </k>
+        <circt-exec>
+            "comb.sub" ( A0:Var, A1:Var ) { _:Map } : ( T0:Type, T1:Type ) -> ( T2:Type )
             => ListItem( TV(T2, Bits2Int(bitsCast(
-                bits(V0, getWidth(T0)) -Bits bits(V1, getWidth(T1)),
+                bits({V0}:>CirctInt, getWidth(T0)) -Bits bits({V1}:>CirctInt, getWidth(T1)),
                 getWidth(T2)
             ))) )
             ...
@@ -260,7 +307,7 @@ module COMB
     
     // comb.parity
     rule <circt-exec>
-            "comb.parity" ( A:ValueId ) { _:Map } : ( _T:Type ) -> ( T2:Type )
+            "comb.parity" ( A:Var ) { _:Map } : ( _:Type ) -> ( T2:Type )
             => ListItem(TV(
                 T2, 
                 BitsParity(lookupValueAsBits(A))
@@ -271,27 +318,27 @@ module COMB
     // comb.mux
     rule <circt-exec>
             (.K => .List)
-            ~> "comb.mux" ( _:ValueId, _:ValueId, _:ValueId ) { _:Map } : ( _:Type, _:Type, _:Type ) -> ( _:Type )
+            ~> "comb.mux" ( _:Var, _:Var, _:Var ) { _:Map } : ( _:Type, _:Type, _:Type ) -> ( _:Type )
             ...
         </circt-exec>
     
     rule <circt-exec>
             (L:List => L ListItem( TV(T, V) ))
-            ~> "comb.mux" ( A:ValueId, As:ValueIdList => As ) { _:Map } : ( T:Type, Ts:Types => Ts ) -> ( _:Type )
+            ~> "comb.mux" ( A:Var, As:VarList => As ) { _:Map } : ( T:Type, Ts:Types => Ts ) -> ( _:Type )
             ...
         </circt-exec>
         <circt-locals> ... A |-> TV(T, V) ... </circt-locals>
 
     rule <circt-exec>
             ListItem( TV(_T0, V0) ) ListItem( TV(T, V1) ) ListItem( TV(T, V2) )
-            ~> "comb.mux" ( .ValueIdList ) { _:Map } : ( .Types ) -> ( T:Type )
+            ~> "comb.mux" ( .VarList ) { _:Map } : ( .Types ) -> ( T:Type )
             => ListItem( TV(T, {#if V0 =/=Int 0 #then V1 #else V2 #fi}:>Value) )
             ...
         </circt-exec>
 
     // comb.icmp
     rule <circt-exec>
-            "comb.icmp" ( A0:ValueId, A1:ValueId ) { M:Map } : ( _T0:Type, _T1:Type ) -> ( T2:Type ) 
+            "comb.icmp" ( A0:Var, A1:Var ) { M:Map } : ( _T0:Type, _T1:Type ) -> ( T2:Type ) 
             => ListItem( TV(T2, Bool2Int(
                 icmp(
                     {getAttrValue(M, #token("predicate", "BareId"))}:>Int, 

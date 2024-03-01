@@ -23,10 +23,10 @@ module MLIR-SYNTAX-CORE
     // syntax BareIdList ::= BareId 
                         // | BareId "," BareIdList [prefer] // ambiguity with AffineExprList & No other use
     
-    syntax ValueId ::= r"%[0-9]+(#[0-9]+)?" [prefer,token,prec(3)]
-    syntax ValueId ::= r"%[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*(#[0-9]+)?" [token]
-    syntax ValueIdList ::= List{ValueId, ","}
-    // syntax ValueUse ::= ValueId | ValueId "#" IntegerLiteral // fix the error in lang-ref
+    syntax Var ::= r"%[0-9]+(#[0-9]+)?" [prefer,token,prec(3)]
+    syntax Var ::= r"%[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*(#[0-9]+)?" [token]
+    syntax VarList ::= List{Var, ","}
+    // syntax ValueUse ::= Var | Var "#" IntegerLiteral // fix the error in lang-ref
     // syntax ValueUseLit ::= ValueUse | ValueUse "," ValueUseLit
     syntax SymbolRefId ::= r"@[0-9]+" [token]
     syntax SymbolRefId ::= r"@[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*" [token]
@@ -34,6 +34,8 @@ module MLIR-SYNTAX-CORE
     syntax SymbolRefIdList ::= SymbolRefId | SymbolRefId "::" SymbolRefIdList
     // syntax SymbolRefIdList ::= List{SymbolRefId, "::"}
     // syntax SymbolRefId ::= SymbolRefId "::" SymbolRefId [token]
+    
+    syntax ArraySizePrefix ::= r"[1-9][0-9]*x" [token]
 endmodule
 
 
@@ -50,9 +52,9 @@ module MLIR-ATTR
     syntax AttributeValue ::= HwModty
     syntax Value ::= HwModty
 
-    syntax StructType ::= "struct" "<"  ">"
-    syntax Field ::= BareId ":" Type
-    syntax FieldList ::= List{Field, ","}
+    syntax StructType ::= "struct" "<" StructFields ">"
+    syntax StructField ::= BareId ":" Type
+    syntax StructFields ::= List{StructField, ","}
     
     syntax UarrayType ::= "uarray" "<" ArraySizeX Type ">"
     syntax ArraySizeX ::= r"[1-9][0-9]*x" [token]
@@ -81,19 +83,18 @@ module MLIR-SYNTAX
                        | OpResultList CustomOperation // 10
                        | GenericOperation // 00
                        | CustomOperation // 00
-    //generic-operation ::= string-literal `(` value-use-list? `)`  successor-list? region-list? dictionary-attribute? `:` function-type
+    
+    syntax GenericOperation ::= StringLiteral "(" VarList ")" ":" FunctionType
+                              | StringLiteral "(" VarList ")" AttrDict ":" FunctionType
+                              | StringLiteral "(" VarList ")" RegionList ":" FunctionType
+                              | StringLiteral "(" VarList ")" SuccessorList ":" FunctionType
+                              | StringLiteral "(" VarList ")" RegionList AttrDict ":" FunctionType
+                              | StringLiteral "(" VarList ")" SuccessorList AttrDict ":" FunctionType                        
+                              | StringLiteral "(" VarList ")" SuccessorList RegionList ":" FunctionType                            
+                              | StringLiteral "(" VarList ")" SuccessorList RegionList AttrDict ":" FunctionType
 
-    syntax GenericOperation ::= StringLiteral "(" ValueIdList ")" ":" FunctionType
-                              | StringLiteral "(" ValueIdList ")" AttrDict ":" FunctionType
-                              | StringLiteral "(" ValueIdList ")" RegionList ":" FunctionType
-                              | StringLiteral "(" ValueIdList ")" SuccessorList ":" FunctionType
-                              | StringLiteral "(" ValueIdList ")" RegionList AttrDict ":" FunctionType
-                              | StringLiteral "(" ValueIdList ")" SuccessorList AttrDict ":" FunctionType                        
-                              | StringLiteral "(" ValueIdList ")" SuccessorList RegionList ":" FunctionType                            
-                              | StringLiteral "(" ValueIdList ")" SuccessorList RegionList AttrDict ":" FunctionType
-
-    syntax OpResult ::= ValueId 
-                      | ValueId ":" IntegerLiteral
+    syntax OpResult ::= Var 
+                      | Var ":" IntegerLiteral
     syntax OpResults ::= List{OpResult, ","}
     syntax OpResultList ::= OpResults "="
 
@@ -111,13 +112,13 @@ module MLIR-SYNTAX
     // ------------------------- Blocks ------------------------- //
     syntax Block ::= BlockLabel OperationList
     syntax OperationList ::= List{Operation, ""} [prefer] // the prefer may not be used when there is configuration
-    syntax BlockLabel ::= CaretId ":" | CaretId "(" ValueIdAndTypeList ")" ":"
+    syntax BlockLabel ::= CaretId ":" | CaretId "(" VarAndTypeList ")" ":"
     // block-id        ::= caret-id
     syntax CaretId ::= r"\\^[0-9]+" [token]
     syntax CaretId ::= r"\\^[a-zA-Z$\\._-][a-zA-Z0-9$\\._-]*" [token]
-    syntax ValueIdAndType ::= ValueId ":" Type
-    syntax ValueIdAndTypeList ::= List{ValueIdAndType, ","}
-    syntax BlockArgList ::= "(" ValueIdAndTypeList ")"
+    syntax VarAndType ::= Var ":" Type
+    syntax VarAndTypeList ::= List{VarAndType, ","}
+    syntax BlockArgList ::= "(" VarAndTypeList ")"
 
     // ------------------------- Regions ------------------------- //
     syntax Region ::= "{" OperationList BlockList "}"
@@ -136,7 +137,7 @@ module MLIR-SYNTAX
     syntax Types ::= List{Type, ","}
     // 此处和文档是不一致的，但是可能是要
     syntax TypeListParens ::= "(" Types ")" //| "(" SsaUseAndTypeList ")"
-    // syntax SsaUseAndType ::= ValueId ":" Type
+    // syntax SsaUseAndType ::= Var ":" Type
     // // ssa-use ::= value-use
     // syntax SsaUseAndTypeList ::= SsaUseAndType | SsaUseAndType "," SsaUseAndTypeList
     syntax FunctionType ::= TypeListParens "->" TypeListParens [prefer]
@@ -233,8 +234,11 @@ module MLIR
     //     <mlir-program> E:TopLevelElement T:TopLevel => E ~> T ... </mlir-program>
 
     rule <k> mlir </k>
-        <mlir-program> Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T ... </mlir-program>
-        <attr-alias> M:Map => M[Alias <- Attr] </attr-alias>
+        <mlir-program> 
+            Alias:AttributeAlias = Attr:AttributeValue T:TopLevel => T
+            ...
+        </mlir-program>
+        <attr-alias> M:Map => M [Alias <- Attr] </attr-alias>
 
     rule <k> mlir </k>
         <mlir-program>
@@ -244,10 +248,24 @@ module MLIR
     
     // rule <k> mlir </k>
     //     <mlir-program> .TopLevel => . ... </mlir-program>
+
+    rule <k> mlir </k>
+        <mlir-program>
+            .OpResults = S:StringLiteral ( VL:VarList ) [ .Successors ] ( Rs:Regions ) { Attr:Map } : T:FunctionType
+            => S ( VL ) ( Rs ) { Attr } : T
+            ...
+        </mlir-program>
+    
+    rule <k> mlir </k>
+        <mlir-program>
+            S:StringLiteral ( VL:VarList ) ( .Regions ) { Attr:Map } : T:FunctionType
+            => S ( VL ) { Attr } : T
+            ...
+        </mlir-program>
     
     rule <k> mlir </k>
         <mlir-program> 
-            .OpResults = "builtin.module" ( .ValueIdList ) [ .Successors ] (R:Region) { _:Map } : (.Types) -> (.Types)
+            "builtin.module" ( .VarList ) ( R:Region ) { _:Map } : (.Types) -> (.Types)
             => R
             ... 
         </mlir-program>
@@ -267,11 +285,11 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program> 
             (.K => Attr[#token("sym_name", "BareId")]) 
-            ~> (.OpResults = "hw.module" ( .ValueIdList ) [ .Successors ] (R:Region) { Attr:Map } : T:FunctionType => R)
+            ~> ("hw.module" ( .VarList ) (R:Region) { Attr:Map } : T:FunctionType => R)
             ...
         </mlir-program>
         <symbol-table>
-            M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .ValueIdList ) [ .Successors ] (R) { Attr } : T ]
+            M:Map => M [ Attr[#token("sym_name", "BareId")] <- "hw.module" ( .VarList ) [ .Successors ] (R) { Attr } : T ]
         </symbol-table>
 
     rule <k> mlir </k>
@@ -280,20 +298,44 @@ module MLIR
             ...
         </mlir-program>
 
-    rule <k>
-            _:String ~> ({ Ops:OperationList .BlockList } => Ops)
-            ...
-        </k>
-   
-    rule <k> .OpResults = "sv.macro.decl" ( .ValueIdList ) [ .Successors ] ( .Regions ) { _:Map } : ( .Types ) -> ( .Types ) => . ... </k>
+    // sv.macro.decl
+    rule <k> mlir </k>
+        <mlir-program>
+            "sv.macro.decl" ( .VarList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => . 
+            ... 
+        </mlir-program>
+        <macros> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "" ] </macros>
+    
+    // sv.bind
+    rule <k> mlir </k>
+        <mlir-program>
+            "sv.bind" ( .VarList ) { _:Map } : ( .Types ) -> ( .Types )
+            => .K
+            ... 
+        </mlir-program>
+    
+    // sv.hierpath
+    rule <k> mlir </k>
+        <mlir-program>
+            "hw.hierpath" ( .VarList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => .K
+            ... 
+        </mlir-program>
+        <hw-hierpath>
+            M:Map => M [ Attr[#token("sym_name", "BareId")] <- Attr[#token("namepath", "BareId")] ]
+        </hw-hierpath>
+        
 
+    // block head
     rule <k> mlir </k>
         <mlir-program>
             _Module:String
-            ~> (_:CaretId (_:ValueIdAndTypeList) : Ops:OperationList => Ops)
+            ~> (_:CaretId (_:VarAndTypeList) : Ops:OperationList => Ops)
             ...
         </mlir-program>
     
+    // operation list
     rule <k> mlir </k>
         <mlir-program>
             _Module:String
@@ -301,28 +343,29 @@ module MLIR
             ...
         </mlir-program>
 
-    rule <k> mlir </k>
-        <mlir-program>
-            Module:String
-            ~> (.OpResults = "sv.always" ( _:ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
-            ...
-        </mlir-program>
-        <initial> M:Map => M [Module <- R] </initial>
-    
-    rule <k> mlir </k>
-        <mlir-program>
-            Module:String
-            ~> (.OpResults = "sv.initial" ( .ValueIdList ) [ .Successors ] ( R:Regions ) { _:Map } : _:FunctionType => .K)
-            ...
-        </mlir-program>
-        <initial> M:Map => M [Module <- R] </initial>
-
+    // sv.always
     rule <k> mlir </k>
         <mlir-program>
             _Module:String
-            ~> (_:Operation => .K)
+            ~> (.OpResults = "sv.always" ( _:VarList ) [ .Successors ] ( _:Region ) { _:Map } : _:FunctionType => .K)
             ...
-        </mlir-program> [owise]
+        </mlir-program>
+        // <initial> M:Map => M [Module <- R] </initial>
+    
+    // sv.initial
+    rule <k> mlir </k>
+        <mlir-program>
+            _Module:String
+            ~> (.OpResults = "sv.initial" ( .VarList ) [ .Successors ] ( _:Region ) { _:Map } : _:FunctionType => .K)
+            ...
+        </mlir-program>
+        // <initial> M:Map => M [Module <- R] </initial>
+
+    rule <k> mlir </k>
+        <mlir-program>
+            _Module:String ~> (_:Operation => .K) ...
+        </mlir-program>
+        [owise]
 
     rule  <k> mlir </k>
         <mlir-program> _Module:String ~> .OperationList => .K ... </mlir-program>
@@ -330,7 +373,10 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program> .OperationList => . ... </mlir-program>
 
-    rule <k> mlir => preprocess </k>
+    // rule <k> mlir => preprocess </k>
+    //     <mlir-program> .TopLevel </mlir-program>
+
+    rule <k> mlir => circt </k>
         <mlir-program> .TopLevel </mlir-program>
     
     
@@ -347,8 +393,8 @@ module SYNTAX-HELPER
     // TODO: token2string, string拆开
     rule integerLiteral2Int(_:HexaDecimalLiteral) => 0
 
-    syntax String ::= "ValueId2String" "(" ValueId ")" [function, total,hook(STRING.token2string)]
-    syntax ValueId ::= "String2ValueId" "(" String ")" [function, total,hook(STRING.string2token)]
+    syntax String ::= "Var2String" "(" Var ")" [function, total,hook(STRING.token2string)]
+    syntax Var ::= "String2Var" "(" String ")" [function, total,hook(STRING.string2token)]
 
     syntax String ::= "SymbolRefId2StringHelper" "(" SymbolRefId ")" [function, total,hook(STRING.token2string)]
     syntax String ::= "SymbolRefId2String" "(" SymbolRefId ")" [function, total]
@@ -375,33 +421,32 @@ module SYNTAX-HELPER
     syntax Operation ::= operationStandarize(Operation) [function]
 
     rule operationStandarize(_:Operation) 
-        => .OpResults = "" (.ValueIdList) [.Successors] (.Regions) {.Map} : (.Types) -> (.Types) [owise]
+        => .OpResults = "" (.VarList) [.Successors] (.Regions) {.Map} : (.Types) -> (.Types) [owise]
 
-    rule operationStandarize(GP:GenericOperation) 
-        => operationStandarize(.OpResults = GP)
+    rule operationStandarize(GP:GenericOperation) => operationStandarize(.OpResults = GP)
     
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) : FT:FunctionType) 
         => Rs = N (Vs) [.Successors] (.Regions) {.Map} : functionTypeStandarize(FT)
     
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) {AEL:AttributeEntryList} : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) {AEL:AttributeEntryList} : FT:FunctionType) 
         => Rs = N (Vs) [.Successors] (.Regions) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
 
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) (R:Regions) : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) (R:Regions) : FT:FunctionType) 
         => Rs = N (Vs) [.Successors] (regionListStandarize(R)) {.Map} : functionTypeStandarize(FT)
 
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] : FT:FunctionType) 
         => Rs = N (Vs) [Ss] (.Regions) {.Map} : functionTypeStandarize(FT)
 
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
         => Rs = N (Vs) [.Successors] (regionListStandarize(R)) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
     
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] {AEL:AttributeEntryList} : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] {AEL:AttributeEntryList} : FT:FunctionType) 
         => Rs = N (Vs) [Ss] (.Regions) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
 
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) : FT:FunctionType) 
         => Rs = N (Vs) [Ss] (regionListStandarize(R)) {.Map} : functionTypeStandarize(FT)
 
-    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) {AEL:AttributeEntryList} : FT:FunctionType) 
         => Rs = N (Vs) [Ss] (regionListStandarize(R)) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
 
     
@@ -431,7 +476,7 @@ module SYNTAX-HELPER
         => blockLabelStandarize(BL) operationListStandarize(OPs)
 
     syntax BlockLabel ::= blockLabelStandarize(BlockLabel) [function]
-    rule blockLabelStandarize(C:CaretId : ) => C ( .ValueIdAndTypeList ) :
+    rule blockLabelStandarize(C:CaretId : ) => C ( .VarAndTypeList ) :
     rule blockLabelStandarize(B:BlockLabel) => B [owise]
 
     syntax Map ::= attributeEntryList2Map(AttributeEntryList) [function]
@@ -450,15 +495,15 @@ module SYNTAX-HELPER
     // ----------------------------
     // 2.2. Symbol Table
     // ----------------------------
-    // operationStandarize(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) DA:AttrDict : FT:FunctionType) => Rs = N (Vs) [Ss] (regionListStandarize(R)) DA : functionTypeStandarize(FT)
+    // operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) DA:AttrDict : FT:FunctionType) => Rs = N (Vs) [Ss] (regionListStandarize(R)) DA : functionTypeStandarize(FT)
     syntax Map ::= getSymbolTable(Operation, List) [function]
 
-    rule getSymbolTable(Rs:OpResults = N:StringLiteral (Vs:ValueIdList) [Ss:Successors] (R:Regions) {AL:Map} : FT:FunctionType, L:List)
+    rule getSymbolTable(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) {AL:Map} : FT:FunctionType, L:List)
         => ( L ListItem(AL[#token("sym_name","BareId")]) |-> (Rs = N (Vs) [Ss] (R) {AL} : FT):Operation) 
             getSymbolTableFromRegions(R, L ListItem(AL[#token("sym_name","BareId")]))
         requires AL[#token("sym_name","BareId")] orDefault "" =/=K ""
 
-    rule getSymbolTable(_:OpResults = _:StringLiteral (_:ValueIdList) [_:Successors] (R:Regions) {AL:Map} : _:FunctionType, L:List)
+    rule getSymbolTable(_:OpResults = _:StringLiteral (_:VarList) [_:Successors] (R:Regions) {AL:Map} : _:FunctionType, L:List)
         => getSymbolTableFromRegions(R, L)
         requires AL[#token("sym_name","BareId")] orDefault "" ==K ""
 
