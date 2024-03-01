@@ -23,6 +23,8 @@ Fig.~\ref{fig:co-simulation} offers an overview of our validation approach --- c
 
 The following presents two parts of the co-simulation experiments: (1) operation level validation: the test of each operation, and (2) hardware level validation: the test of combinations of operations to gain more confidence for real-world hardware.
 
+% Mr.Zhao: 仿真时间上的对比。告诉我们是慢10倍（比如）。也是一个很重要的结论。 / 还有没有什么其他方面的内容可以做实验的。 / 比如内存消耗？
+
 \smallskip
 \textbf{Operation Level Validation}. This part presents test cases for each operation of core dialects in CIRCT and covers all the rewrite rules in the semantics, obtaining confidence for our constructed rules. Thus, we present \red{xx} tests for kimulator and verilator, respectively, since the existing test for CIRCT is for compiler test rather than a semantics test, thus is not complete to test each operation and rewrite rules in the semantics. For each test, we randomly generate \red{20} inputs in JSON and use the Cpp source file to make sure the input is sufficient and identical. The automatically generated inputs can be easily expanded, but we keep it at this magnitude in order to be able to do regression testing quickly. \red{Some operations require configuration for test input generation to cover all the rules in the semantics. For instance, operation \textit{comb.icmp} has xx comparison options. For each option, there is a rewrite rule to cover this. Thus, we configure the input test generator to make sure that for each option there are xx input.} \red{Additionally, most of the CIRCT operations cannot exist on their own. For example, the operations should be in the \textit{hw.module} operation for stimulation. And operations like \textit{sv.if} cannot be observed without a \textit{hw.output}. }
 
@@ -41,6 +43,7 @@ The following presents two parts of the co-simulation experiments: (1) operation
 \smallskip
 \textit{Other findings ....}
 % 或许也可以讲一些K的问题？降低了我们的可用性？还是就不讲了
+
 
 \smallskip
 \textbf{Hardware Level Validation}. This part aims to test a combination of operations as part of real-world hardware, gaining confidence in the semantics completeness and usability for real-world hardware. \red{test from rocket?/verilator test? 5099 test files (https://github.com/verilator/verilator/tree/master/test\_regress/t)/part of rocket?/circt?} \red{we don't test xx, why}
