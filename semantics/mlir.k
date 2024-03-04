@@ -85,13 +85,25 @@ module MLIR-SYNTAX
                        | CustomOperation // 00
     
     syntax GenericOperation ::= StringLiteral "(" VarList ")" ":" FunctionType
-                              | StringLiteral "(" VarList ")" AttrDict ":" FunctionType
+                              | StringLiteral "(" VarList ")" DictionaryAttribute ":" FunctionType
                               | StringLiteral "(" VarList ")" RegionList ":" FunctionType
                               | StringLiteral "(" VarList ")" SuccessorList ":" FunctionType
-                              | StringLiteral "(" VarList ")" RegionList AttrDict ":" FunctionType
-                              | StringLiteral "(" VarList ")" SuccessorList AttrDict ":" FunctionType                        
+                              | StringLiteral "(" VarList ")" RegionList DictionaryAttribute ":" FunctionType
+                              | StringLiteral "(" VarList ")" SuccessorList DictionaryAttribute ":" FunctionType                        
                               | StringLiteral "(" VarList ")" SuccessorList RegionList ":" FunctionType                            
-                              | StringLiteral "(" VarList ")" SuccessorList RegionList AttrDict ":" FunctionType
+                              | StringLiteral "(" VarList ")" SuccessorList RegionList DictionaryAttribute ":" FunctionType
+    
+    // with DictionaryProperties
+    syntax GenericOperation ::= StringLiteral "(" VarList ")" DictionaryProperties ":" FunctionType
+                              | StringLiteral "(" VarList ")" DictionaryProperties DictionaryAttribute ":" FunctionType
+                              | StringLiteral "(" VarList ")" DictionaryProperties RegionList ":" FunctionType
+                              | StringLiteral "(" VarList ")" SuccessorList DictionaryProperties ":" FunctionType
+                              | StringLiteral "(" VarList ")" DictionaryProperties RegionList DictionaryAttribute ":" FunctionType
+                              | StringLiteral "(" VarList ")" SuccessorList DictionaryProperties DictionaryAttribute ":" FunctionType                        
+                              | StringLiteral "(" VarList ")" SuccessorList DictionaryProperties RegionList ":" FunctionType                            
+                              | StringLiteral "(" VarList ")" SuccessorList DictionaryProperties RegionList DictionaryAttribute ":" FunctionType
+
+    syntax DictionaryProperties ::= "<" DictionaryAttribute ">"
 
     syntax OpResult ::= Var 
                       | Var ":" IntegerLiteral
@@ -105,8 +117,8 @@ module MLIR-SYNTAX
     syntax Regions ::= List{Region, ","}
     syntax RegionList ::= "(" Regions ")"
 
-    syntax AttrDict ::= "{" AttributeEntryList "}"
-                      | "{" Map "}"
+    syntax DictionaryAttribute ::= "{" AttributeEntryList "}"
+                                 | "{" Map "}"
     syntax TrailingLocation ::= "loc" "(" Location ")"
 
     // ------------------------- Blocks ------------------------- //
@@ -420,8 +432,15 @@ module SYNTAX-HELPER
 
     syntax Operation ::= operationStandarize(Operation) [function]
 
-    rule operationStandarize(_:Operation) 
-        => .OpResults = "" (.VarList) [.Successors] (.Regions) {.Map} : (.Types) -> (.Types) [owise]
+    // rule operationStandarize(_:Operation) 
+        // => .OpResults = "" (.VarList) [.Successors] (.Regions) {.Map} : (.Types) -> (.Types) [owise]
+
+    // %31 = "comb.extract"(%arg1) <{lowBit = 0 : i32}> {sv.namehint = "shamt"} : (i32) -> i5
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) <{AEL:AttributeEntryList}> : FT:FunctionType)
+        => Rs = N (Vs) [.Successors] (.Regions) {attributeEntryList2Map(AEL)} : functionTypeStandarize(FT)
+
+    rule operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) <{AEL1:AttributeEntryList}> {AEL2:AttributeEntryList} : FT:FunctionType)
+        => Rs = N (Vs) [.Successors] (.Regions) {attributeEntryList2Map(AEL1) attributeEntryList2Map(AEL2)} : functionTypeStandarize(FT)
 
     rule operationStandarize(GP:GenericOperation) => operationStandarize(.OpResults = GP)
     
@@ -495,7 +514,7 @@ module SYNTAX-HELPER
     // ----------------------------
     // 2.2. Symbol Table
     // ----------------------------
-    // operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) DA:AttrDict : FT:FunctionType) => Rs = N (Vs) [Ss] (regionListStandarize(R)) DA : functionTypeStandarize(FT)
+    // operationStandarize(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) DA:DictionaryAttribute : FT:FunctionType) => Rs = N (Vs) [Ss] (regionListStandarize(R)) DA : functionTypeStandarize(FT)
     syntax Map ::= getSymbolTable(Operation, List) [function]
 
     rule getSymbolTable(Rs:OpResults = N:StringLiteral (Vs:VarList) [Ss:Successors] (R:Regions) {AL:Map} : FT:FunctionType, L:List)

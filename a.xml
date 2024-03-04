@@ -12,29 +12,41 @@
     <state>
       <instance>
         <inst-name>
-          "Adder"
+          "RegFile"
         </inst-name>
         <inst-vars>
-          %0 |-> TV ( !hw.inout < i8 > , hw.inout ( "reg_a" , i8 , 2 ) )
-          %1 |-> TV ( !hw.inout < i8 > , hw.inout ( "reg_b" , i8 , 1 ) )
-          %2 |-> TV ( i8 , 2 )
-          %3 |-> TV ( i8 , 1 )
-          %4 |-> TV ( i8 , 3 )
-          %arg0 |-> TV ( i1 , 0 )
-          %arg1 |-> TV ( i8 , 1 )
-          %arg2 |-> TV ( i8 , 5 )
+          %0 |-> TV ( i5 , 0 )
+          %1 |-> TV ( i32 , 0 )
+          %2 |-> TV ( !seq.firmem < 32 x 32 > , seq.firmem ( 32 , 32 , 5 |-> 6 ) )
+          %3 |-> TV ( i32 , 0 )
+          %4 |-> TV ( i32 , 0 )
+          %5 |-> TV ( i1 , 1 )
+          %6 |-> TV ( i32 , 0 )
+          %7 |-> TV ( i1 , 1 )
+          %8 |-> TV ( i32 , 0 )
+          %9 |-> TV ( i1 , 1 )
+          %10 |-> TV ( i1 , 0 )
+          %arg0 |-> TV ( !seq.clock , 1 )
+          %arg1 |-> TV ( i5 , 2 )
+          %arg2 |-> TV ( i5 , 3 )
+          %arg3 |-> TV ( i1 , 4 )
+          %arg4 |-> TV ( i5 , 5 )
+          %arg5 |-> TV ( i32 , 6 )
         </inst-vars>
         <inst-in>
-          a |-> %arg1
-          b |-> %arg2
-          clk |-> %arg0
+          clock |-> %arg0
+          io_raddr1 |-> %arg1
+          io_raddr2 |-> %arg2
+          io_waddr |-> %arg4
+          io_wdata |-> %arg5
+          io_wen |-> %arg3
         </inst-in>
         <inst-out>
-          res |-> %4
+          io_rdata1 |-> %6
+          io_rdata2 |-> %8
         </inst-out>
         <inst-regs>
-          "reg_a" |-> %0
-          "reg_b" |-> %1
+          .Map
         </inst-regs>
         <inst-wires>
           .Map
@@ -48,8 +60,8 @@
       .Map
     </macros>
     <result>
-      ListItem ( ListItem ( #result ( res , TV ( i8 , 3 ) ) ) )
-      ListItem ( ListItem ( #result ( res , TV ( i8 , 3 ) ) ) )
+      ListItem ( ListItem ( #result ( io_rdata1 , TV ( i32 , 0 ) ) )
+      ListItem ( #result ( io_rdata2 , TV ( i32 , 0 ) ) ) )
     </result>
     <always>
       .Map
@@ -58,7 +70,7 @@
       .Map
     </initial>
     <initialized>
-      SetItem ( "Adder" )
+      .Set
     </initialized>
     <sv-wires>
       .Map
@@ -106,24 +118,31 @@
       .TopLevel ~> .
     </mlir-program>
     <attr-alias>
-      #loc1 |-> loc ( "a.mlir" : 1 : 33 )
-      #loc2 |-> loc ( "a.mlir" : 7 : 20 )
-      #loc3 |-> loc ( "a.mlir" : 7 : 32 )
-      #loc4 |-> loc ( "a.mlir" : 7 : 45 )
-      #loc5 |-> loc ( "a.mlir" : 7 : 59 )
-      #loc6 |-> loc ( "a.mlir" : 15 : 21 )
-      #loc7 |-> loc ( "a.mlir" : 15 : 32 )
-      #loc8 |-> loc ( "a.mlir" : 15 : 44 )
-      #loc |-> loc ( "a.mlir" : 1 : 20 )
+      #loc1 |-> loc ( "a.mlir" : 1 : 57 )
+      #loc2 |-> loc ( "a.mlir" : 1 : 77 )
+      #loc3 |-> loc ( "a.mlir" : 1 : 98 )
+      #loc4 |-> loc ( "a.mlir" : 1 : 119 )
+      #loc5 |-> loc ( "a.mlir" : 1 : 139 )
+      #loc6 |-> loc ( "a.mlir" : 1 : 156 )
+      #loc7 |-> loc ( "a.mlir" : 1 : 175 )
+      #loc |-> loc ( "a.mlir" : 1 : 33 )
     </attr-alias>
     <type-alias>
       .Map
     </type-alias>
     <symbol-table>
-      "Adder" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : i1 , %arg1 : i8 , %arg2 : i8 , .VarAndTypeList ) : %0 , .OpResults = "sv.reg" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "reg_a" } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  %1 , .OpResults = "sv.reg" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "reg_b" } : ( .Types ) -> ( !hw.inout < i8 > , .Types )  .OpResults = "sv.initial" ( .VarList ) [ .Successors ] ( { .OpResults = "sv.force" ( %0 , %arg2 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , i8 , .Types ) -> ( .Types )  .OpResults = "sv.force" ( %1 , %arg1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , i8 , .Types ) -> ( .Types )  .OperationList .BlockList } , .Regions ) { .Map } : ( .Types ) -> ( .Types )  %2 , .OpResults = "sv.read_inout" ( %0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , .Types ) -> ( i8 , .Types )  %3 , .OpResults = "sv.read_inout" ( %1 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !hw.inout < i8 > , .Types ) -> ( i8 , .Types )  %4 , .OpResults = "comb.add" ( %2 , %3 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  .OpResults = "hw.output" ( %4 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input clk : i1 , input a : i8 , input b : i8 , output res : i8 , .ModulePortList >
+      "RegFile" |-> "hw.module" ( .VarList ) [ .Successors ] ( { .OperationList ^bb0 ( %arg0 : !seq.clock , %arg1 : i5 , %arg2 : i5 , %arg3 : i1 , %arg4 : i5 , %arg5 : i32 , .VarAndTypeList ) : %0 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> 0 : i5 } : ( .Types ) -> ( i5 , .Types )  %1 , .OpResults = "hw.constant" ( .VarList ) [ .Successors ] ( .Regions ) { value |-> 0 : i32 } : ( .Types ) -> ( i32 , .Types )  %2 , .OpResults = "seq.firmem" ( .VarList ) [ .Successors ] ( .Regions ) { name |-> "regs"
+      prefix |-> ""
+      readLatency |-> 0 : i32
+      ruw |-> 0 : i32
+      writeLatency |-> 1 : i32
+      wuw |-> 1 : i32 } : ( .Types ) -> ( !seq.firmem < 32 x 32 > , .Types )  .OpResults = "seq.firmem.write_port" ( %2 , %arg4 , %arg0 , %10 , %arg5 , .VarList ) [ .Successors ] ( .Regions ) { operandSegmentSizes |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 0 > } : ( !seq.firmem < 32 x 32 > , i5 , !seq.clock , i1 , i32 , .Types ) -> ( .Types )  %3 , .OpResults = "seq.firmem.read_port" ( %2 , %arg1 , %arg0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !seq.firmem < 32 x 32 > , i5 , !seq.clock , .Types ) -> ( i32 , .Types )  %4 , .OpResults = "seq.firmem.read_port" ( %2 , %arg2 , %arg0 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( !seq.firmem < 32 x 32 > , i5 , !seq.clock , .Types ) -> ( i32 , .Types )  %5 , .OpResults = "comb.icmp" ( %arg1 , %0 , .VarList ) [ .Successors ] ( .Regions ) { predicate |-> 1 : i64
+      sv.namehint |-> "_io_rdata1_T" } : ( i5 , i5 , .Types ) -> ( i1 , .Types )  %6 , .OpResults = "comb.mux" ( %5 , %3 , %1 , .VarList ) [ .Successors ] ( .Regions ) { sv.namehint |-> "io_rdata1" } : ( i1 , i32 , i32 , .Types ) -> ( i32 , .Types )  %7 , .OpResults = "comb.icmp" ( %arg2 , %0 , .VarList ) [ .Successors ] ( .Regions ) { predicate |-> 1 : i64
+      sv.namehint |-> "_io_rdata2_T" } : ( i5 , i5 , .Types ) -> ( i1 , .Types )  %8 , .OpResults = "comb.mux" ( %7 , %4 , %1 , .VarList ) [ .Successors ] ( .Regions ) { sv.namehint |-> "io_rdata2" } : ( i1 , i32 , i32 , .Types ) -> ( i32 , .Types )  %9 , .OpResults = "comb.icmp" ( %arg4 , %0 , .VarList ) [ .Successors ] ( .Regions ) { predicate |-> 1 : i64 } : ( i5 , i5 , .Types ) -> ( i1 , .Types )  %10 , .OpResults = "comb.and" ( %arg3 , %9 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i1 , i1 , .Types ) -> ( i1 , .Types )  .OpResults = "hw.output" ( %6 , %8 , .VarList ) [ .Successors ] ( .Regions ) { .Map } : ( i32 , i32 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { module_type |-> !hw.modty < input clock : !seq.clock , input io_raddr1 : i5 , input io_raddr2 : i5 , output io_rdata1 : i32 , output io_rdata2 : i32 , input io_wen : i1 , input io_waddr : i5 , input io_wdata : i32 , .ModulePortList >
       parameters |-> [ ]
-      port_locs |-> [ #loc6 , #loc7 , #loc8 , #loc9 , .AttributeValueList ]
-      sym_name |-> "Adder" } : ( .Types ) -> ( .Types )
+      port_locs |-> [ #loc , #loc1 , #loc2 , #loc3 , #loc4 , #loc5 , #loc6 , #loc7 , .AttributeValueList ]
+      sym_name |-> "RegFile"
+      sym_visibility |-> "private" } : ( .Types ) -> ( .Types )
     </symbol-table>
   </mlir>
 </T>
