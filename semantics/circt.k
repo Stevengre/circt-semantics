@@ -173,12 +173,29 @@ module HW-ENUM
 endmodule
 
 
+module SEQ-FIRMEM
+    imports CIRCT-SYNTAX-CORE
+
+    syntax SeqFirmemType ::= "!seq.firmem" "<" Int "x" Int ">"
+    syntax SeqFirmem ::= "seq.firmem" "("Int "," Int "," Map ")"
+
+    syntax Type ::= SeqFirmemType
+    syntax Value ::= SeqFirmem
+
+    syntax Int ::= SeqFirmemRead(SeqFirmem, Int) [function]
+    syntax Int ::= SeqFirmemWrite(SeqFirmem, Int, Int) [function]
+
+    rule SeqFirmemRead(seq.firmem ( _:Int , _:Int , M:Map ) , Addr:Int) => {M[Addr] orDefault 0}:>Int
+endmodule
+
+
 
 module CIRCT-SYNTAX
     imports HW-ARRAY
     imports HW-STRUCT
     imports HW-ENUM
     imports HW-INOUT
+    imports SEQ-FIRMEM
 
     syntax Control ::= "circtTest" SymbolRefId "(" Values ")"
 

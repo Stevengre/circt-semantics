@@ -41,7 +41,7 @@ module BUILTIN-DIALECT-SYNTAX
     syntax BuiltinAttribute ::= "dense" "<" AttributeValue ">" ":" TensorType
                                 | "dense" "<" AttributeValue ">" ":" VectorType
     // DictionaryAttr
-    syntax BuiltinAttribute ::= AttrDict
+    syntax BuiltinAttribute ::= DictionaryAttribute
     // FloatAttr
     syntax BuiltinAttribute ::= FloatLiteral ":" FloatType
                               | FloatLiteral
@@ -108,17 +108,17 @@ module BUILTIN-DIALECT-SYNTAX
     // graph region with one region with one block.
     syntax CustomOperation ::= "module" "{" "}"
                              | "module" "{" OperationList "}"
-                             | "module" "attributes" AttrDict "{" "}"
+                             | "module" "attributes" DictionaryAttribute "{" "}"
                              | "module" StringAttr "{" "}"
-                             | "module" "attributes" AttrDict "{" OperationList "}"
+                             | "module" "attributes" DictionaryAttribute "{" OperationList "}"
                              | "module" StringAttr "{" OperationList "}"
-                             | "module" StringAttr "attributes" AttrDict "{" "}"
-                             | "module" StringAttr "attributes" AttrDict "{" OperationList "}"
+                             | "module" StringAttr "attributes" DictionaryAttribute "{" "}"
+                             | "module" StringAttr "attributes" DictionaryAttribute "{" OperationList "}"
     // builtin.unrealized_conversion_cast
     syntax CustomOperation ::= "unrealized_conversion_cast" "to" Types
-                             | "unrealized_conversion_cast" "to" Types AttrDict
+                             | "unrealized_conversion_cast" "to" Types DictionaryAttribute
                              | "unrealized_conversion_cast" VarList ":" Types "to" Types
-                             | "unrealized_conversion_cast" VarList ":" Types "to" Types AttrDict
+                             | "unrealized_conversion_cast" VarList ":" Types "to" Types DictionaryAttribute
 
     // ------------------------- Types ------------------------- //
     // FloatType

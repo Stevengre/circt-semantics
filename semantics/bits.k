@@ -191,8 +191,10 @@ module BITS
     rule BitsDup(_:Bits, _:Int) => bits(0, 0) [owise]
 
     // bits sra >>
-    rule bits(X:Int, W:Int):Bits >>Bits W2:Int => bits(X >>Int W2, W) requires isPos(X, W)
-    rule bits(X:Int, W:Int):Bits >>Bits W2:Int => bits((X >>Int W2) |Int ((2 ^Int W2 -Int 1) <<Int (W -Int W2)), W) [owise]
+    rule bits(X:Int, W:Int) >>Bits W2:Int => bits(X >>Int W2, W) requires isPos(X, W)
+    rule bits(X:Int, W:Int) >>Bits W2:Int => bits((X >>Int W2) |Int ((2 ^Int W2 -Int 1) <<Int (W -Int W2)), W) [owise]
+    
+    rule bits(X1:Int, W1:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X1 >>Int X2, W1)
 
     // bits srl >>>
     rule bits(X:Int, W:Int):Bits >>>Bits W2:Int => bits(X >>Int W2, W)
