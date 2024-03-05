@@ -314,7 +314,7 @@ module MLIR
     rule <k> mlir </k>
         <mlir-program>
             "sv.macro.decl" ( .VarList ) { Attr:Map } : ( .Types ) -> ( .Types )
-            => . 
+            => .K 
             ... 
         </mlir-program>
         <macros> M:Map => M [ Attr[#token("sym_name", "BareId")] <- "" ] </macros>
@@ -383,7 +383,7 @@ module MLIR
         <mlir-program> _Module:String ~> .OperationList => .K ... </mlir-program>
     
     rule <k> mlir </k>
-        <mlir-program> .OperationList => . ... </mlir-program>
+        <mlir-program> .OperationList => .K ... </mlir-program>
 
     // rule <k> mlir => preprocess </k>
     //     <mlir-program> .TopLevel </mlir-program>
