@@ -56,11 +56,24 @@ module HW
     // hw.instance
     rule <k> circt </k>
         <circt-exec> 
-            (.K => Attr[#token("inner_sym", "BareId")] ~> Attr[#token("instanceName", "BareId")]) 
+            (.K => Attr[#token("inner_sym", "BareId")] orDefault "no inner_sym")
+            ~> (.K => Attr[#token("instanceName", "BareId")]) 
             ~> "hw.instance" ( _Is:VarList ) { Attr:Map } : _:FunctionType
             ...
         </circt-exec>
-        
+
+    // hw.instance, no inner_sym
+    rule <k> circt </k>
+        <circt-exec>
+            (
+                "no inner_sym"
+                ~> _Sym:String 
+                => .List
+            ) ~>
+            "hw.instance" ( _Is:VarList ) { _:Map } : _:FunctionType
+            ...
+        </circt-exec>
+    
     rule <k> circt </k>
         <circt-exec>
             (

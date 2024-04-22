@@ -7,3 +7,5 @@ kdist/
 temp/
 .bsp/
 .scala-build/
+a.*
+tmp/
