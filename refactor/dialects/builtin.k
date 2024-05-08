@@ -232,4 +232,11 @@ module BUILTIN
     imports BUILTIN-SYNTAX
     imports BUILTIN-HELPER
     imports MLIR
+
+    // ------------------------- Operations ------------------------- //
+    // # builtin.module
+    rule <phase> #canonicalized => #preprocess </phase>
+         <prog> Op:Operation P:TopLevel => P </prog>
+         <table> M:Map => M GetSymbolTable(getRegions(Op), ListItem(getAttr(Op, "sym_name"))) </table>
+         requires getOpName(Op) ==K "builtin.module"
 endmodule
