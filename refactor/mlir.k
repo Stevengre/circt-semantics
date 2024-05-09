@@ -126,39 +126,84 @@ module MLIR-SYNTAX
 
     // ## Builtin Attribute Values
     syntax BuiltinAttribute
-
+    
+    // # More Syntax Helpers
+    syntax BareIdAndType ::= BareId ":" Type
+    syntax BareIdAndTypeList ::= List{BareIdAndType, ","}
 endmodule
 
 module MLIR-HELPER
     imports MLIR-SYNTAX
     imports MAP
+    imports LIST
+    imports K-EQUAL
+    // # Predefined Status
     syntax Control ::= "#preprocess" | "#canonicalized"
-
+    // # Attribute Value Helpers
     syntax AttributeValue ::= AttributeValueHelper
     syntax AttributeValueHelper ::= "#undefined"
 
-    syntax String ::= BareId2String(BareId) [function, total, hook(STRING.token2string)]
-
+    // # Gets
+    // ## Get Attribute Value
     syntax AttributeValue ::= getAttr(Operation, String) [function]
     rule getAttr(_ = _ (_) [_:Successors] <{_:Map}> (_:Regions) {AL2:Map} : _, BID)
          => {AL2[BID] orDefault #undefined}:>AttributeValue
-    
+    syntax AttributeValue ::= getAttr(Map, String) [function]
+    rule getAttr(M:Map, BID:String) => {M[BID] orDefault #undefined}:>AttributeValue
+    // ## Get Operation Name
     syntax String ::= getOpName(Operation) [function]
     rule getOpName(_ = Op:GenericOperation) => getOpName(Op)
     rule getOpName(OpName (_) [_:Successors] <{_:Map}> (_:Regions) {_:Map} : _) 
          => OpName
-    
+    // ## Get Operation Results
     syntax Regions ::= getRegions(Operation) [function]
     rule getRegions(_ = Op:GenericOperation) => getRegions(Op)
     rule getRegions(_ (_) [_:Successors] <{_:Map}> (R:Regions) {_:Map} : _) 
          => R
+     
+    // # Tokens <-> Strings
+    // ## BareId <-> String
+    syntax String ::= BareId2String(BareId) [function, total, hook(STRING.token2string)]
+    // ## SymbolRefId <-> String
+    syntax String ::= "SymbolRefId2StringHelper" "(" SymbolRefId ")" [function, total,hook(STRING.token2string)]
+    syntax String ::= "SymbolRefId2String" "(" SymbolRefId ")" [function, total]
+    rule SymbolRefId2String(ID) => substrString ( SymbolRefId2StringHelper(ID) , 1 , lengthString(SymbolRefId2StringHelper(ID)) ) // TODO: 没有临时变量感觉写起来确实很麻烦。
+    syntax SymbolRefId ::= "String2SymbolRefId" "(" String ")" [function, total,hook(STRING.string2token)]
+    // ## List of String (SymbolRefId) -> String
+    syntax String ::= "SymbolRefIdList2String" "(" List ")" [function, total]
+    rule SymbolRefIdList2String(.List) => ""
+    rule SymbolRefIdList2String( ListItem( #undefined ) Ls:List ) => SymbolRefIdList2String(Ls)
+    rule SymbolRefIdList2String( ListItem(S:String) Ls:List ) => S +String "::" +String SymbolRefIdList2String(Ls) 
+         requires Ls =/=K .List
+    rule SymbolRefIdList2String( ListItem(S:String) Ls:List ) => S
+         requires Ls ==K .List
+    rule SymbolRefIdList2String( _ ) => "unexpected" [owise]
+    // ## ValueId <-> String
+     syntax String ::= "ValueId2String" "(" ValueId ")" [function, total, hook(STRING.token2string)]
+     syntax ValueId ::= "String2ValueId" "(" String ")" [function, total, hook(STRING.string2token)]
+
+    // # Syntax Canicalization Helper
+    // - it can be hexa-decimal, so this can be failed.
+    syntax ValueIdList ::= OpResults2ValueIdList ( OpResults ) [function]
+    rule OpResults2ValueIdList( Rs:OpResults) => List2ValueIdList(OpResults2List(Rs))
+    syntax List ::= OpResults2List ( OpResults ) [function]
+    rule OpResults2List( VID:ValueId, Rs:OpResults ) => ListItem(VID) OpResults2List(Rs)
+    rule OpResults2List( VID:ValueId : I, Rs:OpResults ) 
+         => OpResults2List(VID : I -Int 1, .OpResults) 
+            ListItem(String2ValueId(ValueId2String(VID) +String "#" +String Int2String(I -Int 1))) 
+            OpResults2List(Rs)
+         requires I >Int 0
+    rule OpResults2List( _:ValueId : 0, .OpResults ) => .List
+    rule OpResults2List( .OpResults ) => .List
+    syntax ValueIdList ::= List2ValueIdList ( List ) [function]
+    rule List2ValueIdList( ListItem(V:ValueId) L:List ) => V, List2ValueIdList(L)
+    rule List2ValueIdList(.List) => .ValueIdList
+
 endmodule
 
 module MLIR
     imports MLIR-SYNTAX
     imports MLIR-HELPER
-    imports LIST
-    imports K-EQUAL
     configuration
       <mlir>
         <prog> $PGM:TopLevel </prog>
@@ -177,7 +222,6 @@ module MLIR
          <types> M:Map => M [Alias <- T] </types>
 
     // # Canonicalize Operations
-    
     rule <phase> #preprocess => #canonicalized </phase>
          <prog> Op:Operation P:TopLevel => Canonicalize(Op) P </prog>
 
@@ -283,11 +327,11 @@ module MLIR
     rule <phase> #canonicalized => #preprocess </phase>
          <prog> (Op):Operation P:TopLevel => P </prog>
          <table> M:Map => M GetSymbolTable(Op, .List) </table>
-        requires getAttr(Op, "sym_name") =/=K #undefined
+         requires getAttr(Op, "sym_name") =/=K #undefined
     // ## Get Symbol Table of an Operation
     syntax Map ::= GetSymbolTable(Operation, List) [function]
     rule GetSymbolTable(Rs = N (Vs) [Ss:Successors] <{AL:Map}> (R:Regions) {AL1:Map} : FT, L:List)
-         => ((L ListItem(AL1["sym_name"])):List |-> (Rs = N (Vs) [Ss] <{AL}> (R) {AL1} : FT):Operation) 
+         => (SymbolRefIdList2String(L ListItem(AL1["sym_name"])) |-> (Rs = N (Vs) [Ss] <{AL}> (R) {AL1} : FT):Operation) 
             GetSymbolTable(R, (L ListItem(AL1["sym_name"])):List) [owise]
      rule GetSymbolTable(Op, _:List) => .Map requires getAttr(Op, "sym_name") ==K #undefined
     // ## Get Symbol Table of Regions

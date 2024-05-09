@@ -1,4 +1,4 @@
-requires "dialects/hw.k"
+requires "dialects/hw/hw.k"
 requires "dialects/seq.k"
 requires "circt/common.k"
 module CIRCT-SYNTAX
@@ -9,5 +9,6 @@ endmodule
 module CIRCT
     imports CIRCT-SYNTAX
     imports COMMON
-    // configuration <k> $PGM:TopLevel </k>
+    imports HW
+    imports SEQ
 endmodule
