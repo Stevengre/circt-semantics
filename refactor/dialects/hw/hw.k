@@ -149,7 +149,7 @@ module HW
          => #KReadCurr A ~> #KReadCurr I ~> #HWArrayGet T ... </k>
     syntax KmdCIRCT ::= "#HWArrayGet" Type
     rule <k> (V:_):StdValue ~> (Idx,.BitsVec:_):StdValue ~> #HWArrayGet T => V ~> Bits2Int(Idx) ~> #HWArrayGet T ... </k>
-    rule <k> V:Bits, _:BitsVec ~> Idx:Int ~> #HWArrayGet !hw.array < _ T:Type > => BitsMask(V, Type2BitSize(T), Type2BitSize(T) *Int Idx):T ... </k>
+    rule <k> V:Bits ~> Idx:Int ~> #HWArrayGet !hw.array < _ T:Type > => BitsMask(V, Type2BitSize(T), Type2BitSize(T) *Int Idx):T ... </k>
     // ## hw.array_slice
     // ## hw.struct_create
     // ## hw.struct_explode
