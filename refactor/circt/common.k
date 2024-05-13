@@ -1,5 +1,6 @@
 requires "../dialects/builtin.k"
 requires "../dialects/hw/config.k"
+requires "../dialects/hw/config-g.k"
 requires "../mlir.k"
 requires "bits.k"
 
@@ -17,27 +18,41 @@ module COMMON-HELPER
                       | "#CIRCThalt" String
     // # Effect Handlers used in <k>
     syntax KmdCIRCT ::= "#Khalt" String
+                      | "#KReadCurr" ValueIdList // Read the value from the current state
                       | "#KWriteCurr" ValueIdList // Write the value to the current state
 
-    syntax TypeValue ::= Bits ":" Type
-    syntax TypeValues ::= List{TypeValue, ","}
+    syntax StdValue ::= Bits ":" Type
+    syntax StdValues ::= List{StdValue, ","}
 
     // # AttributeValue 2 Bits
     syntax Bits ::= AttributeValue2Bits ( AttributeValue, Type ) [function]
     rule AttributeValue2Bits(V,T) => bits(AttributeValue2BitValue(V), Type2BitSize(T)) [owise]
     syntax BitValue ::= AttributeValue2BitValue ( AttributeValue ) [function]
     rule AttributeValue2BitValue( AV:AttributeValue ) => {AV}:>BitValue [owise]
+    rule AttributeValue2BitValue( V:IntegerLiteral : _:IntegerType ) => {V}:>BitValue
+    rule AttributeValue2BitValue( V:IntegerLiteral : _:IndexType ) => {V}:>BitValue
+    rule AttributeValue2BitValue( true ) => {1}:>BitValue
+    rule AttributeValue2BitValue( false ) => {0}:>BitValue
     syntax Int ::= Type2BitSize ( Type ) [function]
     // ## Get BitSize from BuiltinType
     rule Type2BitSize( T:IntegerType ) => getIntegerTypeSize(T)
-    // ## If failed, it maybe caused by the uncovered types for Type2BitSize 
-
+    // ## If failed, it maybe caused by the uncovered types for Type2BitSize
+    
+    // # List 2
+    syntax StdValues ::= List2StdValues ( List ) [function]
+    rule List2StdValues( .List ) => .StdValues
+    rule List2StdValues( ListItem(V:StdValue) L:List ) => V , List2StdValues(L)
+    // # StdValues 2
+    syntax Bits ::= StdValues2Bits ( StdValues ) [function]
+    rule StdValues2Bits( .StdValues ) => bits(0,0)
+    rule StdValues2Bits( (bits(V,S):BitValue) , Vs:StdValues ) => bits(V,S) concatBits StdValues2Bits(Vs)
 endmodule
 
 module COMMON
     imports MLIR
     imports COMMON-HELPER
     imports HW-CONFIG
+    imports HW-CONFIG-G
 
     configuration
       <circt> 
@@ -58,13 +73,16 @@ module COMMON
               <last> .Map </last>
               <curr> .Map </curr>
               <module> "" </module>
-              <in> .Map </in>
-              <out> .Map </out>
+              <in-ports> .List </in-ports>
+              <in-vars> .ValueIdAndTypeList </in-vars>
+              <out-ports> .List </out-ports>
+              <out-vars> .ValueIdList </out-vars>
               <reg> .Map </reg>
               <wire> .Map </wire>
               <hw/>
           </ckt>
         </ckts>
+        <hw-g/>
         // <exit>
         //   <exit-code exit=""> 0 </exit-code>
         //   <exit-info> "Success" </exit-info>
@@ -77,12 +95,33 @@ module COMMON
          <prog> .TopLevel </prog>
 
     // # Phase Change: Stop/Finish Current Simulation
-    rule <phase> #stimulating => #toStimulate </phase> 
-         <clock> I:Int => I +Int 1 </clock>
-    [owise]
+    syntax KmdCIRCT ::= "#KClockFinish" | "#KFinish"
+    // - Return Values to the parent circuit
+    syntax KmdCIRCT ::= "#KCallBack" String
+    rule 
+    <ks> <kmap> <kkey> _ </kkey> <k> #KClockFinish => .K ... </k> </kmap></ks>
+    <clock> I:Int => I +Int 1 </clock>
+    // todo: #CIRCTinitOp 以结束 和 #KinitOp 以 #KFinish结束
+    rule
+    <ks> <kmap> <kkey> _ </kkey> <k> #KFinish => #KReadOuts ~> #KFinish ... </k> </kmap> </ks>
+    rule
+    <ckt>
+     <cid> CID </cid>
+     <ks> <kmap> <kkey> _ </kkey> <k> TVs:StdValues ~> #KFinish => .K ... </k> </kmap> </ks>
+     <curr> CURR => .Map </curr>
+     <last> _ => CURR </last>
+     <parent> FID </parent>
+     ...
+    </ckt>
+    <ckt>
+     <cid> FID </cid>
+     <k> #KCallBack CID => TVs ... </k>
+     ...
+    </ckt>
 
     // # Stimuate a circuit with arguments
-    syntax CmdCIRCT ::=  "#CIRCTstimulate" SymbolRefId "(" AttributeValueList ")"
+    syntax CmdCIRCT ::= "#CIRCTstimulate" SymbolRefId "(" AttributeValueList ")"
+    syntax KmdCIRCT ::= "#Kstimulate" String "(" StdValues ")" "by" String "as" String
     syntax Control ::= "#stimulating"
     // - first stimulation
     rule <phase> #toStimulate </phase>
@@ -92,20 +131,36 @@ module COMMON
                ~> #CIRCTinitOp SymbolRefId2String(ID) Vs
          ... </cmd>
     [owise]
+    rule <k> #Kstimulate ModuleName ( TVs ) by FID as CID
+               => #KgetOp ModuleName
+               ~> #KrefineOp
+               ~> #KinitOp ModuleName ( TVs ) by FID as CID
+         ... </k>
+    [owise]
     // - Phase Change: subsequent stimulation
     rule <phase> #toStimulate => #stimulating </phase>
-         <cmd> #CIRCTstimulate ID:SymbolRefId ( Vs:AttributeValueList ) => .K </cmd>
+         <cmd> #CIRCTstimulate ID:SymbolRefId ( Vs:AttributeValueList ) => .K ... </cmd>
          <ckt>
            <cid> CID </cid>
            <module> CID </module>
-           <ks> (_ => <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs Vs </k> </kmap>)</ks>
+           <ks> (_ => <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs Vs ~> #KClockFinish </k> </kmap>)</ks>
            <circuit> Op:Operation ~> .K </circuit>
            ...
          </ckt>
     requires SymbolRefId2String(ID) ==K CID
+    rule <k> #Kstimulate ModuleName ( TVs ) by FID as CID => #KCallBack CID ... </k>
+         <ckt>
+           <cid> CID </cid>
+           <module> ModuleName </module>
+           <ks> (_ => <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs TVs ~> #KFinish </k> </kmap>)</ks>
+           <circuit> Op:Operation ~> .K </circuit>
+           <parent> FID </parent>
+           ...
+         </ckt>
 
     // # Get Operation From Symbol Table
-    syntax CmdCIRCT ::= "#CIRCTgetOp" SymbolRefId
+    syntax CmdCIRCT ::= "#CIRCTgetOp" SymbolRefId 
+    syntax KmdCIRCT ::= "#KgetOp" String
     rule <phase> #toStimulate </phase>
          <cmd> #CIRCTgetOp ID:SymbolRefId
                => 
@@ -115,14 +170,26 @@ module COMMON
                #fi 
          ... </cmd>
          <table> M:Map </table>
+    rule <k> #KgetOp ID:String
+               => 
+               #if ID in_keys(M)
+               #then M [ ID ]
+               #else #CIRCThalt "cannot find operation from <table>"
+               #fi 
+         ... </k>
+         <table> M:Map </table>
     
     // # Refine operations in hardware domain
     // - reduce the complexity of the operations for dialect semantics
     syntax CmdCIRCT ::= "#CIRCTrefineOp"
+    syntax KmdCIRCT ::= "#KrefineOp"
     rule <phase> #toStimulate </phase>
          <cmd> Op:Operation ~> #CIRCTrefineOp
                => CIRCTrefineOp(Op)
          ... </cmd>
+    rule <k> Op:Operation ~> #KrefineOp
+               => CIRCTrefineOp(Op)
+         ... </k>
     // ## refine operation
     syntax Operation ::= CIRCTrefineOp ( Operation ) [function]
     // - if generate values, but no id to consume them. just throw it away.
@@ -169,6 +236,7 @@ module COMMON
 
     // # Phase Change: Initialize Operation with Arguments in <cmd>
     syntax CmdCIRCT ::= "#CIRCTinitOp" String AttributeValueList
+    syntax KmdCIRCT ::= "#KinitOp" String StdValues "by" String "as" String
     // - First Stimulation
     rule <phase> #toStimulate => #stimulating </phase>
          <cmd> Op:Operation ~> #CIRCTinitOp ID:String Vs:AttributeValueList
@@ -179,7 +247,7 @@ module COMMON
            (.Bag =>
            <ckt>
              <cid> ID </cid>
-             <ks> <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs Vs </k> </kmap> </ks>
+             <ks> <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs Vs ~> #KClockFinish </k> </kmap> </ks>
              <circuit> Op </circuit>
              <module> ID </module>
              ...
@@ -187,9 +255,19 @@ module COMMON
            ...
          </ckts>
          [owise]
+    rule <k> Op:Operation ~> #KinitOp ID ( TVs ) by FID as CID => #KCallBack CID ... </k>
+         (.Bag =>
+         <ckt>
+           <cid> CID </cid>
+           <ks> <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs TVs ~> #KFinish</k> </kmap> </ks>
+           <circuit> Op </circuit>
+           <module> ID </module>
+           <parent> FID </parent>
+           ...
+         </ckt>)
 
     // # Write Arguments to the Entry Block in <k>
-    syntax KmdCIRCT ::= "#KWArgs" AttributeValueList
+    syntax KmdCIRCT ::= "#KWArgs" AttributeValueList | "#KWArgs" StdValues
     rule <k> _:CaretId ( VTs:ValueIdAndTypeList ) : OL:OperationList ~> #KWArgs Vs:AttributeValueList 
          => #KWArgs Vs:AttributeValueList ~> VTs ~> OL ...</k>
     rule <k> #KWArgs V:AttributeValue, Vs:AttributeValueList ~> (VID:T):ValueIdAndType, VTs:ValueIdAndTypeList 
@@ -197,12 +275,18 @@ module COMMON
          <curr> M:Map => M[VID <- AttributeValue2Bits(V,T):T]</curr>
     rule <k> #KWArgs .AttributeValueList ~> .ValueIdAndTypeList => .K ... </k>
     rule <k> #KWArgs A:AttributeValueList ~> V:ValueIdAndTypeList => #Khalt "An error occurs in #KWArgs!" ~> #KWArgs A ~> V ... </k> [owise]
+    rule <k> _:CaretId ( VTs:ValueIdAndTypeList ) : OL:OperationList ~> #KWArgs TVs:StdValues
+         => #KWArgs TVs ~> VTs ~> OL ...</k>
+    rule <k> #KWArgs TV:StdValue, TVs ~> (VID:_T):ValueIdAndType, VTs:ValueIdAndTypeList 
+         => #KWArgs TVs ~> VTs ... </k>
+         <curr> M:Map => M[VID <- TV] </curr>
+    rule <k> #KWArgs .StdValues ~> .ValueIdAndTypeList => .K ... </k>
 
     // # Parallelize Operations
     rule <ks> ... 
               <kmap>
                 <kkey> _ </kkey>
-                <k> Op:Operation Ops:OperationList => Ops </k>
+                <k> Op:Operation Ops:OperationList => Ops ... </k>
               </kmap>
               (.Bag =>
               <kmap>
@@ -211,18 +295,34 @@ module COMMON
               </kmap>)
               ... 
          </ks>
-    rule <ks> ... (<kmap> <kkey> _ </kkey> <k> .OperationList </k> </kmap> => .Bag) ... </ks>
+    rule <ks> ... (<kmap> <kkey> _ </kkey> <k> .OperationList => .K </k> </kmap>) ... </ks>
     rule <ks> ... (<kmap> <kkey> _ </kkey> <k> .K </k> </kmap> => .Bag) ... </ks>
 
     // # Setup Trigger of Result Assignment
     rule <k> Rs = Op:GenericOperation => Op ~> #KWriteCurr OpResults2ValueIdList(Rs) ... </k>
     
     // # Effect Handlers
+    // ## Read the current state
+    // -- todo: add type-checking
+    rule <k> #KReadCurr VID:ValueId, VIDs:ValueIdList => ListItem(M[VID]) ~> #KReadCurr VIDs ... </k>
+         <curr> M </curr> 
+         requires VID in_keys(M)
+    rule <k> L:List ~> #KReadCurr VID:ValueId, VIDs:ValueIdList => L ListItem(M[VID]) ~> #KReadCurr VIDs ... </k>
+         <curr> M </curr> 
+         requires VID in_keys(M)
+    rule <k> L:List ~> #KReadCurr .ValueIdList => List2StdValues(L) ... </k>
     // ## Write the current state
-    rule <k> TV:TypeValue, Vs:TypeValues ~> #KWriteCurr VID:ValueId, VIDs:ValueIdList => Vs ~> #KWriteCurr VIDs </k>
+    // -- todo: add type-checking
+    rule <k> TV:StdValue, Vs:StdValues ~> #KWriteCurr VID:ValueId, VIDs:ValueIdList => Vs ~> #KWriteCurr VIDs ... </k>
          <curr> M => M[VID <- TV] </curr>
-    rule <k> .TypeValues ~> #KWriteCurr .ValueIdList => .K ... </k>
+    rule <k> TV:StdValue ~> #KWriteCurr VID:ValueId, .ValueIdList => .K ... </k>
+         <curr> M => M[VID <- TV] </curr> 
+    rule <k> .StdValues ~> #KWriteCurr .ValueIdList => .K ... </k>
     // -- may be failed, can cause some strange behaviors
-    rule <k> _:TypeValues ~> #KWriteCurr _:ValueIdList => .K ...</k> [owise]
-    
+    rule <k> _:StdValues ~> #KWriteCurr _:ValueIdList => .K ...</k> [owise]
+    // ## Read the output ports
+    syntax KmdCIRCT ::= "#KReadOuts"
+    rule
+    <k> #KReadOuts => #KReadCurr VIDs ... </k>
+    <out-vars> VIDs </out-vars>
 endmodule

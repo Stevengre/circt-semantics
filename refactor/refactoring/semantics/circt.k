@@ -1,6 +1,6 @@
 requires "builtin.k"
 requires "comb.k"
-requires "hw.k"
+
 requires "seq.k"
 requires "sv.k"
 // requires "circt-conf.k"
@@ -81,20 +81,18 @@ endmodule
 module HW-ARRAY
     imports CIRCT-SYNTAX-CORE
 
-    syntax HwArray ::= "[" Values "]"
-    syntax Value ::= HwArray
+    // syntax HwArray ::= "[" Values "]"
+    // syntax Value ::= HwArray
 
-    // syntax ArraySizePrefix ::= r"[1-9][0-9]*x" [token]
-    syntax HwArrayType ::= "!hw.array" "<" ArraySizePrefix Type ">"
-    syntax Type ::= HwArrayType
+    // syntax HwArrayType ::= "!hw.array" "<" ArraySizePrefix Type ">"
+    // syntax Type ::= HwArrayType
 
-    // syntax Int ::= getHwArrayElemWidth(HwArrayType)
 
-    syntax Value ::= HwArrayGet(HwArray, Int) [function]
+    // syntax Value ::= HwArrayGet(HwArray, Int) [function]
     syntax HwArray ::= HwArraySlice(HwArray, Int, Int) [function]
     
-    rule HwArrayGet(([ _:Value, Vs:Values ]):HwArray, I:Int) => HwArrayGet([ Vs ], I -Int 1) requires I >Int 0
-    rule HwArrayGet(([ V:Value, _:Values ]):HwArray, 0) => V
+    // rule HwArrayGet(([ _:Value, Vs:Values ]):HwArray, I:Int) => HwArrayGet([ Vs ], I -Int 1) requires I >Int 0
+    // rule HwArrayGet(([ V:Value, _:Values ]):HwArray, 0) => V
 
     rule HwArraySlice([_:Value, Vs:Values], LowIndex:Int, HighIndex:Int)
         => [ ValuesFromList(range(toList(Vs), LowIndex, size(toList(Vs)) -Int HighIndex)) ]
@@ -338,47 +336,6 @@ module CIRCT
         requires Name ==String SymbolRefId2String(ID)
     
 
-    rule <k> circt </k>
-        <circt-exec>
-            (.K => getAttrValue(Attr, #token("module_type", "BareId")))
-            ~> _:Values 
-            ~> (
-                "hw.module" (Vs:VarList) [_:Successors] (Rs:Regions) {Attr:Map} : FT:FunctionType
-                => "hw.module" (Vs) (Rs) {Attr} : FT
-            )
-            ...
-        </circt-exec>
-    
-    rule <k> circt </k>
-        <circt-exec> 
-            !hw.modty< (input P:BareId : _:Type):ModulePort, PL:ModulePortList => PL >
-            ~> _:Values
-            ~> "hw.module" (_:VarList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
-            ...
-        </circt-exec>
-        <ports-in> L:List => L ListItem(P) </ports-in>
-    
-    rule <k> circt </k>
-        <circt-exec> 
-            !hw.modty< (output P:BareId : _:Type):ModulePort, PL:ModulePortList => PL >
-            ~> _:Values
-            ~> "hw.module" (_:VarList) ({.OperationList _:Block}) {_:Map} : _:FunctionType
-            ...
-        </circt-exec>
-        <ports-out> L:List => L ListItem(P) </ports-out>
-    
-    rule <k> circt </k>
-        <circt-exec> 
-            (!hw.modty< .ModulePortList > => L)
-            ~> _:Values
-            ~> (
-                "hw.module" (_:VarList) ({.OperationList B:Block}) {_:Map} : _:FunctionType
-                => B
-            )
-            ...
-        </circt-exec>
-        <ports-in> L:List </ports-in>
-    
     rule <k> circt </k>
         <circt-exec> 
             (ListItem(X:BareId) L:List => L) ~>

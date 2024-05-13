@@ -49,6 +49,7 @@ module BITS
                   | Bits "modsBits" Bits    [function]
                   | Bits "moduBits" Bits    [function]
                   | Bits "-Bits"    Bits    [function]
+                  | BitsMask(Bits, Int, Int)     [function] // size, offset
     
     syntax Bool ::= isNeg(Bits) [function]
                   | isPos(Bits) [function]
@@ -224,5 +225,10 @@ module BITS
     rule BitsParity(bits(X:Int, W:Int):Bits) => (X &Int 1) xorInt {BitsParity(bits(X >>Int 1, W -Int 1))}:>Int requires W >=Int 0
     
     rule BitsParity(bits(_X:Int, _W:Int):Bits) => 0 [owise]
+
+    // bits mask
+    rule BitsMask(bits(B:Int, S), NewS:Int, O:Int) => bits(B &Int ((2 ^Int NewS -Int 1) <<Int O), NewS)
+    rule BitsMask(bits(B:ConstX, _), NewS:Int, _:Int) => bits(B, NewS)
+    rule BitsMask(bits(B:ConstZ, _), NewS:Int, _:Int) => bits(B, NewS)
 
 endmodule

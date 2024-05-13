@@ -177,7 +177,13 @@ module MLIR-HELPER
          requires Ls =/=K .List
     rule SymbolRefIdList2String( ListItem(S:String) Ls:List ) => S
          requires Ls ==K .List
-    rule SymbolRefIdList2String( _ ) => "unexpected" [owise]
+    rule SymbolRefIdList2String( _:List ) => "unexpected" [owise]
+    syntax String ::= "SymbolRefIdList2String" "(" SymbolRefIdList ")" [function, total]
+    rule SymbolRefIdList2String( ID:SymbolRefId :: L:SymbolRefIdList ) => SymbolRefId2String(ID) +String "::" +String SymbolRefIdList2String(L)
+    requires L =/=K .SymbolRefIdList
+    rule SymbolRefIdList2String( ID:SymbolRefId :: .SymbolRefIdList ) => SymbolRefId2String(ID)
+    rule SymbolRefIdList2String( .SymbolRefIdList ) => ""
+
     // ## ValueId <-> String
      syntax String ::= "ValueId2String" "(" ValueId ")" [function, total, hook(STRING.token2string)]
      syntax ValueId ::= "String2ValueId" "(" String ")" [function, total, hook(STRING.string2token)]

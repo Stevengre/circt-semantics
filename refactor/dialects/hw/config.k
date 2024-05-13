@@ -1,8 +1,7 @@
 module HW-CONFIG
 imports LIST
-    configuration
-    <hw>
-      <hw-ins> .List </hw-ins>
-      <hw-outs> .List </hw-outs>
-    </hw>
+  configuration
+  <hw>
+    <hw-inner-sym> .Map </hw-inner-sym>
+  </hw>
 endmodule

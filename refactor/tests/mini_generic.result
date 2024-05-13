@@ -4,7 +4,7 @@
       .TopLevel
     </prog>
     <phase>
-      #toStimulate
+      #stimulating
     </phase>
     <types>
       .Map
@@ -261,7 +261,7 @@
     .K
   </cmd>
   <clock>
-    1
+    0
   </clock>
   <ckts>
     <ckt>
@@ -271,119 +271,45 @@
       <ks>
         <kmap>
           <kkey>
-            1
+            0
           </kkey>
           <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 0 : i32 } : ( .Types ) -> ( i32 , .Types ) ~> #KWriteCurr %0 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            2
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> -1 : i8 } : ( .Types ) -> ( i8 , .Types ) ~> #KWriteCurr %1 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            3
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 0 : i5 } : ( .Types ) -> ( i5 , .Types ) ~> #KWriteCurr %2 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            4
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types ) ~> #KWriteCurr %3 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            5
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 3 : i3 } : ( .Types ) -> ( i3 , .Types ) ~> #KWriteCurr %4 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            6
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 1 : i2 } : ( .Types ) -> ( i2 , .Types ) ~> #KWriteCurr %5 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            7
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> false } : ( .Types ) -> ( i1 , .Types ) ~> #KWriteCurr %6 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            8
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 0 : i3 } : ( .Types ) -> ( i3 , .Types ) ~> #KWriteCurr %7 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            9
-          </kkey>
-          <k>
-            "hw.constant" ( .ValueIdList ) { "value" |-> 0 : i4 } : ( .Types ) -> ( i4 , .Types ) ~> #KWriteCurr %8 , .ValueIdList ~> .K
+            .OperationList ~> #KClockFinish ~> .K
           </k>
         </kmap> <kmap>
           <kkey>
             10
           </kkey>
           <k>
-            "hw.instance" ( %arg0 , %arg1 , %arg2 , %arg3 , %10#0 , %10#1 , %11#0 , %11#1 , .ValueIdList ) { "argNames" |-> [ "clock" , "reset" , "io_host_fromhost_valid" , "io_host_fromhost_bits" , "io_icache_resp_valid" , "io_icache_resp_bits_data" , "io_dcache_resp_valid" , "io_dcache_resp_bits_data" , .AttributeValueList ]
-            "instanceName" |-> "core"
-            "moduleName" |-> @Core :: .SymbolRefIdList
-            "parameters" |-> [ ]
-            "resultNames" |-> [ "io_host_tohost" , "io_icache_req_valid" , "io_icache_req_bits_addr" , "io_dcache_abort" , "io_dcache_req_valid" , "io_dcache_req_bits_addr" , "io_dcache_req_bits_data" , "io_dcache_req_bits_mask" , .AttributeValueList ]
-            "sv.namehint" |-> "io_host_tohost" } : ( !seq.clock , i1 , i1 , i32 , i1 , i32 , i1 , i32 , .Types ) -> ( i32 , i1 , i32 , i1 , i1 , i32 , i32 , i4 , .Types ) ~> #KWriteCurr %9#0 , %9#1 , %9#2 , %9#3 , %9#4 , %9#5 , %9#6 , %9#7 , .ValueIdList ~> .K
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : !seq.clock )
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : i1 )
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : i1 )
+            ListItem ( bits ( 0 , 32 ) , .BitsVec : i32 ) ~> #KReadCurr %10#0 , %10#1 , %11#0 , %11#1 , .ValueIdList ~> #KHWInstance "Core" "core" ~> #KWriteCurr %9#0 , %9#1 , %9#2 , %9#3 , %9#4 , %9#5 , %9#6 , %9#7 , .ValueIdList ~> .K
           </k>
         </kmap> <kmap>
           <kkey>
             11
           </kkey>
           <k>
-            "hw.instance" ( %arg0 , %arg1 , %6 , %9#1 , %9#2 , %0 , %8 , %6 , %6 , %6 , %12#0 , %12#1 , %12#2 , .ValueIdList ) { "argNames" |-> [ "clock" , "reset" , "io_cpu_abort" , "io_cpu_req_valid" , "io_cpu_req_bits_addr" , "io_cpu_req_bits_data" , "io_cpu_req_bits_mask" , "io_nasti_aw_ready" , "io_nasti_w_ready" , "io_nasti_b_valid" , "io_nasti_ar_ready" , "io_nasti_r_valid" , "io_nasti_r_bits_data" , .AttributeValueList ]
-            "instanceName" |-> "icache"
-            "moduleName" |-> @Cache :: .SymbolRefIdList
-            "parameters" |-> [ ]
-            "resultNames" |-> [ "io_cpu_resp_valid" , "io_cpu_resp_bits_data" , "io_nasti_aw_valid" , "io_nasti_aw_bits_addr" , "io_nasti_w_valid" , "io_nasti_w_bits_data" , "io_nasti_w_bits_last" , "io_nasti_b_ready" , "io_nasti_ar_valid" , "io_nasti_ar_bits_addr" , "io_nasti_r_ready" , .AttributeValueList ] } : ( !seq.clock , i1 , i1 , i1 , i32 , i32 , i4 , i1 , i1 , i1 , i1 , i1 , i64 , .Types ) -> ( i1 , i32 , i1 , i32 , i1 , i64 , i1 , i1 , i1 , i32 , i1 , .Types ) ~> #KWriteCurr %10#0 , %10#1 , %10#2 , %10#3 , %10#4 , %10#5 , %10#6 , %10#7 , %10#8 , %10#9 , %10#10 , .ValueIdList ~> .K
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : !seq.clock )
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : i1 )
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : i1 ) ~> #KReadCurr %9#1 , %9#2 , %0 , %8 , %6 , %6 , %6 , %12#0 , %12#1 , %12#2 , .ValueIdList ~> #KHWInstance "Cache" "icache" ~> #KWriteCurr %10#0 , %10#1 , %10#2 , %10#3 , %10#4 , %10#5 , %10#6 , %10#7 , %10#8 , %10#9 , %10#10 , .ValueIdList ~> .K
           </k>
         </kmap> <kmap>
           <kkey>
             12
           </kkey>
           <k>
-            "hw.instance" ( %arg0 , %arg1 , %9#3 , %9#4 , %9#5 , %9#6 , %9#7 , %12#3 , %12#4 , %12#5 , %12#6 , %12#7 , %12#8 , .ValueIdList ) { "argNames" |-> [ "clock" , "reset" , "io_cpu_abort" , "io_cpu_req_valid" , "io_cpu_req_bits_addr" , "io_cpu_req_bits_data" , "io_cpu_req_bits_mask" , "io_nasti_aw_ready" , "io_nasti_w_ready" , "io_nasti_b_valid" , "io_nasti_ar_ready" , "io_nasti_r_valid" , "io_nasti_r_bits_data" , .AttributeValueList ]
-            "instanceName" |-> "dcache"
-            "moduleName" |-> @Cache :: .SymbolRefIdList
-            "parameters" |-> [ ]
-            "resultNames" |-> [ "io_cpu_resp_valid" , "io_cpu_resp_bits_data" , "io_nasti_aw_valid" , "io_nasti_aw_bits_addr" , "io_nasti_w_valid" , "io_nasti_w_bits_data" , "io_nasti_w_bits_last" , "io_nasti_b_ready" , "io_nasti_ar_valid" , "io_nasti_ar_bits_addr" , "io_nasti_r_ready" , .AttributeValueList ] } : ( !seq.clock , i1 , i1 , i1 , i32 , i32 , i4 , i1 , i1 , i1 , i1 , i1 , i64 , .Types ) -> ( i1 , i32 , i1 , i32 , i1 , i64 , i1 , i1 , i1 , i32 , i1 , .Types ) ~> #KWriteCurr %11#0 , %11#1 , %11#2 , %11#3 , %11#4 , %11#5 , %11#6 , %11#7 , %11#8 , %11#9 , %11#10 , .ValueIdList ~> .K
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : !seq.clock )
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : i1 ) ~> #KReadCurr %9#3 , %9#4 , %9#5 , %9#6 , %9#7 , %12#3 , %12#4 , %12#5 , %12#6 , %12#7 , %12#8 , .ValueIdList ~> #KHWInstance "Cache" "dcache" ~> #KWriteCurr %11#0 , %11#1 , %11#2 , %11#3 , %11#4 , %11#5 , %11#6 , %11#7 , %11#8 , %11#9 , %11#10 , .ValueIdList ~> .K
           </k>
         </kmap> <kmap>
           <kkey>
             13
           </kkey>
           <k>
-            "hw.instance" ( %arg0 , %arg1 , %10#8 , %10#9 , %10#10 , %11#2 , %11#3 , %11#4 , %11#5 , %11#6 , %11#7 , %11#8 , %11#9 , %11#10 , %arg4 , %arg5 , %arg6 , %arg9 , %arg10 , %arg12 , %arg14 , .ValueIdList ) { "argNames" |-> [ "clock" , "reset" , "io_icache_ar_valid" , "io_icache_ar_bits_addr" , "io_icache_r_ready" , "io_dcache_aw_valid" , "io_dcache_aw_bits_addr" , "io_dcache_w_valid" , "io_dcache_w_bits_data" , "io_dcache_w_bits_last" , "io_dcache_b_ready" , "io_dcache_ar_valid" , "io_dcache_ar_bits_addr" , "io_dcache_r_ready" , "io_nasti_aw_ready" , "io_nasti_w_ready" , "io_nasti_b_valid" , "io_nasti_ar_ready" , "io_nasti_r_valid" , "io_nasti_r_bits_data" , "io_nasti_r_bits_last" , .AttributeValueList ]
-            "instanceName" |-> "arb"
-            "moduleName" |-> @MemArbiter :: .SymbolRefIdList
-            "parameters" |-> [ ]
-            "resultNames" |-> [ "io_icache_ar_ready" , "io_icache_r_valid" , "io_icache_r_bits_data" , "io_dcache_aw_ready" , "io_dcache_w_ready" , "io_dcache_b_valid" , "io_dcache_ar_ready" , "io_dcache_r_valid" , "io_dcache_r_bits_data" , "io_nasti_aw_valid" , "io_nasti_aw_bits_addr" , "io_nasti_w_valid" , "io_nasti_w_bits_data" , "io_nasti_w_bits_last" , "io_nasti_b_ready" , "io_nasti_ar_valid" , "io_nasti_ar_bits_addr" , "io_nasti_r_ready" , .AttributeValueList ]
-            "sv.namehint" |-> "io_nasti_r_ready" } : ( !seq.clock , i1 , i1 , i32 , i1 , i1 , i32 , i1 , i64 , i1 , i1 , i1 , i32 , i1 , i1 , i1 , i1 , i1 , i1 , i64 , i1 , .Types ) -> ( i1 , i1 , i64 , i1 , i1 , i1 , i1 , i1 , i64 , i1 , i32 , i1 , i64 , i1 , i1 , i1 , i32 , i1 , .Types ) ~> #KWriteCurr %12#0 , %12#1 , %12#2 , %12#3 , %12#4 , %12#5 , %12#6 , %12#7 , %12#8 , %12#9 , %12#10 , %12#11 , %12#12 , %12#13 , %12#14 , %12#15 , %12#16 , %12#17 , .ValueIdList ~> .K
-          </k>
-        </kmap> <kmap>
-          <kkey>
-            14
-          </kkey>
-          <k>
-            "hw.output" ( %9#0 , %12#9 , %2 , %12#10 , %3 , %4 , %5 , %6 , %8 , %7 , %8 , %12#11 , %12#12 , %1 , %12#13 , %12#14 , %12#15 , %2 , %12#16 , %3 , %4 , %5 , %6 , %8 , %7 , %8 , %12#17 , .ValueIdList ) { .Map } : ( i32 , i1 , i5 , i32 , i8 , i3 , i2 , i1 , i4 , i3 , i4 , i1 , i64 , i8 , i1 , i1 , i1 , i5 , i32 , i8 , i3 , i2 , i1 , i4 , i3 , i4 , i1 , .Types ) -> ( .Types ) ~> .K
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : !seq.clock )
+            ListItem ( bits ( 0 , 1 ) , .BitsVec : i1 ) ~> #KReadCurr %10#8 , %10#9 , %10#10 , %11#2 , %11#3 , %11#4 , %11#5 , %11#6 , %11#7 , %11#8 , %11#9 , %11#10 , %arg4 , %arg5 , %arg6 , %arg9 , %arg10 , %arg12 , %arg14 , .ValueIdList ~> #KHWInstance "MemArbiter" "arb" ~> #KWriteCurr %12#0 , %12#1 , %12#2 , %12#3 , %12#4 , %12#5 , %12#6 , %12#7 , %12#8 , %12#9 , %12#10 , %12#11 , %12#12 , %12#13 , %12#14 , %12#15 , %12#16 , %12#17 , .ValueIdList ~> .K
           </k>
         </kmap>
       </ks>
@@ -418,45 +344,86 @@
         .Map
       </last>
       <curr>
-        %arg0 |-> bits ( 0 , 1 ) : !seq.clock
-        %arg1 |-> bits ( 0 , 1 ) : i1
-        %arg2 |-> bits ( 0 , 1 ) : i1
-        %arg3 |-> bits ( 0 , 32 ) : i32
-        %arg4 |-> bits ( 0 , 1 ) : i1
-        %arg5 |-> bits ( 0 , 1 ) : i1
-        %arg6 |-> bits ( 0 , 1 ) : i1
-        %arg7 |-> bits ( 0 , 5 ) : i5
-        %arg8 |-> bits ( 0 , 2 ) : i2
-        %arg9 |-> bits ( 0 , 1 ) : i1
-        %arg10 |-> bits ( 0 , 1 ) : i1
-        %arg11 |-> bits ( 0 , 5 ) : i5
-        %arg12 |-> bits ( 0 , 64 ) : i64
-        %arg13 |-> bits ( 0 , 2 ) : i2
-        %arg14 |-> bits ( 0 , 1 ) : i1
+        %0 |-> bits ( 0 , 32 ) , .BitsVec : i32
+        %1 |-> bits ( -1 , 8 ) , .BitsVec : i8
+        %2 |-> bits ( 0 , 5 ) , .BitsVec : i5
+        %3 |-> bits ( 1 , 8 ) , .BitsVec : i8
+        %4 |-> bits ( 3 , 3 ) , .BitsVec : i3
+        %5 |-> bits ( 1 , 2 ) , .BitsVec : i2
+        %6 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %7 |-> bits ( 0 , 3 ) , .BitsVec : i3
+        %8 |-> bits ( 0 , 4 ) , .BitsVec : i4
+        %arg0 |-> bits ( 0 , 1 ) , .BitsVec : !seq.clock
+        %arg1 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg2 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg3 |-> bits ( 0 , 32 ) , .BitsVec : i32
+        %arg4 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg5 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg6 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg7 |-> bits ( 0 , 5 ) , .BitsVec : i5
+        %arg8 |-> bits ( 0 , 2 ) , .BitsVec : i2
+        %arg9 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg10 |-> bits ( 0 , 1 ) , .BitsVec : i1
+        %arg11 |-> bits ( 0 , 5 ) , .BitsVec : i5
+        %arg12 |-> bits ( 0 , 64 ) , .BitsVec : i64
+        %arg13 |-> bits ( 0 , 2 ) , .BitsVec : i2
+        %arg14 |-> bits ( 0 , 1 ) , .BitsVec : i1
       </curr>
       <module>
         "Tile"
       </module>
-      <in>
-        clock |-> %arg0
-        io_host_fromhost_bits |-> %arg3
-        io_host_fromhost_valid |-> %arg2
-        io_nasti_ar_ready |-> %arg9
-        io_nasti_aw_ready |-> %arg4
-        io_nasti_b_bits_id |-> %arg7
-        io_nasti_b_bits_resp |-> %arg8
-        io_nasti_b_valid |-> %arg6
-        io_nasti_r_bits_data |-> %arg12
-        io_nasti_r_bits_id |-> %arg11
-        io_nasti_r_bits_last |-> %arg14
-        io_nasti_r_bits_resp |-> %arg13
-        io_nasti_r_valid |-> %arg10
-        io_nasti_w_ready |-> %arg5
-        reset |-> %arg1
-      </in>
-      <out>
-        .Map
-      </out>
+      <in-ports>
+        ListItem ( clock : !seq.clock )
+        ListItem ( reset : i1 )
+        ListItem ( io_host_fromhost_valid : i1 )
+        ListItem ( io_host_fromhost_bits : i32 )
+        ListItem ( io_nasti_aw_ready : i1 )
+        ListItem ( io_nasti_w_ready : i1 )
+        ListItem ( io_nasti_b_valid : i1 )
+        ListItem ( io_nasti_b_bits_id : i5 )
+        ListItem ( io_nasti_b_bits_resp : i2 )
+        ListItem ( io_nasti_ar_ready : i1 )
+        ListItem ( io_nasti_r_valid : i1 )
+        ListItem ( io_nasti_r_bits_id : i5 )
+        ListItem ( io_nasti_r_bits_data : i64 )
+        ListItem ( io_nasti_r_bits_resp : i2 )
+        ListItem ( io_nasti_r_bits_last : i1 )
+      </in-ports>
+      <in-vars>
+        %arg0 : !seq.clock , %arg1 : i1 , %arg2 : i1 , %arg3 : i32 , %arg4 : i1 , %arg5 : i1 , %arg6 : i1 , %arg7 : i5 , %arg8 : i2 , %arg9 : i1 , %arg10 : i1 , %arg11 : i5 , %arg12 : i64 , %arg13 : i2 , %arg14 : i1 , .ValueIdAndTypeList
+      </in-vars>
+      <out-ports>
+        ListItem ( io_host_tohost : i32 )
+        ListItem ( io_nasti_aw_valid : i1 )
+        ListItem ( io_nasti_aw_bits_id : i5 )
+        ListItem ( io_nasti_aw_bits_addr : i32 )
+        ListItem ( io_nasti_aw_bits_len : i8 )
+        ListItem ( io_nasti_aw_bits_size : i3 )
+        ListItem ( io_nasti_aw_bits_burst : i2 )
+        ListItem ( io_nasti_aw_bits_lock : i1 )
+        ListItem ( io_nasti_aw_bits_cache : i4 )
+        ListItem ( io_nasti_aw_bits_prot : i3 )
+        ListItem ( io_nasti_aw_bits_qos : i4 )
+        ListItem ( io_nasti_w_valid : i1 )
+        ListItem ( io_nasti_w_bits_data : i64 )
+        ListItem ( io_nasti_w_bits_strb : i8 )
+        ListItem ( io_nasti_w_bits_last : i1 )
+        ListItem ( io_nasti_b_ready : i1 )
+        ListItem ( io_nasti_ar_valid : i1 )
+        ListItem ( io_nasti_ar_bits_id : i5 )
+        ListItem ( io_nasti_ar_bits_addr : i32 )
+        ListItem ( io_nasti_ar_bits_len : i8 )
+        ListItem ( io_nasti_ar_bits_size : i3 )
+        ListItem ( io_nasti_ar_bits_burst : i2 )
+        ListItem ( io_nasti_ar_bits_lock : i1 )
+        ListItem ( io_nasti_ar_bits_cache : i4 )
+        ListItem ( io_nasti_ar_bits_prot : i3 )
+        ListItem ( io_nasti_ar_bits_qos : i4 )
+        ListItem ( io_nasti_r_ready : i1 )
+      </out-ports>
+      <out-vars>
+        %9#0 , %12#9 , %2 , %12#10 , %3 , %4 , %5 , %6 , %8 , %7 , %8 , %12#11 , %12#12 , %1 , %12#13 , %12#14 , %12#15 , %2 , %12#16 , %3 , %4 , %5 , %6 , %8 , %7 , %8 , %12#17 , .ValueIdList
+      </out-vars>
       <reg>
         .Map
       </reg>
@@ -464,53 +431,15 @@
         .Map
       </wire>
       <hw>
-        <hw-ins>
-          ListItem ( clock : !seq.clock )
-          ListItem ( reset : i1 )
-          ListItem ( io_host_fromhost_valid : i1 )
-          ListItem ( io_host_fromhost_bits : i32 )
-          ListItem ( io_nasti_aw_ready : i1 )
-          ListItem ( io_nasti_w_ready : i1 )
-          ListItem ( io_nasti_b_valid : i1 )
-          ListItem ( io_nasti_b_bits_id : i5 )
-          ListItem ( io_nasti_b_bits_resp : i2 )
-          ListItem ( io_nasti_ar_ready : i1 )
-          ListItem ( io_nasti_r_valid : i1 )
-          ListItem ( io_nasti_r_bits_id : i5 )
-          ListItem ( io_nasti_r_bits_data : i64 )
-          ListItem ( io_nasti_r_bits_resp : i2 )
-          ListItem ( io_nasti_r_bits_last : i1 )
-        </hw-ins>
-        <hw-outs>
-          ListItem ( io_host_tohost : i32 )
-          ListItem ( io_nasti_aw_valid : i1 )
-          ListItem ( io_nasti_aw_bits_id : i5 )
-          ListItem ( io_nasti_aw_bits_addr : i32 )
-          ListItem ( io_nasti_aw_bits_len : i8 )
-          ListItem ( io_nasti_aw_bits_size : i3 )
-          ListItem ( io_nasti_aw_bits_burst : i2 )
-          ListItem ( io_nasti_aw_bits_lock : i1 )
-          ListItem ( io_nasti_aw_bits_cache : i4 )
-          ListItem ( io_nasti_aw_bits_prot : i3 )
-          ListItem ( io_nasti_aw_bits_qos : i4 )
-          ListItem ( io_nasti_w_valid : i1 )
-          ListItem ( io_nasti_w_bits_data : i64 )
-          ListItem ( io_nasti_w_bits_strb : i8 )
-          ListItem ( io_nasti_w_bits_last : i1 )
-          ListItem ( io_nasti_b_ready : i1 )
-          ListItem ( io_nasti_ar_valid : i1 )
-          ListItem ( io_nasti_ar_bits_id : i5 )
-          ListItem ( io_nasti_ar_bits_addr : i32 )
-          ListItem ( io_nasti_ar_bits_len : i8 )
-          ListItem ( io_nasti_ar_bits_size : i3 )
-          ListItem ( io_nasti_ar_bits_burst : i2 )
-          ListItem ( io_nasti_ar_bits_lock : i1 )
-          ListItem ( io_nasti_ar_bits_cache : i4 )
-          ListItem ( io_nasti_ar_bits_prot : i3 )
-          ListItem ( io_nasti_ar_bits_qos : i4 )
-          ListItem ( io_nasti_r_ready : i1 )
-        </hw-outs>
+        <hw-inner-sym>
+          .Map
+        </hw-inner-sym>
       </hw>
     </ckt>
   </ckts>
+  <hw-g>
+    <hw-unused>
+      .Map
+    </hw-unused>
+  </hw-g>
 </circt>
