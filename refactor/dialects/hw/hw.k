@@ -136,16 +136,18 @@ module HW
     <k> "hw.array_concat" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
          => #KReadCurr Vs ~> #HWArrayConcat T ... </k>
     syntax KmdCIRCT ::= "#HWArrayConcat" Type
+    
     rule <k> TVs:StdValues ~> #HWArrayConcat T => StdValues2Bits(TVs):T ... </k>
     // ## hw.array_create
+    
     rule
     <k> "hw.array_create" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
          => #KReadCurr Vs ~> #HWArrayCreate T ... </k>
     syntax KmdCIRCT ::= "#HWArrayCreate" Type
+    
     rule <k> TVs:StdValues ~> #HWArrayCreate T => StdValues2Bits(TVs):T ... </k>
     // ## hw.array_get
-    rule
-    <k> "hw.array_get" ( A:ValueId, I:ValueId ) { _:Map } : ( _:Types ) -> ( T:Type )
+    rule <k> "hw.array_get" ( A:ValueId, I:ValueId ) { _:Map } : ( _:Types ) -> ( T:Type )
          => #KReadCurr A ~> #KReadCurr I ~> #HWArrayGet T ... </k>
     syntax KmdCIRCT ::= "#HWArrayGet" Type
     rule <k> (V:_):StdValue ~> (Idx,.BitsVec:_):StdValue ~> #HWArrayGet T => V ~> Bits2Int(Idx) ~> #HWArrayGet T ... </k>
