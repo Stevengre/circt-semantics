@@ -46,6 +46,11 @@ module COMMON-HELPER
     syntax Bits ::= StdValues2Bits ( StdValues ) [function]
     rule StdValues2Bits( .StdValues ) => bits(0,0)
     rule StdValues2Bits( (bits(V,S):BitValue) , Vs:StdValues ) => bits(V,S) concatBits StdValues2Bits(Vs)
+
+    syntax BitsVec ::= StdValues2BitsVec ( StdValues ) [function]
+    rule StdValues2BitsVec( .StdValues ) => .BitsVec
+    rule StdValues2BitsVec( bits(V,S) , Vs:StdValues ) => bits(V,S), StdValues2BitsVec(Vs)
+
 endmodule
 
 module COMMON
