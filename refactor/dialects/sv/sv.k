@@ -1,3 +1,8 @@
+module UTILS
+    syntax Value ::= typeCast(Value, Type, Type) [function]
+
+endmodule
+
 module SV
     imports CONFIGURATION
     imports CIRCT-SYNTAX
@@ -26,101 +31,78 @@ module SV
     rule <k> #SvRelease X:ValueId => . ... </k>
         <force> M:Map => M [X <- undef] </force>
 
-
-    // ------------------ todo -------------------
-
-    // sv.struct_field_inout
-    rule <k> circt </k>
-        <circt-exec>
-            (.K => V [String2BareId({Attr[#token("field", "BareId")]}:>String)]) ~>
-            "sv.struct_field_inout" ( X:Var ) { Attr:Map } : ( !hw.inout < struct < Fs:StructFields > > ) -> ( !hw.inout < _T:IntegerType > )
-            ...
-        </circt-exec>
-        <circt-locals>
-            ... 
-            X |-> TV(!hw.inout < !hw.struct < Fs:StructFields > >, hw.inout(_:String, !hw.struct < Fs:StructFields >, V:Map))
-            ...
-        </circt-locals>
     
-    rule <k> circt </k>
-        <circt-exec>
-            V:Value ~>
-            "sv.struct_field_inout" ( _:Var ) { _:Map } : ( !hw.inout < struct < _:StructFields > > ) -> ( !hw.inout < T:IntegerType > )
-            => ListItem( TV(!hw.inout < T >, hw.inout("", T, V)) )
+    // sv.struct_field_inout
+    rule <k>
+            "sv.struct_field_inout" ( X:ValueId ) { Attr:Map } : ( !hw.inout < struct < Fs:StructFields > > ) -> ( !hw.inout < _T:IntegerType > )
+            ~> #KReadCurr X ~> Attr[#token("field", "BareId")] ~> #SvStructFieldInout
             ...
-        </circt-exec>
+        </k>
+    
+    rule <k> V:Bits : !hw.inout < T:HwStructType > ~> Field:BareID ~> #SvStructFieldInout
+            => BitsSlice(V, HwStructFindFieldOffs(T, Field), HwStructGetFieldSize(T, Field)) : !hw.inout < HwStructGetFieldType(T, Field) >
+            ...
+        </k>
 
 
     // sv.array_index_inout
-    rule <k> circt </k>
-        <circt-exec>
-            "sv.array_index_inout" ( Arr:Var , Index:Var ) { .Map } : ( !hw.inout < array < Size:ArraySizePrefix T1:IntegerType > > , T2:Type ) -> ( !hw.inout < T1:IntegerType > )
-            => ListItem(TV( !hw.inout < T1 > , hw.inout("", T1, HwArrayGet(V1, V2)) ))
+     rule <k>
+            "sv.array_index_inout" ( Vs:ValueIdList ) { .Map } : ( !hw.inout < array < Size:ArraySizePrefix T1:IntegerType > > , T2:Type ) -> ( !hw.inout < T1:IntegerType > )
+            => #KReadCurr Vs ~> #SvArrayIndexInout
             ...
-        </circt-exec>
-        <circt-locals>
-            ... 
-            Arr |-> TV(!hw.inout < !hw.array < Size T1 > >, hw.inout(_:String, !hw.array < Size T1 >, V1:HwArray))
-            Index |-> TV(T2, V2:Int)
+        </k>
+    
+    rule <k> V:Bits : !hw.inout < !hw.array < Size T:Type > > , Index:StdValue ~> #SvArrayIndexInout
+            => BitsSlice(V, StdValue2Int(Index) *Int getWidth(T), getWidth(T)) : !hw.inout < T:Type >
             ...
-        </circt-locals>
+        </k>
+
+    // sv.readmem
+    rule <k>
+            "sv.readmem" ( X:ValueId ) { Attr:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
+            => 
+                Attr[#token("base", "BareId")] 
+                ~> Attr[#token("filename", "BareId")] 
+                ~> #SvReadmem
+                ~> #KUpdateCurr X
+            ...
+        </k>
+
+    rule <k> Base:Int ~> (Filename:String => #open(FileName)) ~> #KSvReadmem ... </k>
+    
+    rule <k> (Base:Int 
+            => #if Base ==Int 0 
+                #then #read(Fd, getWidth(T)) 
+                #else #read(Fd, getWidth(T) /Int 4)  
+                #fi)
+            ~> Fd:Int ~> #KSvReadmem 
+            ...
+        </k>
+    
+    rule <k> (Data:String => String2StdValue(Data))
+            ~> (Fd:Int ~> #KSvReadmem => #if #close(Fd) #then .K #else .K #fi)
+            ...
+        </k>
 
     
-    // sv.readmem, read data from file
-    rule <k> circt </k>
-        <circt-exec>
-            (.K => Attr[#token("base", "BareId")]) ~>
-            (.K => Attr[#token("filename", "BareId")]) ~>
-            "sv.readmem" ( _:Var ) { Attr:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
+    // sv.assert
+    rule <k>
+            "sv.assert" ( X:Var ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
+            => #KReadCurr X ~> #SvAssert
             ...
-        </circt-exec>
+        </k>
     
-    rule <k> circt </k>
-        <circt-exec>
-            (.K => #open(FileName)) ~>
-            (_:Int : _:IntegerType):BuiltinAttribute ~>
-            FileName:String ~>
-            "sv.readmem" ( _:Var ) { _:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
-            ...
-        </circt-exec>
-    
-    rule <k> circt </k>
-        <circt-exec>
-            (.K => #if Base ==Int 0 
-                #then #read(Fd, getWidth(T)) 
-                #else #read(Fd, getWidth(T) /Int 4)  #fi
-            ) ~>
-            Fd:Int ~>
-            (Base:Int : _:IntegerType):BuiltinAttribute ~>
-            _:String ~>
-            "sv.readmem" ( _:Var ) { _:Map } : ( !hw.inout < T:IntegerType > ) -> ( .Types )
-            ...
-        </circt-exec>
-    
-    rule <k> circt </k>
-        <circt-exec>
-            (
-                Mem:String ~> Fd:Int ~>
-                (_Base:Int : _:IntegerType):BuiltinAttribute ~>
-                _:String
-                => #close(Fd) ~> "fd closed"
-            ) ~> 
-            "sv.readmem" ( X:Var ) { _:Map } : ( !hw.inout < T:IntegerType > ) -> ( .Types )
-            ...
-        </circt-exec>
-        <circt-locals>
+    rule <k> V:StdValue ~> #SvAssert 
+            => #if StdValue2Int(V) ==Int 0 
+                #then "assertion error" 
+                #else .K
+                #if // .K or a empty list?
             ... 
-            X |-> TV(!hw.inout < T >, hw.inout(_:String, T, _ => String2Int(Mem)))
-            ...
-        </circt-locals>
-    
-     rule <k> circt </k>
-        <circt-exec>
-            "fd closed" ~> 
-            "sv.readmem" ( _:Var ) { _:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
-            => .List
-            ...
-        </circt-exec>
+        </k>
+        
+
+    // ------------------ todo -------------------
+
         
 
     // sv.generate.case
@@ -226,28 +208,6 @@ module SV
         </circt-exec>
 
 
-    // sv.assert
-    rule <k> circt </k>
-        <circt-exec>
-            (.K => #if V ==Int 0 #then false #else true #fi) ~>
-            "sv.assert" ( X:Var ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
-            ...
-        </circt-exec>
-        <circt-locals>
-            ... 
-            X |-> TV(#token("i1", "SignlessIntegerType"), V:Int)
-            ...
-        </circt-locals>
-    
-    rule <k> circt </k>
-        <circt-exec>
-            B:Bool ~> 
-            "sv.assert" ( _:Var ) { _:Map } : ( _:Type ) -> ( .Types )
-            => #if B #then .List #else stop ~> "assertion error" #fi
-            ...
-        </circt-exec>
-
-    
     // sv.assume
     rule <k> circt </k>
         <circt-exec>

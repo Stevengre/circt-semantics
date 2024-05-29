@@ -15,41 +15,14 @@ module COMMON-HELPER
 
     // # Execute a CIRCT Command
     syntax CmdCIRCT ::= "#CIRCTpreprocess" // Do nothing, but just preprocess
-                      | "#CIRCThalt" String
+                    | "#CIRCThalt" String
     // # Effect Handlers used in <k>
     syntax KmdCIRCT ::= "#Khalt" String
-                      | "#KReadCurr" ValueIdList // Read the value from the current state
-                      | "#KWriteCurr" ValueIdList // Write the value to the current state
+                    | "#KReadCurr" ValueIdList // Read the value from the current state
+                    | "#KWriteCurr" ValueIdList // Write the value to the current state
 
-    syntax StdValue ::= Bits ":" Type
-    syntax StdValues ::= List{StdValue, ","}
-
-    // # AttributeValue 2 Bits
-    syntax Bits ::= AttributeValue2Bits ( AttributeValue, Type ) [function]
-    rule AttributeValue2Bits(V,T) => bits(AttributeValue2BitValue(V), Type2BitSize(T)) [owise]
-    syntax BitValue ::= AttributeValue2BitValue ( AttributeValue ) [function]
-    rule AttributeValue2BitValue( AV:AttributeValue ) => {AV}:>BitValue [owise]
-    rule AttributeValue2BitValue( V:IntegerLiteral : _:IntegerType ) => {V}:>BitValue
-    rule AttributeValue2BitValue( V:IntegerLiteral : _:IndexType ) => {V}:>BitValue
-    rule AttributeValue2BitValue( true ) => {1}:>BitValue
-    rule AttributeValue2BitValue( false ) => {0}:>BitValue
     syntax Int ::= Type2BitSize ( Type ) [function]
-    // ## Get BitSize from BuiltinType
     rule Type2BitSize( T:IntegerType ) => getIntegerTypeSize(T)
-    // ## If failed, it maybe caused by the uncovered types for Type2BitSize
-    
-    // # List 2
-    syntax StdValues ::= List2StdValues ( List ) [function]
-    rule List2StdValues( .List ) => .StdValues
-    rule List2StdValues( ListItem(V:StdValue) L:List ) => V , List2StdValues(L)
-    // # StdValues 2
-    syntax Bits ::= StdValues2Bits ( StdValues ) [function]
-    rule StdValues2Bits( .StdValues ) => bits(0,0)
-    rule StdValues2Bits( (bits(V,S):BitValue) , Vs:StdValues ) => bits(V,S) concatBits StdValues2Bits(Vs)
-
-    syntax BitsVec ::= StdValues2BitsVec ( StdValues ) [function]
-    rule StdValues2BitsVec( .StdValues ) => .BitsVec
-    rule StdValues2BitsVec( bits(V,S) , Vs:StdValues ) => bits(V,S), StdValues2BitsVec(Vs)
 
 endmodule
 
