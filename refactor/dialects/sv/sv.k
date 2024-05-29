@@ -1,6 +1,8 @@
 module UTILS
     syntax Value ::= typeCast(Value, Type, Type) [function]
 
+    rule <k> #KSkip (N:Int => N -Int 1) ~> (_ => .K) ... </k> requires N >Int 0
+    rule <k> #KSkip 0 => .K ... </k>
 endmodule
 
 module SV
@@ -97,6 +99,22 @@ module SV
                 #then "assertion error" 
                 #else .K
                 #if // .K or a empty list?
+            ... 
+        </k>
+
+    
+    // sv.assert.concurrent
+    rule <k>
+            "sv.assert.concurrent" ( Clk:ValueId , Cond:ValueId ) { Attr:Map } : ( _:Type , _:Type ) -> ( .Types )
+            => Attr[#token("event", "BareId")] ~> #KEventCheck Clk ~> #KReadCurr Cond ~> #SvAssert
+            ...
+        </K>
+
+    rule <k> Attr[#token("event", "BareId")] ~> #KEventCheck Clk 
+            => #if true // todo
+                #then .K
+                #else #KSkip 2
+                #fi
             ... 
         </k>
         
