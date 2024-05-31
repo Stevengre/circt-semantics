@@ -8,9 +8,9 @@ module BITS
     syntax ConstX ::= "#x" [token]
     syntax ConstZ ::= "#z" [token]
 
-    syntax BitValue ::= Int | ConstX | ConstZ
+    syntax BitsValue ::= Int | ConstX | ConstZ
 
-    syntax Bits ::= "bits" "(" BitValue "," Int ")"
+    syntax Bits ::= "bits" "(" BitsValue "," Int ")"
 
     syntax BitsVec ::= List{Bits, ","}
 
@@ -56,11 +56,11 @@ module BITS
                   | isNeg(Int, Int) [function]
                   | isPos(Int, Int) [function]
 
-    syntax BitValue ::= Bits2Int(Bits)           [function]
-                      | Bits2UInt(Bits)          [function]
-                      | Int "mask" Int           [function]
-                      | IntComplement(Int, Int)  [function]
-                      | BitsParity(Bits)         [function]
+    syntax BitsValue ::= Bits2Int(Bits)           [function]
+                       | Bits2UInt(Bits)          [function]
+                       | Int "mask" Int           [function]
+                       | IntComplement(Int, Int)  [function]
+                       | BitsParity(Bits)         [function]
 
     rule X:Int mask W:Int => X &Int (2 ^Int W -Int 1)
 

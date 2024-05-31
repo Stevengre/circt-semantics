@@ -66,6 +66,24 @@ module COMB
     // syntax ValueList ::= List{Value, ","}
 
     syntax KmdCIRCT ::= #CombAdd
+                      | #CombAnd
+                      | #CombOr
+                      | #CombXor
+                      | #CombMul
+                      | #CombExtract
+                      | #CombReplicate
+                      | #CombShrs
+                      | #CombShru 
+                      | #CombShl
+                      | #CombConcat
+                      | #CombDivs
+                      | #CombDivu
+                      | #CombMods
+                      | #CombModu
+                      | #CombSub
+                      | #CombParity
+                      | #CombMux
+                      | #CombIcmp 
 
     // comb.add
     rule <k> 
