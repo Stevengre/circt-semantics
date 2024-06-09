@@ -76,26 +76,43 @@ module COMMON
     syntax KmdCIRCT ::= "#KClockFinish" | "#KFinish"
     // - Return Values to the parent circuit
     syntax KmdCIRCT ::= "#KCallBack" String
-    rule 
-    <ks> <kmap> <kkey> _ </kkey> <k> #KClockFinish => .K ... </k> </kmap></ks>
-    <clock> I:Int => I +Int 1 </clock>
+    
+    rule <ks>
+            <kmap>
+                <kkey> _ </kkey>
+                <k> #KClockFinish => .K ... </k> 
+            </kmap>
+        </ks>
+        <clock> I:Int => I +Int 1 </clock>
     // todo: #CIRCTinitOp 以结束 和 #KinitOp 以 #KFinish结束
+
     rule
-    <ks> <kmap> <kkey> _ </kkey> <k> #KFinish => #KReadOuts ~> #KFinish ... </k> </kmap> </ks>
+        <ks> 
+            <kmap>
+                <kkey> _ </kkey>
+                <k> #KFinish => #KReadOuts ~> #KFinish ... </k>
+            </kmap>
+        </ks>
+   
     rule
-    <ckt>
-     <cid> CID </cid>
-     <ks> <kmap> <kkey> _ </kkey> <k> TVs:StdValues ~> #KFinish => .K ... </k> </kmap> </ks>
-     <curr> CURR => .Map </curr>
-     <last> _ => CURR </last>
-     <parent> FID </parent>
-     ...
-    </ckt>
-    <ckt>
-     <cid> FID </cid>
-     <k> #KCallBack CID => TVs ... </k>
-     ...
-    </ckt>
+        <ckt>
+            <cid> CID </cid>
+            <ks> 
+                <kmap> 
+                    <kkey> _ </kkey> 
+                    <k> TVs:StdValues ~> #KFinish => .K ... </k>
+                </kmap>
+            </ks>
+            <curr> CURR => .Map </curr>
+            <last> _ => CURR </last>
+            <parent> FID </parent>
+            ...
+        </ckt>
+        <ckt>
+            <cid> FID </cid>
+            <k> #KCallBack CID => TVs ... </k>
+            ...
+        </ckt>
 
     // # Stimuate a circuit with arguments
     syntax CmdCIRCT ::= "#CIRCTstimulate" SymbolRefId "(" AttributeValueList ")"
