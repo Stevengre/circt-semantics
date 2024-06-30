@@ -1,4 +1,4 @@
-requires "../mlir.k"
+requires "./mlir.k"
 
 module BUILTIN-SYNTAX 
     imports MLIR-SYNTAX
@@ -15,8 +15,7 @@ module BUILTIN-SYNTAX
                        | "[" AttributeValueList "]"
     
     syntax AttributeValueList ::= List{AttributeValue, ","}
-    // syntax AttributeValueList ::= AttributeValue 
-                                // | AttributeValue "," AttributeValueList
+    
     // DenseArrayAttr
     syntax BuiltinArray ::= "array" "<" IntegerType ">"
                           | "array" "<" ArraySizePrefix IntegerType ">" // diff from official
@@ -40,7 +39,7 @@ module BUILTIN-SYNTAX
     syntax BuiltinAttribute ::= "dense_resource" "<" ResourceHandle ">" ":" ShapedType
     // DenseStringElementsAttr
     syntax BuiltinAttribute ::= "dense" "<" AttributeValue ">" ":" TensorType
-                                | "dense" "<" AttributeValue ">" ":" VectorType
+                              | "dense" "<" AttributeValue ">" ":" VectorType
     // DictionaryAttr
     syntax BuiltinAttribute ::= DictionaryAttribute
     // FloatAttr
@@ -214,7 +213,8 @@ endmodule
 
 module BUILTIN-HELPER
     imports BUILTIN-SYNTAX
-    imports MLIR
+    imports MLIR-CONF
+
     syntax Int ::= getIntegerTypeSize (IntegerType) [function]
     rule getIntegerTypeSize (T:SignedIntegerType) => String2Int(substrString(IntegerType2String(T), 2, lengthString(IntegerType2String(T))))
     rule getIntegerTypeSize (T:UnsignedIntegerType) => String2Int(substrString(IntegerType2String(T), 2, lengthString(IntegerType2String(T))))
@@ -226,17 +226,25 @@ module BUILTIN-HELPER
     rule IntegerType2String(SI:SignedIntegerType) => SignedIntegerType2String(SI)
     rule IntegerType2String(II:UnsignedIntegerType) => UnsignedType2String(II)
     rule IntegerType2String(LI:SignlessIntegerType) => SignlessIntegerType2String(LI)
+
+    syntax String ::= "IntType2String" "(" IntegerType ")" [function]
+    rule IntType2String(SI:SignedIntegerType) => SignedIntegerType2String(SI)
+    rule IntType2String(II:UnsignedIntegerType) => UnsignedType2String(II)
+    rule IntType2String(LI:SignlessIntegerType) => SignlessIntegerType2String(LI)
+
+    syntax Int ::= getWidth(Type) [function]
+    rule getWidth(T:IntegerType) => String2Int(substrString(IntType2String(T), 1, lengthString(IntType2String(T))))
 endmodule
 
 module BUILTIN
     imports BUILTIN-SYNTAX
     imports BUILTIN-HELPER
-    imports MLIR
+    // imports MLIR
 
     // ------------------------- Operations ------------------------- //
-    // # builtin.module
-    rule <phase> #canonicalized => #preprocess </phase>
-         <prog> Op:Operation P:TopLevel => P </prog>
-         <table> M:Map => M GetSymbolTable(getRegions(Op), ListItem(getAttr(Op, "sym_name"))) </table>
-         requires getOpName(Op) ==K "builtin.module"
+    // builtin.module
+    // rule <phase> #canonicalized => #preprocess </phase>
+    //     <prog> Op:Operation P:TopLevel => P </prog>
+    //     <table> M:Map => M GetSymbolTable(getRegions(Op), ListItem(getAttr(Op, "sym_name"))) </table>
+    //     requires getOpName(Op) ==K "builtin.module"
 endmodule

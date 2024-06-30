@@ -40,10 +40,6 @@ module CIRCT-SYNTAX-CORE
     rule IntType2String(II:UnsignedIntegerType) => UnsignedType2String(II)
     rule IntType2String(LI:SignlessIntegerType) => SignlessIntegerType2String(LI)
     
-    syntax Int ::= getWidth(Type) [function]
-
-    rule getWidth(T:IntegerType) => String2Int(substrString(IntType2String(T), 1, lengthString(IntType2String(T))))
-
     syntax Values ::= List2Values(List) [function]
     rule List2Values(ListItem(V:Value) L:List) => V, List2Values(L)
     rule List2Values(.List) => .Values

@@ -1,14 +1,19 @@
+module BITS-SYNTAX
+endmodule
+
 module BITS
     imports INT
     imports BOOL
     imports K-EQUAL
     imports LIST
-    imports CIRCT-SYNTAX
+    imports BITS-SYNTAX
 
     syntax ConstX ::= "#x" [token]
     syntax ConstZ ::= "#z" [token]
 
     syntax BitsValue ::= Int | ConstX | ConstZ
+
+    syntax Value ::= BitsValue
 
     syntax Bits ::= "bits" "(" BitsValue "," Int ")"
 
@@ -227,7 +232,7 @@ module BITS
     rule BitsParity(bits(_X:Int, _W:Int):Bits) => 0 [owise]
 
     // bits mask
-    rule BitsMask(bits(B:Int, S), NewS:Int, O:Int) => bits(B &Int ((2 ^Int NewS -Int 1) <<Int O), NewS)
+    rule BitsMask(bits(B:Int, _),    NewS:Int, O:Int) => bits(B &Int ((2 ^Int NewS -Int 1) <<Int O), NewS)
     rule BitsMask(bits(B:ConstX, _), NewS:Int, _:Int) => bits(B, NewS)
     rule BitsMask(bits(B:ConstZ, _), NewS:Int, _:Int) => bits(B, NewS)
 

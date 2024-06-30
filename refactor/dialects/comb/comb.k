@@ -1,7 +1,12 @@
-requires "bits.k"
-// requires "circt-conf.k"
+requires "../../circt/circt.k"
+
+module COMB-SYNTAX
+    imports CIRCT
+endmodule
+
 
 module COMB-HELPER
+    imports COMB-SYNTAX
 
     syntax Bool ::= icmp(Int, Int, Int) [function]
                   | icmp(Int, Bits, Bits) [function]
@@ -57,33 +62,32 @@ endmodule
 
 
 module COMB
-    imports CIRCT-SYNTAX
-    imports BITS
+    imports COMB-HELPER
     imports MAP
 
     // syntax Value ::= Bits
     // syntax Value ::= AttributeValue
     // syntax ValueList ::= List{Value, ","}
 
-    syntax KmdCIRCT ::= #CombAdd
-                      | #CombAnd
-                      | #CombOr
-                      | #CombXor
-                      | #CombMul
-                      | #CombExtract
-                      | #CombReplicate
-                      | #CombShrs
-                      | #CombShru 
-                      | #CombShl
-                      | #CombConcat
-                      | #CombDivs
-                      | #CombDivu
-                      | #CombMods
-                      | #CombModu
-                      | #CombSub
-                      | #CombParity
-                      | #CombMux
-                      | #CombIcmp 
+    syntax KmdCIRCT ::= "#CombAdd"
+                      | "#CombAnd"
+                      | "#CombOr"
+                      | "#CombXor"
+                      | "#CombMul"
+                      | "#CombExtract"
+                      | "#CombReplicate"
+                      | "#CombShrs"
+                      | "#CombShru "
+                      | "#CombShl"
+                      | "#CombConcat"
+                      | "#CombDivs"
+                      | "#CombDivu"
+                      | "#CombMods"
+                      | "#CombModu"
+                      | "#CombSub"
+                      | "#CombParity"
+                      | "#CombMux"
+                      | "#CombIcmp "
 
     // comb.add
     rule <k> 

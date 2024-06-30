@@ -1,6 +1,5 @@
 module SV
-    imports CONFIGURATION
-    imports CIRCT-SYNTAX
+    imports CIRCT
     imports K-IO
 
     syntax KmdCIRCT ::= #SvForce

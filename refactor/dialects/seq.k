@@ -1,4 +1,5 @@
 requires "../circt/common.k"
+
 module SEQ-SYNTAX
     imports COMMON-SYNTAX
     syntax DialectType ::= SEQFirmemType | SEQClockType

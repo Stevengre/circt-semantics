@@ -22,9 +22,9 @@ module HW-ARRAY
     rule HwArraySize(!hw.array < S:ArraySizePrefix _:Type >)
         => String2Int(substrString(ArraySizePrefix2String(S), 0, lengthString(ArraySizePrefix2String(S)) -Int 1))
 
-    syntax List ::= toList(Values) [function]
-    rule toList(V:Value, Vs:Values) => ListItem(V) toList(Vs)
-    rule toList(.Values) => .List
+    // syntax List ::= toList(Values) [function]
+    // rule toList(V:Value, Vs:Values) => ListItem(V) toList(Vs)
+    // rule toList(.Values) => .List
 
     syntax Values ::= ValuesFromList(List) [function]
     rule ValuesFromList(ListItem(V:Value) L:List) => V, ValuesFromList(L)
