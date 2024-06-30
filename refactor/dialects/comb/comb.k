@@ -1,7 +1,27 @@
 requires "../../circt/circt.k"
 
 module COMB-SYNTAX
-    imports CIRCT
+    imports CIRCT-SYNTAX
+
+    syntax KmdCIRCT ::= "#CombAdd"
+                      | "#CombAnd"
+                      | "#CombOr"
+                      | "#CombXor"
+                      | "#CombMul"
+                      | "#CombExtract"
+                      | "#CombReplicate"
+                      | "#CombShrs"
+                      | "#CombShru "
+                      | "#CombShl"
+                      | "#CombConcat"
+                      | "#CombDivs"
+                      | "#CombDivu"
+                      | "#CombMods"
+                      | "#CombModu"
+                      | "#CombSub"
+                      | "#CombParity"
+                      | "#CombMux"
+                      | "#CombIcmp"
 endmodule
 
 
@@ -69,26 +89,6 @@ module COMB
     // syntax Value ::= AttributeValue
     // syntax ValueList ::= List{Value, ","}
 
-    syntax KmdCIRCT ::= "#CombAdd"
-                      | "#CombAnd"
-                      | "#CombOr"
-                      | "#CombXor"
-                      | "#CombMul"
-                      | "#CombExtract"
-                      | "#CombReplicate"
-                      | "#CombShrs"
-                      | "#CombShru "
-                      | "#CombShl"
-                      | "#CombConcat"
-                      | "#CombDivs"
-                      | "#CombDivu"
-                      | "#CombMods"
-                      | "#CombModu"
-                      | "#CombSub"
-                      | "#CombParity"
-                      | "#CombMux"
-                      | "#CombIcmp "
-
     // comb.add
     rule <k> 
             "comb.add" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( _:Type )
@@ -135,7 +135,7 @@ module COMB
     // comb.extract
     rule <k> 
             "comb.extract" (V:ValueId) {_:Map} : ( _:Types ) -> ( T:Type )
-            => #KReadCurr A ~> T ~> #CombExtract ...
+            => #KReadCurr A ~> T ~> #CombExtract
             ...
         </k>
 

@@ -38,10 +38,19 @@ module COMMON-SYNTAX
 
     syntax Ref ::= "#OutPortRef" "(" String "," Int ")"
                  | "#InPortRef" "(" String "," ValueId ")"
-                 | "ValueRef" "(" String "," ValueId ")"
+                 | "#ValueRef" "(" String "," ValueId ")"
+                 | "#ArgRef" "(" Int ")"
 
     
     syntax KmdCIRCT ::= "#HwInstance"
+                      | "#SvPassign"
+
+    syntax KmdCIRCT ::= "#done"
+    
+    syntax CmdCIRCT ::= "#bootstrap"
+                      | "#initial"
+                      | "#always"
+                      | "end"
 endmodule
 
 
@@ -127,8 +136,7 @@ module COMMON
     imports COMMON-HELPER
     imports CIRCT-CONF
     imports HW-INOUT-SYNTAX
-
-    // # Phase Change: preprocess 2 toStimulate
+    imports COMB-SYNTAX
 
 
     rule <phase> #preprocess => #toStimulate </phase>
@@ -183,49 +191,10 @@ module COMMON
     
     // - first stimulation
     rule <phase> #toStimulate </phase>
-        <cmd> #CIRCTstimulate ID:SymbolRefId ( Vs:AttributeValueList ) 
-            => #CirctGetOp ID ~> #CIRCTrefineOp 
-            ~> #CIRCTinitOp SymbolRefId2String(ID) ( Vs )
-            ...
-        </cmd>
+        <cmd> .K => #CirctGetOp ID ~> #CIRCTrefineOp ~> SymbolRefId2String(ID) ~> #bootstrap ~> #initial ~> #always </cmd>
+        <entry> ID:SymbolRefId </entry>
         // [owise]
-
-    // rule <k> #Kstimulate ModuleName ( TVs ) by FID as CID
-    //         => #KgetOp ModuleName
-    //         ~> #KrefineOp
-    //         ~> #KinitOp ModuleName ( TVs ) by FID as CID
-    //         ... 
-    //     </k>
-    //     [owise]
-    
-    // - Phase Change: subsequent stimulation
-    // rule <phase> #toStimulate => #stimulating </phase>
-    //     <cmd> #CIRCTstimulate ID:SymbolRefId ( Vs:AttributeValueList ) => .K ... </cmd>
-    //     <ckt>
-    //         <cid> CID </cid>
-    //         <module> CID </module>
-    //         <ks> 
-    //             (_ => <kmap> 
-    //                 <kkey> !_:Int </kkey> 
-    //                 <k> Op ~> #KWArgs Vs ~> #KClockFinish </k>
-    //             </kmap>)
-    //         </ks>
-    //         <circuit> Op:Operation ~> .K </circuit>
-    //         ...
-    //     </ckt>
-    //     requires SymbolRefId2String(ID) ==K CID
-    
-    // rule <k> #Kstimulate ModuleName ( TVs ) by FID as CID => #KCallBack CID ... </k>
-    //     <ckt>
-    //         <cid> CID </cid>
-    //         <module> ModuleName </module>
-    //         <ks> (_ => <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs TVs ~> #KFinish </k> </kmap>)</ks>
-    //         <circuit> Op:Operation ~> .K </circuit>
-    //         <parent> FID </parent>
-    //         ...
-    //     </ckt>
-
-    // # Get Operation From Symbol Table
+   
    
     rule <phase> #toStimulate </phase>
         <cmd> 
@@ -237,20 +206,6 @@ module COMMON
             ... 
         </cmd>
         <table> M:Map </table>
-
-    // rule <k> 
-    //         #KgetOp ID:String
-    //         => #if ID in_keys(M)
-    //         #then M [ ID ]
-    //         #else ##Stop "cannot find operation from <table>"
-    //         #fi 
-    //         ... 
-    //     </k>
-    //     <table> M:Map </table>
-    
-    // Refine operations in hardware domain
-    // reduce the complexity of the operations for dialect semantics
-    
 
     
     rule <phase> #toStimulate </phase>
@@ -265,21 +220,35 @@ module COMMON
    
     
     // - First Stimulation
-    rule <phase> #toStimulate => #stimulating </phase>
-        <cmd> Op:Operation ~> #CIRCTinitOp ID:String (Vs:AttributeValueList) => .K ... </cmd>
+    rule <phase> #toStimulate => #build </phase>
+        <cmd> ( Op:Operation ~> Mod:String => .K ) ~> #bootstrap ... </cmd>
         <ckts>
             ...
             (.Bag =>
             <ckt>
-                <cid> ID </cid>
+                <cid> Mod </cid>
                 <k> Op </k> 
-                // <circuit> Op </circuit>
-                <module> ID </module>
-                <args> toList(Vs) </args>
+                <module> Mod </module>
+                // <args> toList(Vs) </args>
                 ...
             </ckt>)
             ...
         </ckts>
+        <running> L:List => L ListItem(Mod) </running>
+        <boot> Boot:List => Boot ListItem(Mod) </boot>
+    
+    rule <ckt>
+            <cid> Inst </cid>
+            <k> .K </k> 
+            ...
+        </ckt>
+        <cmd> #bootstrap ... </cmd>
+        <running> L:List ListItem(Inst) => L </running>
+    
+
+    rule <cmd> #bootstrap => Boot ... </cmd>
+        <running> .List </running>
+        <boot> Boot:List </boot>
         
     // rule <k> Op:Operation ~> #KinitOp ID ( TVs ) by FID as CID => #KCallBack CID ... </k>
     //     (.Bag =>
@@ -313,38 +282,58 @@ module COMMON
             => R
             ...
         </k>
+        <cmd> #bootstrap ... </cmd>
     
     rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
+        <cmd> #bootstrap ... </cmd>
 
     rule <k> B:Block BL:BlockList => B ~> BL ... </k>
+        <cmd> #bootstrap ... </cmd>
+    
     rule <k> .BlockList => .K ... </k>
+        <cmd> #bootstrap ... </cmd>
 
     rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
+        <cmd> #bootstrap ... </cmd>
+
     rule <k> .OperationList => .K ... </k>
+        <cmd> #bootstrap ... </cmd>
 
 
-    rule <k> 
-            #token("^bb0", "CaretId") ( VTs:ValueIdAndTypeList ) : OL:OperationList
-            => #KWArgs Args ~> VTs ~> OL
-            ...
-        </k>
-        <args> Args:List </args>
+    // rule <k> 
+    //         #token("^bb0", "CaretId") ( VTs:ValueIdAndTypeList ) : OL:OperationList
+    //         => #KWArgs Args ~> VTs ~> OL
+    //         ...
+    //     </k>
+    //     <args> Args:List </args>
+
+    rule <k> BL:BlockLabel OL:OperationList => 0 ~> BL ~> OL ... </k>
+        <cmd> #bootstrap ... </cmd>
+
+    rule <k> (Index:Int => Index +Int 1) ~> #token("^bb0", "CaretId") ( X:ValueId : _:Type , VTs:ValueIdAndTypeList => VTs ) : ... </k>
+        <locals> Locals:Map => Locals [X <- #ArgRef(Index)] </locals>
+        <cmd> #bootstrap ... </cmd>
+    
+    rule <k> _:Int ~> #token("^bb0", "CaretId") ( .ValueIdAndTypeList ) : => .K ... </k>
+        <cmd> #bootstrap ... </cmd>
 
     
-    rule <k> #KWArgs (ListItem(V:Int) Vs:List => Vs)
-            ~> (X:ValueId : T:Type , VTs:ValueIdAndTypeList => VTs)
-            ...
-        </k>
-        <locals> Locals:Map => Locals [X <- AV2Bits(V, T) : T] </locals>
+    // rule <k> #KWArgs (ListItem(V:Int) Vs:List => Vs)
+    //         ~> (X:ValueId : T:Type , VTs:ValueIdAndTypeList => VTs)
+    //         ...
+    //     </k>
+    //     <locals> Locals:Map => Locals [X <- AV2Bits(V, T) : T] </locals>
     
-    rule <k> #KWArgs .List ~> .ValueIdAndTypeList => .K ... </k>
+    // rule <k> #KWArgs .List ~> .ValueIdAndTypeList => .K ... </k>
 
     rule <k> X:ValueId = Op:GenericOperation => .K ... </k>
         <locals> Locals:Map => Locals [X <- Op] </locals>
+        <cmd> #bootstrap ... </cmd>
         [owise]
 
     rule <k> "hw.output" ( Vs:ValueIdList ) { .Map } : ( _:Types ) -> ( .Types ) => .K ... </k>
         <out-vars> _ => Vs </out-vars>
+        <cmd> #bootstrap ... </cmd>
 
 
     rule <k> 
@@ -356,17 +345,21 @@ module COMMON
             )
             ... 
         </k>
+        <cmd> #bootstrap ... </cmd>
 
     
     rule <k> (Index:Int => Index +Int 1) ~> Inst:String ~> (X:ValueId, Xs:OpResults => Xs) ... </k>
         <locals> Locals:Map => Locals [X <- #OutPortRef(Inst, Index +Int 1) ] </locals>
+        <cmd> #bootstrap ... </cmd>
     
     rule <k> _:Int ~> _:String ~> .OpResults => .K ... </k>
+        <cmd> #bootstrap ... </cmd>
 
     rule <k> "hw.instance" ( VL:ValueIdList ) { Attr:Map } : ( _:Types ) -> ( _:Types )
             => Attr["instanceName"] ~> Attr ["moduleName"] ~> VL ~> #HwInstance
             ...
         </k>
+        <cmd> #bootstrap ... </cmd>
 
 
     rule <ckts>
@@ -387,22 +380,28 @@ module COMMON
             </ckt>)
             ...
         </ckts>
+        <running> L:List => L ListItem(Inst) </running>
+        <boot> Boot:List => Boot ListItem(Inst) </boot>
         <table> ... SymbolRefId2String(Mod) |-> Op ... </table>
+        <cmd> #bootstrap ... </cmd>
     
 
     rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => .K ... </k>
         <initial> L:List => L ListItem("sv.initial" ( .ValueIdList ) ( R ) { .Map } : ( .Types ) -> ( .Types )) </initial>
+        <cmd> #bootstrap ... </cmd>
     
     rule <k> "sv.always" ( VL:ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types ) => .K ... </k>
         <always> L:List => L ListItem("sv.always" ( VL ) ( R ) { Attr } : ( .Types ) -> ( .Types )) </always>
+        <cmd> #bootstrap ... </cmd>
 
     rule <k> X:ValueId = "hw.constant" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type ) => .K ... </k>
         <locals> Locals:Map => Locals [X <- AV2StdValue({Attr["value"]}:>AttributeValue, T)] </locals>
+        <cmd> #bootstrap ... </cmd>
     
     rule <k> X:ValueId = "sv.reg" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:Type > ) => .K ... </k>
         <regs> Regs:Map => Regs [ X <- hw.inout({Attr["name"]}:>String , T , #x) ] </regs>
         <locals> Locals:Map => Locals [ X <- "sv.reg" ( .ValueIdList ) { Attr } : ( .Types ) -> ( !hw.inout < T > ) ] </locals>
-
+        <cmd> #bootstrap ... </cmd>
     
     // rule <k> #KWArgs A:AttributeValueList ~> V:ValueIdAndTypeList
     //         => #KHalt "An error occurs in #KWArgs!" ~> #KWArgs A ~> V
@@ -504,4 +503,155 @@ module COMMON
     // // ## Read the output ports
     // rule <k> #KReadOuts => #KReadCurr VIDs ... </k>
     //     <out-vars> VIDs </out-vars>
+
+
+    // ----------------------------------- initial task ------------------------------------------
+
+    // load initial blocks
+    rule <ckt>
+            <cid> Inst </cid>
+            <k> .K => Inits </k>
+            <initial> Inits:List </initial>
+            ...
+        </ckt>
+        <cmd> (ListItem(Inst) L:List => L) ~> #initial ... </cmd>
+        <running> Running:List => Running ListItem(Inst) </running>
+
+    // start initial blocks
+    rule <cmd> .List ~> #initial => #initial ... </cmd>
+
+    // initial block done
+    rule <ckt>
+            <cid> Inst </cid>
+            <k> .K </k>
+            ...
+        </ckt>
+        <cmd> #initial ... </cmd>
+        <running> L:List ListItem(Inst) => L </running>
+
+    // initial task done
+    rule <cmd> #initial => Boot ... </cmd>
+        <running> .List </running>
+        <boot> Boot:List </boot>
+        
+
+    rule <k> L:List ListItem("sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ))
+            => L ~> "sv.initial" ( .ValueIdList ) ( R ) { .Map } : ( .Types ) -> ( .Types )
+            ...
+        </k>
+        <cmd> #initial ... </cmd>
+    
+    rule <k> .List => .K ... </k>
+        <cmd> #initial ... </cmd>
+
+    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => R ... </k>
+        <cmd> #initial ... </cmd>
+
+    rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
+        <cmd> #initial ... </cmd>
+
+    rule <k> B:Block BL:BlockList => B ~> BL ... </k>
+        <cmd> #initial ... </cmd>
+    
+    rule <k> .BlockList => .K ... </k>
+        <cmd> #initial ... </cmd>
+
+    rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
+        <cmd> #initial ... </cmd>
+
+    rule <k> .OperationList => .K ... </k>
+        <cmd> #initial ... </cmd>
+
+    rule <k>
+            "sv.passign" ( Dst:ValueId , Src:ValueId ) { .Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types ) 
+            => Src ~> #SvPassign ~> Dst
+            ...
+        </k>
+        // <cmd> #initial ... </cmd>
+
+    rule <k> V:StdValue ~> #SvPassign ~> Dst:ValueId => .K ... </k>
+        <regs> ... Dst |-> hw.inout ( "reg" , i8 , _ => V ) ... </regs>
+    
+    
+    rule <k> X:ValueId => M [X] ... </k>
+        <locals> M:Map </locals>
+
+    rule <k> (.K => M [X]) ~> (X:ValueId, Xs:ValueIdList => Xs) ... </k>
+        <locals> M:Map </locals>
+
+    rule <k> (V:StdValue => .K) ~> _:ValueIdList ~> (L:List => L ListItem(V)) ... </k>
+
+    rule <k> .ValueIdList => .K ... </k>
+
+    
+    rule <k> "comb.add" ( VL:ValueIdList ) { .Map } : ( _:Types ) -> ( T:Type )
+            => VL ~> .List ~> #CombAdd ~> T
+            ...
+        </k>
+
+    rule <k> L:List ~> #CombAdd ~> T:Type => BitsAdd(ListStdValue2Bits(L)) : T ... </k>
+
+    rule <k> "sv.read_inout" ( X:ValueId ) { .Map } : ( !hw.inout < T:Type > ) -> ( T:Type )
+            => V
+            ...
+        </k>
+        <regs> ... X |-> hw.inout ( "reg" , T , V ) ... </regs>
+
+    
+    // ----------------------------------- always task ------------------------------------------
+
+    // load always blocks
+    rule <ckt>
+            <cid> Inst </cid>
+            <k> .K => Bs </k>
+            <always> Bs:List </always>
+            ...
+        </ckt>
+        <cmd> (ListItem(Inst) L:List => L) ~> #always ... </cmd>
+        <running> Running:List => Running ListItem(Inst) </running>
+    
+    // start always blocks
+    rule <cmd> .List ~> #always => #always ... </cmd>
+
+    // always block done
+    rule <ckt>
+            <cid> Inst </cid>
+            <k> .K </k>
+            ...
+        </ckt>
+        <cmd> #always ... </cmd>
+        <running> L:List ListItem(Inst) => L </running>
+
+    // always task done
+    rule <cmd> #always => #end ... </cmd>
+        <running> .List </running>
+        // <boot> Boot:List </boot>
+        
+
+    rule <k> L:List ListItem("sv.always" ( .ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types ))
+            => L ~> "sv.always" ( .ValueIdList ) ( R ) { Attr } : ( .Types ) -> ( .Types )
+            ...
+        </k>
+        <cmd> #always ... </cmd>
+    
+    rule <k> .List => .K ... </k>
+        <cmd> #always ... </cmd>
+
+    rule <k> "sv.always" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types ) => R ... </k>
+        <cmd> #always ... </cmd>
+
+    rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
+        <cmd> #always ... </cmd>
+
+    rule <k> B:Block BL:BlockList => B ~> BL ... </k>
+        <cmd> #always ... </cmd>
+    
+    rule <k> .BlockList => .K ... </k>
+        <cmd> #always ... </cmd>
+
+    rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
+        <cmd> #always ... </cmd>
+
+    rule <k> .OperationList => .K ... </k>
+        <cmd> #always ... </cmd>
 endmodule

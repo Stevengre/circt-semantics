@@ -8,6 +8,8 @@ module STDVALUE-SYNTAX
     syntax StdValue ::= Bits ":" Type
     syntax StdValues ::= List{StdValue, ","}
 
+    syntax Value ::= StdValue
+
     syntax Bits ::= AV2Bits ( AttributeValue, Type ) [function]
     
     syntax BitsValue ::= AttributeValue2BitsValue ( AttributeValue ) [function]
@@ -22,6 +24,8 @@ module STDVALUE-SYNTAX
 
     syntax StdValue ::= String2StdValue(String) [function]
     syntax StdValue ::= AV2StdValue(AttributeValue, Type) [function]
+
+    syntax List ::= ListStdValue2Bits(List) [function]
 endmodule
 
 
@@ -46,4 +50,7 @@ module STDVALUE
 
     rule AV2Bits(V, T) => bits(AttributeValue2BitsValue(V), getWidth(T))
     rule AV2StdValue(V, T) => bits(AttributeValue2BitsValue(V), getWidth(T)) : T
+
+    rule ListStdValue2Bits(ListItem(B:Bits : _:Type) L:List) => ListItem(B) ListStdValue2Bits(L)
+    rule ListStdValue2Bits(.List) => .List
 endmodule

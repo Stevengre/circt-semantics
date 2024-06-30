@@ -9,8 +9,12 @@ module CONF
     configuration
     <circt> 
         <mlir/> 
-        <cmd> #CIRCTstimulate #token("@Foo", "SymbolRefId") ( 1, .AttributeValueList ) ~> .K </cmd>
-        <clock> 0:Int </clock>
+        <cmd> .K </cmd>
+        <entry> #token("@Foo", "SymbolRefId") </entry>
+        <input> .List </input>
+        <clock> 0 </clock>
+        <running> .List </running>
+        <boot> .List </boot>
         <ckts>
             <ckt multiplicity="*" type="Map">
                 <cid> "" </cid>
