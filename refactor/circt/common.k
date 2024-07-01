@@ -44,6 +44,7 @@ module COMMON-SYNTAX
     
     syntax KmdCIRCT ::= "#HwInstance"
                       | "#SvPassign"
+                      | "#HwOutput"
 
     syntax KmdCIRCT ::= "#done"
     
@@ -349,7 +350,7 @@ module COMMON
 
     
     rule <k> (Index:Int => Index +Int 1) ~> Inst:String ~> (X:ValueId, Xs:OpResults => Xs) ... </k>
-        <locals> Locals:Map => Locals [X <- #OutPortRef(Inst, Index +Int 1) ] </locals>
+        <locals> Locals:Map => Locals [X <- #OutPortRef(Inst, Index) ] </locals>
         <cmd> #bootstrap ... </cmd>
     
     rule <k> _:Int ~> _:String ~> .OpResults => .K ... </k>
@@ -530,9 +531,9 @@ module COMMON
         <running> L:List ListItem(Inst) => L </running>
 
     // initial task done
-    rule <cmd> #initial => Boot ... </cmd>
+    rule <cmd> #initial => ListItem(Entry) ~> Boot ... </cmd>
         <running> .List </running>
-        <boot> Boot:List </boot>
+        <boot> ListItem(Entry) Boot:List </boot>
         
 
     rule <k> L:List ListItem("sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ))
@@ -601,15 +602,27 @@ module COMMON
     // ----------------------------------- always task ------------------------------------------
 
     // load always blocks
+
     rule <ckt>
             <cid> Inst </cid>
-            <k> .K => Bs </k>
+            <k> .K => Bs ~> #HwOutput </k>
+            <always> Bs:List </always>
+            <args> _ => Args </args>
+            ...
+        </ckt>
+        <cmd> (ListItem(Inst) => .K) ~> _:List ~> #always ... </cmd>
+        <running> Running:List => Running ListItem(Inst) </running>
+        <input> Args:List </input>
+
+    rule <ckt>
+            <cid> Inst </cid>
+            <k> .K => Bs ~> #HwOutput </k>
             <always> Bs:List </always>
             ...
         </ckt>
         <cmd> (ListItem(Inst) L:List => L) ~> #always ... </cmd>
         <running> Running:List => Running ListItem(Inst) </running>
-    
+        
     // start always blocks
     rule <cmd> .List ~> #always => #always ... </cmd>
 
@@ -654,4 +667,21 @@ module COMMON
 
     rule <k> .OperationList => .K ... </k>
         <cmd> #always ... </cmd>
+
+    rule <k> (.K => VL ~> .List) ~> #HwOutput ... </k>
+        <out-vars> VL:ValueIdList </out-vars>
+    
+    rule <k> L:List ~> #HwOutput => .K ... </k>
+        <out-ports> _ => L </out-ports>
+
+    rule <k> #ArgRef ( Index:Int ) => Args[Index] ... </k>
+        <args> Args:List </args>
+
+    rule <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
+        <ckt>
+            <cid> Inst </cid>
+            <k> .K </k>
+            <out-ports> L:List </out-ports>
+            ...
+        </ckt>
 endmodule

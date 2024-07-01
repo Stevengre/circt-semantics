@@ -11,7 +11,7 @@ module CONF
         <mlir/> 
         <cmd> .K </cmd>
         <entry> #token("@Foo", "SymbolRefId") </entry>
-        <input> .List </input>
+        <input> ListItem(bits ( 1 , 8 ) : i8) </input>
         <clock> 0 </clock>
         <running> .List </running>
         <boot> .List </boot>
