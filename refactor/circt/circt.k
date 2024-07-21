@@ -2,7 +2,7 @@ requires "./common.k"
 requires "./conf.k"
 requires "../dialects/hw/hw-inout.k"
 
-module CIRCT-SYNTAX
+module CIRCT-SYNTAX-CORE
     imports MLIR
     imports COMMON-SYNTAX
 endmodule
@@ -10,6 +10,10 @@ endmodule
 
 module CIRCT-CONF
     imports CONF
+endmodule
+
+module CIRCT-SYNTAX
+    imports CIRCT-CONF
 endmodule
 
 

@@ -4,7 +4,7 @@ module CONF
     imports INT
     imports STRING
     imports LIST
-    imports CIRCT-SYNTAX
+    imports CIRCT-SYNTAX-CORE
 
     configuration
     <circt> 
@@ -27,7 +27,7 @@ module CONF
                 //         <k> .K </k>
                 //     </kmap> 
                 // </ks>
-                <circuit> .K </circuit>
+                // <circuit> .K </circuit>
                 <parent> "" </parent>
                 <last> .Map </last>
                 <curr> .Map </curr>

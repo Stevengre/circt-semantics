@@ -32,6 +32,14 @@ module BITS
                   | BitsAdd(List)           [function]
                   | BitsMul(List)           [function]
                   | BitsDup(Bits, Int)      [function]
+                  | BitsShrs(List)          [function]
+                  | BitsShru(List)          [function]
+                  | BitsShl(List)           [function]
+                  | BitsDivs(List)          [function]
+                  | BitsDivu(List)          [function]
+                  | BitsMods(List)          [function]
+                  | BitsModu(List)          [function]
+                  | BitsSub(List)           [function]
                   | Bits "&Bits" Bits       [function]
                   | Bits "^Bits" Bits       [function]
                   | Bits "|Bits" Bits       [function]
@@ -55,6 +63,7 @@ module BITS
                   | Bits "moduBits" Bits    [function]
                   | Bits "-Bits"    Bits    [function]
                   | BitsMask(Bits, Int, Int)     [function] // size, offset
+                  | BitsParity(Bits)        [function]
     
     syntax Bool ::= isNeg(Bits) [function]
                   | isPos(Bits) [function]
@@ -65,7 +74,16 @@ module BITS
                        | Bits2UInt(Bits)          [function]
                        | Int "mask" Int           [function]
                        | IntComplement(Int, Int)  [function]
-                       | BitsParity(Bits)         [function]
+
+    
+    syntax List ::= Bits2BitList(Bits) [function]
+
+    rule Bits2BitList(bits(_:Int, 0)) => .List
+    rule Bits2BitList(bits(X:Int, W:Int)) => Bits2BitList(bits(X >>Int 1, W -Int 1)) ListItem(X &Int 1)
+
+    syntax Int ::= IntsXor(List) [function]
+    rule IntsXor(ListItem(X:Int) L:List) => X xorInt IntsXor(L)
+    rule IntsXor(.List) => 0
 
     rule X:Int mask W:Int => X &Int (2 ^Int W -Int 1)
 
@@ -113,25 +131,43 @@ module BITS
     // bits and
     rule BitsAnd(B:Bits, BV:BitsVec) => B &Bits BitsAnd(BV)
     rule BitsAnd(.BitsVec) => bits(0, 0)
+    rule BitsAnd(ListItem(B:Bits) L:List) => B &Bits BitsAnd(L)
+    rule BitsAnd(.List) => bits(0, 0)
 
     // bits or
     rule BitsOr(B:Bits, BV:BitsVec) => B |Bits BitsOr(BV)
     rule BitsOr(.BitsVec) => bits(0, 0)
+    rule BitsOr(ListItem(B:Bits) L:List) => B |Bits BitsOr(L)
+    rule BitsOr(.List) => bits(0, 0)
 
     // bits xor
     rule BitsXor(B:Bits, BV:BitsVec) => B ^Bits BitsXor(BV)
     rule BitsXor(.BitsVec) => bits(0, 0)
+    rule BitsXor(ListItem(B:Bits) L:List) => B ^Bits BitsXor(L)
+    rule BitsXor(.List) => bits(0, 0)
 
     // bits add
     rule BitsAdd(B:Bits, BV:BitsVec) => B +Bits BitsAdd(BV)
     rule BitsAdd(.BitsVec) => bits(0, 0)
-
     rule BitsAdd(ListItem(B:Bits) L:List) => B +Bits BitsAdd(L)
     rule BitsAdd(.List) => bits(0, 0)
 
     // bits mul
     rule BitsMul(B:Bits, BV:BitsVec) => B *Bits BitsMul(BV)
     rule BitsMul(.BitsVec) => bits(0, 0)
+    rule BitsMul(ListItem(B:Bits) L:List) => B *Bits BitsMul(L)
+    rule BitsMul(.List) => bits(0, 0)
+
+    // bits shrs
+    rule BitsShrs(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 >>Bits B2
+    rule BitsShru(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 >>>Bits B2
+    rule BitsShl(ListItem(B1:Bits) ListItem(B2:Bits))  => B1 <<Bits B2
+    rule BitsDivs(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 divsBits B2
+    rule BitsDivu(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 divuBits B2
+    rule BitsMods(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 modsBits B2
+    rule BitsModu(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 moduBits B2
+    rule BitsSub(ListItem(B1:Bits) ListItem(B2:Bits))  => B1 -Bits B2
+    
 
     // bits binary and
     rule bits(_, W1:Int)        &Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(50)]
@@ -227,9 +263,10 @@ module BITS
     // bits sub
     rule bits(X1:Int, W1:Int):Bits -Bits bits(X2:Int, W2:Int):Bits => bitsCast(X1 +Int ((2 ^Int W2 -Int 1) xorInt X2) +Int 1, W1)
 
-    rule BitsParity(bits(X:Int, W:Int):Bits) => (X &Int 1) xorInt {BitsParity(bits(X >>Int 1, W -Int 1))}:>Int requires W >=Int 0
-    
-    rule BitsParity(bits(_X:Int, _W:Int):Bits) => 0 [owise]
+    // rule BitsParity(bits(X:Int, W:Int):Bits) => (X &Int 1) xorInt {BitsParity(bits(X >>Int 1, W -Int 1))}:>Int requires W >=Int 0
+    // rule BitsParity(bits(_X:Int, _W:Int):Bits) => bits(0, 1) [owise]
+
+    rule BitsParity(B:Bits) => bits(IntsXor(Bits2BitList(B)), 1)
 
     // bits mask
     rule BitsMask(bits(B:Int, _),    NewS:Int, O:Int) => bits(B &Int ((2 ^Int NewS -Int 1) <<Int O), NewS)

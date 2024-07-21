@@ -26,6 +26,8 @@ module STDVALUE-SYNTAX
     syntax StdValue ::= AV2StdValue(AttributeValue, Type) [function]
 
     syntax List ::= ListStdValue2Bits(List) [function]
+
+    syntax Bool ::= isZero(StdValue) [function]
 endmodule
 
 
@@ -53,4 +55,6 @@ module STDVALUE
 
     rule ListStdValue2Bits(ListItem(B:Bits : _:Type) L:List) => ListItem(B) ListStdValue2Bits(L)
     rule ListStdValue2Bits(.List) => .List
+
+    rule isZero(bits(X:Int, _:Int) : _:Type) => X ==Int 0
 endmodule

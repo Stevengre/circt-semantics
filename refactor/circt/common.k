@@ -574,23 +574,27 @@ module COMMON
         <regs> ... Dst |-> hw.inout ( "reg" , i8 , _ => V ) ... </regs>
     
     
+    // lookup ValueId
     rule <k> X:ValueId => M [X] ... </k>
         <locals> M:Map </locals>
 
-    rule <k> (.K => M [X]) ~> (X:ValueId, Xs:ValueIdList => Xs) ... </k>
-        <locals> M:Map </locals>
+    // lookup ValueIdList
+    rule <k> VL:ValueIdList => .List ~> VL ... </k>
+    rule <k> (.K => X) ~> _:List ~> (X:ValueId, VL:ValueIdList => VL) ... </k>
+    rule <k> (V:StdValue => .K) ~> (L:List => L ListItem(V)) ... </k>
+    rule <k> L:List ~> .ValueIdList => L ... </k>
 
-    rule <k> (V:StdValue => .K) ~> _:ValueIdList ~> (L:List => L ListItem(V)) ... </k>
-
-    rule <k> .ValueIdList => .K ... </k>
+    // rule <k> (.K => X) ~> (X:ValueId, Xs:ValueIdList => Xs) ... </k>
+    // rule <k> (V:StdValue => .K) ~> _:ValueIdList ~> (L:List => L ListItem(V)) ... </k>
+    // rule <k> .ValueIdList => .K ... </k>
 
     
-    rule <k> "comb.add" ( VL:ValueIdList ) { .Map } : ( _:Types ) -> ( T:Type )
-            => VL ~> .List ~> #CombAdd ~> T
-            ...
-        </k>
+    // rule <k> "comb.add" ( VL:ValueIdList ) { .Map } : ( _:Types ) -> ( T:Type )
+    //         => VL ~> .List ~> #CombAdd ~> T
+    //         ...
+    //     </k>
 
-    rule <k> L:List ~> #CombAdd ~> T:Type => BitsAdd(ListStdValue2Bits(L)) : T ... </k>
+    // rule <k> L:List ~> #CombAdd ~> T:Type => BitsAdd(ListStdValue2Bits(L)) : T ... </k>
 
     rule <k> "sv.read_inout" ( X:ValueId ) { .Map } : ( !hw.inout < T:Type > ) -> ( T:Type )
             => V
@@ -602,7 +606,6 @@ module COMMON
     // ----------------------------------- always task ------------------------------------------
 
     // load always blocks
-
     rule <ckt>
             <cid> Inst </cid>
             <k> .K => Bs ~> #HwOutput </k>
@@ -641,13 +644,13 @@ module COMMON
         // <boot> Boot:List </boot>
         
 
-    rule <k> L:List ListItem("sv.always" ( .ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types ))
-            => L ~> "sv.always" ( .ValueIdList ) ( R ) { Attr } : ( .Types ) -> ( .Types )
+    rule <k> ListItem("sv.always" ( .ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types )) L:List 
+            => "sv.always" ( .ValueIdList ) ( R ) { Attr } : ( .Types ) -> ( .Types ) ~> L
             ...
         </k>
         <cmd> #always ... </cmd>
     
-    rule <k> .List => .K ... </k>
+    rule <k> (.List => .K) ~> #HwOutput ... </k>
         <cmd> #always ... </cmd>
 
     rule <k> "sv.always" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types ) => R ... </k>
@@ -668,7 +671,8 @@ module COMMON
     rule <k> .OperationList => .K ... </k>
         <cmd> #always ... </cmd>
 
-    rule <k> (.K => VL ~> .List) ~> #HwOutput ... </k>
+    // hw.output
+    rule <k> (.K => VL) ~> #HwOutput ... </k>
         <out-vars> VL:ValueIdList </out-vars>
     
     rule <k> L:List ~> #HwOutput => .K ... </k>

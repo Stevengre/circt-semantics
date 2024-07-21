@@ -85,215 +85,170 @@ module COMB
     imports COMB-HELPER
     imports MAP
 
-    // syntax Value ::= Bits
-    // syntax Value ::= AttributeValue
-    // syntax ValueList ::= List{Value, ","}
+    rule <k> L:List ~> #CombAdd ~> T:Type => BitsAdd(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombAnd ~> T:Type => BitsAnd(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombOr  ~> T:Type => BitsOr (ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombXor ~> T:Type => BitsXor(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombMul ~> T:Type => BitsMul(ListStdValue2Bits(L)) : T ... </k>
 
-    // comb.add
-    rule <k> 
-            "comb.add" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombAdd ... 
+    rule <k> L:List ~> #CombConcat ~> T:Type => BitsConcat(ListStdValue2Bits(L)) : T ... </k>
+
+    rule <k> L:List ~> #CombDivs ~> T:Type => BitsDivs(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombDivu ~> T:Type => BitsDivu(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombShrs ~> T:Type => BitsShrs(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombShru ~> T:Type => BitsShru(ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombShl  ~> T:Type => BitsShl (ListStdValue2Bits(L)) : T ... </k>
+    rule <k> L:List ~> #CombSub  ~> T:Type => BitsSub (ListStdValue2Bits(L)) : T ... </k>
+    
+    rule <k> V:StdValue ~> #CombParity ~> T:Type => BitsParity(StdValues2Bits(V)) : T ... </k>
+    rule <k> V:StdValue ~> #CombExtract ~> T:Type => bitsCast(StdValues2Bits(V), getWidth(T)) : T ... </k>
+
+    rule <k> ListItem(V1:StdValue) ListItem(V2:StdValue) ListItem(V3:StdValue) ~> #CombMux
+            => #if notBool isZero(V1) #then V2 #else V3 #fi
+            ... 
         </k>
-    
-    rule <k> TVs:StdValues ~> #CombAdd => BitsAdd(StdValues2BitsVec(TVs)) ... </k>
-    
-    // comb.and
-    rule <k> 
-            "comb.add" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombAnd ... 
-        </k>
-    
-    rule <k> TVs:StdValues ~> #CombAnd => BitsAnd(StdValues2BitsVec(TVs)) ... </k>
 
-    // comb.or
-    rule <k> 
-            "comb.or" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombOr ... 
-        </k>
-    
-    rule <k> TVs:StdValues ~> #CombOr => BitsOr(StdValues2BitsVec(TVs)) ... </k>
-    
-
-    // comb.xor
-    rule <k> 
-            "comb.xor" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombXor ... 
-        </k>
-    
-    rule <k> TVs:StdValues ~> #CombXor => BitsXor(StdValues2BitsVec(TVs)) ... </k>
-
-   
-    // comb.mul
-    rule <k> 
-            "comb.mul" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombMul ... 
-        </k>
-    
-    rule <k> TVs:StdValues ~> #CombMul => BitsMul(StdValues2BitsVec(TVs)) ... </k>
-
-
-    // comb.extract
-    rule <k> 
-            "comb.extract" (V:ValueId) {_:Map} : ( _:Types ) -> ( T:Type )
-            => #KReadCurr A ~> T ~> #CombExtract
+    rule <k> ListItem(V1:StdValue) ListItem(V2:StdValue) ~> Pred:Int ~> #CombIcmp 
+            => bits(Bool2Int(icmp(Pred, StdValues2Bits(V1), StdValues2Bits(V2))), 1) : #token("i1", "SignlessIntegerType")
             ...
         </k>
 
-    rule <k> TV:StdValue ~> T:Type ~> #CombExtract => bitsCast(StdValues2Bits(TV), getWidth(T)) ... </k>
+    rule <k> V:StdValue ~> #CombReplicate ~> ListItem(T1:Type) ListItem(T2:Type)
+            => BitsDup(bitsCast(StdValues2Bits(V), getWidth(T1)), getWidth(T2) divInt getWidth(T1)) : T2
+            ... 
+        </k>
 
+
+    // comb.add
+    rule <k> 
+            "comb.add" ( VL:ValueIdList ) { .Map } : ( _:Types ) -> ( T:Type )
+            => VL ~> #CombAdd ~> T
+            ...
+        </k>
+
+    // comb.and
+    rule <k> 
+            "comb.and" ( VL:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
+            => VL ~> #CombAnd ~> T
+            ...
+        </k>
+
+    // comb.or
+    rule <k> 
+            "comb.or" ( VL:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
+            => VL ~> #CombOr ~> T
+            ...
+        </k>
+    
+    // comb.xor
+    rule <k> 
+            "comb.xor" ( VL:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
+            => VL ~> #CombXor ~> T
+            ... 
+        </k>
+       
+    // comb.mul
+    rule <k> 
+            "comb.mul" ( VL:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
+            => VL ~> #CombMul ~> T
+            ... 
+        </k>
+    
+    // comb.extract
+    rule <k> 
+            "comb.extract" (V:ValueId) {_:Map} : ( _:Types ) -> ( T:Type )
+            => V ~> #CombExtract ~> T
+            ...
+        </k>
 
     // comb.replicate
     rule <k> 
             "comb.replicate" ( V:ValueId ) {_:Map} : ( T1:Type ) -> ( T2:Type )
-            => #KReadCurr V ~> T1, T2 ~> #CombReplicate ...
+            => V ~> #CombReplicate ~> ListItem(T1) ListItem(T2)
             ...
-        </k>
-
-    rule <k> TV:StdValue ~> T1:Type, T2:Type ~> #CombReplicate 
-            => BitsDup(bitsCast(StdValues2Bits(TV), getWidth(T1)), getWidth(T2) divInt getWidth(T1))
-            ... 
         </k>
 
 
     // comb.shrs
     rule <k> 
-            "comb.shrs" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombShrs ...
+            "comb.shrs" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombShrs ~> T
+            ...
         </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombShrs 
-            => StdValues2Bits(V1) >>Bits StdValues2Bits(V2)
-            ... 
-        </k>
-
 
     // comb.shru
     rule <k> 
-            "comb.shru" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombShru ...
-        </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombShru 
-            => StdValues2Bits(V1) >>>Bits StdValues2Bits(V2)
-            ... 
+            "comb.shru" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombShru ~> T ...
         </k>
 
     
     // comb.shl
     rule <k> 
-            "comb.shrs" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombShl ...
-        </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombShl 
-            => StdValues2Bits(V1) <<Bits StdValues2Bits(V2)
-            ... 
+            "comb.shl" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombShl ~> T ...
         </k>
 
 
     // comb.concat
     rule <k> 
-            "comb.concat" ( Vs:VarList ) { _:Map } : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombConcat
+            "comb.concat" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombConcat ~> T
             ...
         </k>
-
-    rule <k> Vs:StdValues ~> #CombConcat => BitsConcat(StdValues2BitsVec(Vs)) ... </k>
 
 
     // comb.divs
     rule <k> 
-            "comb.divs" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombDivs ...
+            "comb.divs" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombDivs ~> T ...
         </k>
 
-    rule <k> V1:StdValue, V2:StdValue ~> #CombDivs 
-            => StdValues2Bits(V1) divsBits StdValues2Bits(V2)
-            ... 
-        </k>
 
-    
     // comb.divu
     rule <k> 
-            "comb.divu" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombDivu ...
-        </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombDivu
-            => StdValues2Bits(V1) divuBits StdValues2Bits(V2)
-            ... 
+            "comb.divu" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombDivu ~> T ...
         </k>
 
 
     // comb.mods
     rule <k> 
-            "comb.mods" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombMods ...
+            "comb.mods" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombMods ~> T ...
         </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombMods
-            => StdValues2Bits(V1) modsBits StdValues2Bits(V2)
-            ... 
-        </k>
-    
 
     // comb.modu
     rule <k> 
-            "comb.modu" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombModu ...
-        </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombModu
-            => StdValues2Bits(V1) moduBits StdValues2Bits(V2)
-            ... 
+            "comb.modu" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombModu ~> T ...
         </k>
 
 
     // comb.sub
     rule <k> 
-            "comb.sub" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombSub ...
-        </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> #CombSub
-            => StdValues2Bits(V1) -Bits StdValues2Bits(V2)
-            ... 
+            "comb.sub" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            => Vs ~> #CombSub ~> T ...
         </k>
 
     
     // comb.parity
     rule <k> 
-            "comb.parity" ( V:ValueId ) {_:Map} : ( _:Type ) -> ( _:Type )
-            => #KReadCurr V ~> #CombParity ...
+            "comb.parity" ( V:ValueId ) {_:Map} : ( _:Type ) -> ( T:Type )
+            => V ~> #CombParity ~> T ...
         </k>
-
-    rule <k> V:StdValue ~> #CombParity => BitsParity(StdValues2Bits(V)) ... </k>
-
-
 
     // comb.mux
     rule <k> 
             "comb.mux" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> #CombMux 
+            => Vs ~> #CombMux
             ...
         </k>
     
-    rule <k> V1:StdValue, V2:StdValue, V3:StdValue ~> #CombMux 
-            => #if V1 =/=Int 0 #then V2 #else V3 #fi 
-            ... 
-        </k>
-
-
-
     // comb.icmp
     rule <k> 
             "comb.icmp" ( Vs:ValueIdList ) {M:Map} : ( _:Types ) -> ( _:Type )
-            => #KReadCurr Vs ~> getAttrValue(M, #token("predicate", "BareId")) ~> #CombIcmp 
-            ...
-        </k>
-
-    rule <k> V1:StdValue, V2:StdValue ~> Pred:Int ~> #CombIcmp 
-            => icmp(Pred, StdValues2Bits(V1), StdValues2Bits(V2))
+            => Vs ~> M["predicate"] ~> #CombIcmp 
             ...
         </k>
 

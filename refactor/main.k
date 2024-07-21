@@ -9,6 +9,7 @@ module MAIN
     // imports SEQ
     imports CIRCT
     imports HW-MODTY
+    imports COMB
 
     // configuration <T>
     //     <circt>
