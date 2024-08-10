@@ -18,13 +18,13 @@ module BUILTIN-SYNTAX
     
     // DenseArrayAttr
     syntax BuiltinArray ::= "array" "<" IntegerType ">"
-                          | "array" "<" ArraySizePrefix IntegerType ">" // diff from official
+                          | "array" "<" SizeX IntegerType ">" // diff from official
                           | "array" "<" FloatType ">"
                           | "array" "<" IntegerType ":" TensorLiteral ">"
                           | "array" "<" FloatType ":" TensorLiteral ">"
                           | "array" "<" IntegerType ":" ">"
                           | "array" "<" FloatType ":" ">"
-    syntax ArraySizePrefix ::= r"[1-9][0-9]*x" [token]
+    syntax SizeX ::= r"[1-9][0-9]*x" [token]
     
     syntax Type ::= BuiltinArray
     

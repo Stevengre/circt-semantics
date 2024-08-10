@@ -19,6 +19,8 @@ module BITS
 
     syntax BitsVec ::= List{Bits, ","}
 
+    syntax SliceIndex ::= Int | "#none"
+
     syntax Bits ::= BitsConcat(BitsVec)     [function]
                   | BitsAnd(BitsVec)        [function]
                   | BitsOr(BitsVec)         [function]
@@ -62,19 +64,30 @@ module BITS
                   | Bits "modsBits" Bits    [function]
                   | Bits "moduBits" Bits    [function]
                   | Bits "-Bits"    Bits    [function]
-                  | BitsMask(Bits, Int, Int)     [function] // size, offset
-                  | BitsParity(Bits)        [function]
+                  | BitsMask(Bits, Int, Int)  [function] // size, offset
+                  | BitsParity(Bits)          [function]
+                  | BitsSlice(Bits, SliceIndex, SliceIndex) [function]
     
     syntax Bool ::= isNeg(Bits) [function]
                   | isPos(Bits) [function]
                   | isNeg(Int, Int) [function]
                   | isPos(Int, Int) [function]
 
+
+    syntax Bool ::= Bits2Bool(Bits) [function]
+
+    rule Bits2Bool(bits(1, 1)) => true
+    rule Bits2Bool(bits(0, 1)) => false
+
     syntax BitsValue ::= Bits2Int(Bits)           [function]
                        | Bits2UInt(Bits)          [function]
                        | Int "mask" Int           [function]
                        | IntComplement(Int, Int)  [function]
 
+    
+    syntax List ::= BitsSplit(Bits, List) [function]
+    rule BitsSplit(B:Bits, ListItem(S:Int) L:List) => ListItem(BitsSlice(B, 0, S)) BitsSplit(BitsSlice(B, S, #none), L)
+    rule BitsSplit(bits(_, 0), .List) => .List
     
     syntax List ::= Bits2BitList(Bits) [function]
 
@@ -127,6 +140,8 @@ module BITS
     // bits concat
     rule BitsConcat(B:Bits, BV:BitsVec) => B concatBits BitsConcat(BV)
     rule BitsConcat(.BitsVec) => bits(0, 0)
+    rule BitsConcat(ListItem(B:Bits) L:List) => B concatBits BitsConcat(L)
+    rule BitsConcat(.List) => bits(0, 0)
 
     // bits and
     rule BitsAnd(B:Bits, BV:BitsVec) => B &Bits BitsAnd(BV)
@@ -273,4 +288,7 @@ module BITS
     rule BitsMask(bits(B:ConstX, _), NewS:Int, _:Int) => bits(B, NewS)
     rule BitsMask(bits(B:ConstZ, _), NewS:Int, _:Int) => bits(B, NewS)
 
+    rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int (W -Int End)) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
+    rule BitsSlice(bits(X:Int, W:Int), Begin:Int, #none)   => BitsSlice(bits(X, W), Begin, W)
+    rule BitsSlice(bits(X:Int, W:Int), #none,     End:Int) => BitsSlice(bits(X, W), 0, End)
 endmodule

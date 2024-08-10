@@ -45,6 +45,7 @@ module COMMON-SYNTAX
     syntax KmdCIRCT ::= "#HwInstance"
                       | "#SvPassign"
                       | "#HwOutput"
+                      | "#ValueIdIndexLookup"
 
     syntax KmdCIRCT ::= "#done"
     
@@ -220,7 +221,7 @@ module COMMON
     // # Phase Change: Initialize Operation with Arguments in <cmd>
    
     
-    // - First Stimulation
+    // build the circuit
     rule <phase> #toStimulate => #build </phase>
         <cmd> ( Op:Operation ~> Mod:String => .K ) ~> #bootstrap ... </cmd>
         <ckts>
@@ -247,6 +248,7 @@ module COMMON
         <running> L:List ListItem(Inst) => L </running>
     
 
+    // bootstrap end
     rule <cmd> #bootstrap => Boot ... </cmd>
         <running> .List </running>
         <boot> Boot:List </boot>
@@ -331,6 +333,10 @@ module COMMON
         <locals> Locals:Map => Locals [X <- Op] </locals>
         <cmd> #bootstrap ... </cmd>
         [owise]
+
+    rule <k> X:ValueId : _:IntegerLiteral = Op:GenericOperation => .K ... </k>
+        <locals> Locals:Map => Locals [X <- Op] </locals>
+        <cmd> #bootstrap ... </cmd>
 
     rule <k> "hw.output" ( Vs:ValueIdList ) { .Map } : ( _:Types ) -> ( .Types ) => .K ... </k>
         <out-vars> _ => Vs </out-vars>
@@ -506,63 +512,7 @@ module COMMON
     //     <out-vars> VIDs </out-vars>
 
 
-    // ----------------------------------- initial task ------------------------------------------
-
-    // load initial blocks
-    rule <ckt>
-            <cid> Inst </cid>
-            <k> .K => Inits </k>
-            <initial> Inits:List </initial>
-            ...
-        </ckt>
-        <cmd> (ListItem(Inst) L:List => L) ~> #initial ... </cmd>
-        <running> Running:List => Running ListItem(Inst) </running>
-
-    // start initial blocks
-    rule <cmd> .List ~> #initial => #initial ... </cmd>
-
-    // initial block done
-    rule <ckt>
-            <cid> Inst </cid>
-            <k> .K </k>
-            ...
-        </ckt>
-        <cmd> #initial ... </cmd>
-        <running> L:List ListItem(Inst) => L </running>
-
-    // initial task done
-    rule <cmd> #initial => ListItem(Entry) ~> Boot ... </cmd>
-        <running> .List </running>
-        <boot> ListItem(Entry) Boot:List </boot>
-        
-
-    rule <k> L:List ListItem("sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ))
-            => L ~> "sv.initial" ( .ValueIdList ) ( R ) { .Map } : ( .Types ) -> ( .Types )
-            ...
-        </k>
-        <cmd> #initial ... </cmd>
     
-    rule <k> .List => .K ... </k>
-        <cmd> #initial ... </cmd>
-
-    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => R ... </k>
-        <cmd> #initial ... </cmd>
-
-    rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
-        <cmd> #initial ... </cmd>
-
-    rule <k> B:Block BL:BlockList => B ~> BL ... </k>
-        <cmd> #initial ... </cmd>
-    
-    rule <k> .BlockList => .K ... </k>
-        <cmd> #initial ... </cmd>
-
-    rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
-        <cmd> #initial ... </cmd>
-
-    rule <k> .OperationList => .K ... </k>
-        <cmd> #initial ... </cmd>
-
     rule <k>
             "sv.passign" ( Dst:ValueId , Src:ValueId ) { .Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types ) 
             => Src ~> #SvPassign ~> Dst
@@ -577,6 +527,31 @@ module COMMON
     // lookup ValueId
     rule <k> X:ValueId => M [X] ... </k>
         <locals> M:Map </locals>
+        requires X in_keys(M)
+
+    // rule <k> X:ValueId 
+    //         => substrString(ValueId2String(X), 0, findChar(ValueId2String(X), "#", 0)) 
+    //         ~> substrString(ValueId2String(X), findChar(ValueId2String(X), "#", 0) +Int 1, lengthString(ValueId2String(X)))
+    //         ... 
+    //     </k>
+    //     requires findChar(ValueId2String(X), "#", 0) >Int -1
+
+    rule <k> X:ValueId 
+            => #ValueIdIndexLookup ~> ValueId2String(X) ~> findChar(ValueId2String(X), "#", 0)
+            ... 
+        </k>
+        requires findChar(ValueId2String(X), "#", 0) >Int -1
+
+    rule <k> #ValueIdIndexLookup ~> S:String ~> Idx:Int
+            => String2ValueId(substrString(S, 0, Idx)) 
+            ~> #ValueIdIndexLookup 
+            ~> String2Int(substrString(S, Idx +Int 1, lengthString(S)))
+            ... 
+        </k>
+
+    rule <k> L:List ~> #ValueIdIndexLookup ~> Idx:Int => L[Idx] ... </k>
+        
+
 
     // lookup ValueIdList
     rule <k> VL:ValueIdList => .List ~> VL ... </k>
@@ -602,74 +577,7 @@ module COMMON
         </k>
         <regs> ... X |-> hw.inout ( "reg" , T , V ) ... </regs>
 
-    
-    // ----------------------------------- always task ------------------------------------------
 
-    // load always blocks
-    rule <ckt>
-            <cid> Inst </cid>
-            <k> .K => Bs ~> #HwOutput </k>
-            <always> Bs:List </always>
-            <args> _ => Args </args>
-            ...
-        </ckt>
-        <cmd> (ListItem(Inst) => .K) ~> _:List ~> #always ... </cmd>
-        <running> Running:List => Running ListItem(Inst) </running>
-        <input> Args:List </input>
-
-    rule <ckt>
-            <cid> Inst </cid>
-            <k> .K => Bs ~> #HwOutput </k>
-            <always> Bs:List </always>
-            ...
-        </ckt>
-        <cmd> (ListItem(Inst) L:List => L) ~> #always ... </cmd>
-        <running> Running:List => Running ListItem(Inst) </running>
-        
-    // start always blocks
-    rule <cmd> .List ~> #always => #always ... </cmd>
-
-    // always block done
-    rule <ckt>
-            <cid> Inst </cid>
-            <k> .K </k>
-            ...
-        </ckt>
-        <cmd> #always ... </cmd>
-        <running> L:List ListItem(Inst) => L </running>
-
-    // always task done
-    rule <cmd> #always => #end ... </cmd>
-        <running> .List </running>
-        // <boot> Boot:List </boot>
-        
-
-    rule <k> ListItem("sv.always" ( .ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types )) L:List 
-            => "sv.always" ( .ValueIdList ) ( R ) { Attr } : ( .Types ) -> ( .Types ) ~> L
-            ...
-        </k>
-        <cmd> #always ... </cmd>
-    
-    rule <k> (.List => .K) ~> #HwOutput ... </k>
-        <cmd> #always ... </cmd>
-
-    rule <k> "sv.always" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types ) => R ... </k>
-        <cmd> #always ... </cmd>
-
-    rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
-        <cmd> #always ... </cmd>
-
-    rule <k> B:Block BL:BlockList => B ~> BL ... </k>
-        <cmd> #always ... </cmd>
-    
-    rule <k> .BlockList => .K ... </k>
-        <cmd> #always ... </cmd>
-
-    rule <k> Op:Operation Ops:OperationList => Op ~> Ops ... </k>
-        <cmd> #always ... </cmd>
-
-    rule <k> .OperationList => .K ... </k>
-        <cmd> #always ... </cmd>
 
     // hw.output
     rule <k> (.K => VL) ~> #HwOutput ... </k>

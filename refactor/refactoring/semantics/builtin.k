@@ -19,7 +19,7 @@ module BUILTIN-DIALECT-SYNTAX
                                 // | AttributeValue "," AttributeValueList
     // DenseArrayAttr
     syntax BuiltinArray ::= "array" "<" IntegerType ">"
-                          | "array" "<" ArraySizePrefix IntegerType ">" // diff from official
+                          | "array" "<" SizeX IntegerType ">" // diff from official
                           | "array" "<" FloatType ">"
                           | "array" "<" IntegerType ":" TensorLiteral ">"
                           | "array" "<" FloatType ":" TensorLiteral ">"

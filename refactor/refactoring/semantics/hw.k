@@ -27,7 +27,7 @@ module HW
 
 
     // syntax Value ::= HwBitcast(Value, Type, Type) [function]
-    // rule HwBitcast(X:Int, T1:IntegerType, (!hw.array< _:ArraySizePrefix T2:IntegerType>):HwArrayType) 
+    // rule HwBitcast(X:Int, T1:IntegerType, (!hw.array< _:SizeX T2:IntegerType>):HwArrayType) 
     //     => [ List2Values(IntSlice(X, 0, getWidth(T2), getWidth(T1))) ]
     
     // rule HwBitcast(X:Map, T1:HwStructType, T2:Type) => fromBits(toBits(X, T1), T2)

@@ -1,15 +1,13 @@
 requires "./dialects/comb/comb.k"
 requires "./circt/circt.k"
-requires "./dialects/hw/hw-modty.k"
-requires "./dialects/hw/hw-inout.k"
+requires "./dialects/hw/hw.k"
+requires "./dialects/sv/sv.k"
 
 module MAIN
-    // imports SV
-    // imports HW
-    // imports SEQ
+    imports SV
     imports CIRCT
-    imports HW-MODTY
     imports COMB
+    imports HW
 
     // configuration <T>
     //     <circt>

@@ -61,7 +61,8 @@ module MLIR-SYNTAX
 
     syntax DictionaryProperties ::= "<" DictionaryAttribute ">"
 
-    syntax OpResult ::= ValueId | ValueId ":" IntegerLiteral
+    syntax OpResult ::= ValueId 
+                      | ValueId ":" IntegerLiteral
     syntax OpResults ::= List{OpResult, ","}
     syntax OpResultList ::= OpResults "="
 

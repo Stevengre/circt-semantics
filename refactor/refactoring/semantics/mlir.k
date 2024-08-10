@@ -6,7 +6,7 @@ module MLIR-SYNTAX-CORE
     imports INT
     imports MAP
 
-    syntax ArraySizePrefix ::= r"[1-9][0-9]*x" [token]
+    syntax SizeX ::= r"[1-9][0-9]*x" [token]
 endmodule
 
 

@@ -59,7 +59,7 @@ module SV
     // sv.array_index_inout
     rule <k> circt </k>
         <circt-exec>
-            "sv.array_index_inout" ( Arr:Var , Index:Var ) { .Map } : ( !hw.inout < array < Size:ArraySizePrefix T1:IntegerType > > , T2:Type ) -> ( !hw.inout < T1:IntegerType > )
+            "sv.array_index_inout" ( Arr:Var , Index:Var ) { .Map } : ( !hw.inout < array < Size:SizeX T1:IntegerType > > , T2:Type ) -> ( !hw.inout < T1:IntegerType > )
             => ListItem(TV( !hw.inout < T1 > , hw.inout("", T1, HwArrayGet(V1, V2)) ))
             ...
         </circt-exec>
@@ -386,7 +386,7 @@ module SV
     
     rule <k> circt </k>
         <circt-exec>
-            "sv.assign" ( X1:Var , X2:Var ) { .Map } : ( !hw.inout < array < Size:ArraySizePrefix T:IntegerType > >  , !hw.array < Size:ArraySizePrefix T:IntegerType > ) -> ( .Types )
+            "sv.assign" ( X1:Var , X2:Var ) { .Map } : ( !hw.inout < array < Size:SizeX T:IntegerType > >  , !hw.array < Size:SizeX T:IntegerType > ) -> ( .Types )
             => .List
             ...
         </circt-exec>
@@ -948,7 +948,7 @@ module SV
     
     rule <k> circt </k>
         <circt-exec> 
-            "sv.reg" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < array< Size:ArraySizePrefix T:IntegerType > > )
+            "sv.reg" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < array< Size:SizeX T:IntegerType > > )
             => ListItem( TV(
                 !hw.inout< !hw.array< Size T > >,
                 hw.inout({Attr[#token("name", "BareId")]}:>String, !hw.array< Size T >, 0)
