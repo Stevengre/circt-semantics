@@ -1,4 +1,3 @@
-requires "../../circt/circt.k"
 requires "./sv.k"
 
 module SV-INITIAL
@@ -63,6 +62,17 @@ endmodule
 
 module SV-ALWAYS
     imports SV-SYNTAX
+
+    // -------------------------- bootstrap phase -----------------------------
+
+    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => .K ... </k>
+        <initial> L:List => L ListItem("sv.initial" ( .ValueIdList ) ( R ) { .Map } : ( .Types ) -> ( .Types )) </initial>
+        <cmd> #bootstrap ... </cmd>
+    
+    rule <k> "sv.always" ( VL:ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types ) => .K ... </k>
+        <always> L:List => L ListItem("sv.always" ( VL ) ( R ) { Attr } : ( .Types ) -> ( .Types )) </always>
+        <cmd> #bootstrap ... </cmd>
+
 
     // ----------------------------------- always task ------------------------------------------
 

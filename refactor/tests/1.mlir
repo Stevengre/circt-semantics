@@ -8,17 +8,18 @@
     %3 = "sv.read_inout"(%2) : (!hw.inout<i8>) -> i8
     %4 = "comb.add"(%3, %1) : (i8, i8) -> i8
 
-    %end = "hw.constant"() {value = 4 : i8} : () -> i8
+    %end = "hw.constant"() {value = 5 : i8} : () -> i8
     
     "sv.initial"() ({
-      
-     "sv.for"(%0, %end, %1) ({
+      "sv.passign"(%2, %0) : (!hw.inout<i8>, i8) -> ()
+
+      "sv.for"(%0, %end, %1) ({
+      ^bb0(%i: i8):
         %tmp = "sv.read_inout"(%2) : (!hw.inout<i8>) -> i8
         %next = "comb.add"(%tmp, %i) : (i8, i8) -> i8
         "sv.passign"(%2, %next) : (!hw.inout<i8>, i8) -> ()
       }) {inductionVarName = "i"} : (i8, i8, i8) -> ()
 
-      "sv.passign"(%2, %0) : (!hw.inout<i8>, i8) -> ()
     }) : () -> ()
     
     "sv.always"() ({

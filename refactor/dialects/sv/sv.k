@@ -1,5 +1,8 @@
 requires "../../circt/circt.k"
 requires "./sv-always.k"
+requires "./sv-for.k"
+requires "./sv-reg.k"
+
 
 module SV-SYNTAX
     imports CIRCT-SYNTAX
@@ -78,36 +81,19 @@ module SV
     imports SV-TASK
     imports SV-INITIAL
     imports SV-ALWAYS
+    imports SV-FOR
+    imports SV-REG
+
 
     rule <k> "sv.if" ( X:ValueId ) ( R1:Region , R2:Region ) { .Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types ) 
             => X ~> #SvIf ~> R1 ~> R2
             ...
         </k>
 
-    rule <k> "sv.for" ( Vs:ValueIdList ) ( R:Region ) { _:Map } : ( _:Type, _:Type, _:Type ) -> ( .Types ) 
-            => Vs ~> #SvFor ~> R
-            ...
-        </k>
-
-
     // sv.if
     rule <k> B:Bits : #token("i1", "SignlessIntegerType") ~> #SvIf ~> R1:Region ~> R2:Region 
             => #if Bits2Bool(B) #then R1 #else R2 #fi
             ...
         </k>
-
-    // sv.for
-    rule <k> 
-            ListItem(bits(Start:Int, _:Int) :  _:Type) ListItem(bits(End:Int, _:Int) :  _:Type) ListItem(bits(Step:Int, _:Int) :  _:Type)
-            ~> #SvFor ~> R:Region
-            => Start ~> End ~> Step ~> #SvFor ~> R:Region
-            ...
-        </k>
-
-    rule <k> (.K => R)
-            ~> (Start:Int => Start +Int Step) ~> End:Int ~> Step:Int 
-            ~> #SvFor ~> R:Region 
-            ... 
-        </k>
-        requires Start <Int End
+    
 endmodule

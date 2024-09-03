@@ -10,7 +10,7 @@ module CONF
     <circt> 
         <mlir/> 
         <cmd> .K </cmd>
-        <entry> #token("@Foo", "SymbolRefId") </entry>
+        <entry> $Entry:String </entry>
         <input> ListItem(bits ( 1 , 8 ) : i8) </input>
         <clock> 0 </clock>
         <running> .List </running>

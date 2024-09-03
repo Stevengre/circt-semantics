@@ -176,7 +176,11 @@ module MLIR-HELPER
     syntax String ::= "SymbolRefId2StringHelper" "(" SymbolRefId ")" [function, total,hook(STRING.token2string)]
     syntax String ::= "SymbolRefId2String" "(" SymbolRefId ")" [function, total]
     rule SymbolRefId2String(ID) => substrString ( SymbolRefId2StringHelper(ID) , 1 , lengthString(SymbolRefId2StringHelper(ID)) ) // TODO: 没有临时变量感觉写起来确实很麻烦。
-    syntax SymbolRefId ::= "String2SymbolRefId" "(" String ")" [function, total,hook(STRING.string2token)]
+
+    syntax SymbolRefId ::= "String2SymbolRefIdHelper" "(" String ")" [function, total, hook(STRING.string2token)]
+    syntax SymbolRefId ::= "String2SymbolRefId" "(" String ")" [function, total]
+    rule String2SymbolRefId(S:String) => String2SymbolRefIdHelper("@" +String S)
+
     // ## List of String (SymbolRefId) -> String
     syntax String ::= "SymbolRefIdList2String" "(" List ")" [function, total]
     rule SymbolRefIdList2String(.List) => ""
@@ -303,8 +307,9 @@ module MLIR-HELPER
     // ### Canonicalize the Content of the Operation
     
     syntax Operation ::= Canonicalize1(Operation) [function]
-    rule Canonicalize1(Rs = N (Vs) [Ss:Successors] <{AL:AttributeEntryList}> (R:Regions) {AL2:AttributeEntryList} : FT) 
-        => Rs = N (Vs) [Ss] <{Canonicalize(AL)}> (RegionsCanonicalize(R)) {Canonicalize(AL2)} : Canonicalize(FT)
+    rule Canonicalize1(Rs = N (Vs) [Ss:Successors] <{AL1:AttributeEntryList}> (R:Regions) {AL2:AttributeEntryList} : FT) 
+        => Rs = N (Vs) [Ss] <{.Map}> (RegionsCanonicalize(R)) {updateMap(Canonicalize(AL1), Canonicalize(AL2))} : Canonicalize(FT)
+        // => Rs = N (Vs) [Ss] <{Canonicalize(AL1)}> (RegionsCanonicalize(R)) {Canonicalize(AL2)} : Canonicalize(FT)
 
     // Get Symbol Table of an Operation
     syntax Map ::= GetSymbolTable(Operation, List) [function]

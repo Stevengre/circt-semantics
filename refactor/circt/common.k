@@ -193,8 +193,8 @@ module COMMON
     
     // - first stimulation
     rule <phase> #toStimulate </phase>
-        <cmd> .K => #CirctGetOp ID ~> #CIRCTrefineOp ~> SymbolRefId2String(ID) ~> #bootstrap ~> #initial ~> #always </cmd>
-        <entry> ID:SymbolRefId </entry>
+        <cmd> .K => #CirctGetOp String2SymbolRefId(ID) ~> #CIRCTrefineOp ~> ID ~> #bootstrap ~> #initial ~> #always </cmd>
+        <entry> ID:String </entry>
         // [owise]
    
    
@@ -203,7 +203,7 @@ module COMMON
             #CirctGetOp ID:SymbolRefId
             => #if SymbolRefId2String(ID) in_keys(M)
             #then M [ SymbolRefId2String(ID) ]
-            #else #Stop "cannot find operation from <table>"
+            #else #Stop "cannot find operation from <table>" ~> ID
             #fi
             ... 
         </cmd>
@@ -392,23 +392,6 @@ module COMMON
         <table> ... SymbolRefId2String(Mod) |-> Op ... </table>
         <cmd> #bootstrap ... </cmd>
     
-
-    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => .K ... </k>
-        <initial> L:List => L ListItem("sv.initial" ( .ValueIdList ) ( R ) { .Map } : ( .Types ) -> ( .Types )) </initial>
-        <cmd> #bootstrap ... </cmd>
-    
-    rule <k> "sv.always" ( VL:ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types ) => .K ... </k>
-        <always> L:List => L ListItem("sv.always" ( VL ) ( R ) { Attr } : ( .Types ) -> ( .Types )) </always>
-        <cmd> #bootstrap ... </cmd>
-
-    rule <k> X:ValueId = "hw.constant" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type ) => .K ... </k>
-        <locals> Locals:Map => Locals [X <- AV2StdValue({Attr["value"]}:>AttributeValue, T)] </locals>
-        <cmd> #bootstrap ... </cmd>
-    
-    rule <k> X:ValueId = "sv.reg" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:Type > ) => .K ... </k>
-        <regs> Regs:Map => Regs [ X <- hw.inout({Attr["name"]}:>String , T , #x) ] </regs>
-        <locals> Locals:Map => Locals [ X <- "sv.reg" ( .ValueIdList ) { Attr } : ( .Types ) -> ( !hw.inout < T > ) ] </locals>
-        <cmd> #bootstrap ... </cmd>
     
     // rule <k> #KWArgs A:AttributeValueList ~> V:ValueIdAndTypeList
     //         => #KHalt "An error occurs in #KWArgs!" ~> #KWArgs A ~> V
