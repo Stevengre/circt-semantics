@@ -1,0 +1,37 @@
+name: Python CI
+
+# 定义触发条件，在 push 到 main 分支或者创建 pull request 时触发
+on:
+  pull_request:
+    branches:
+      - main
+
+# 并发控制 （同时只存在一个工作流，且最新的会覆盖旧的）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 定义 job
+jobs:
+
+  change-base:
+    name: 'Change base to develop branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+          # fetch-depth 0 means deep clone the repo
+          fetch-depth: 0
+      - name: 'Change base'
+        env:
+          GITHUB_TOKEN: ${{ secrets.JENKINS_GITHUB_PAT }}
+        run: |
+          set -x
+          pull_number=$(jq --raw-output .pull_request.number "${GITHUB_EVENT_PATH}")
+          curl -X PATCH                                                               \
+            -H "Accept: application/vnd.github+json"                                  \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}"                                \
+            "https://api.github.com/repos/runtimeverification/k/pulls/${pull_number}" \
+            -d '{"base":"develop"}'
