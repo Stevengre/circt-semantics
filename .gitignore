@@ -10,3 +10,5 @@ temp/
 a.*
 tmp/
 kirct/
+.idea/
+.vscode/
