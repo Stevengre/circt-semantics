@@ -95,5 +95,5 @@ module SV
             => #if Bits2Bool(B) #then R1 #else R2 #fi
             ...
         </k>
-    
+
 endmodule

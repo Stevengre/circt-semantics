@@ -39,7 +39,7 @@ module SV-INITIAL
     rule <k> #SvInitial ~> .List => .K ... </k>
         <cmd> #initial ... </cmd>
 
-    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => R ... </k>
+    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) : ( .Types ) -> ( .Types ) => R ... </k>
         <cmd> #initial ... </cmd>
 
     rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
@@ -65,8 +65,8 @@ module SV-ALWAYS
 
     // -------------------------- bootstrap phase -----------------------------
 
-    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) { .Map } : ( .Types ) -> ( .Types ) => .K ... </k>
-        <initial> L:List => L ListItem("sv.initial" ( .ValueIdList ) ( R ) { .Map } : ( .Types ) -> ( .Types )) </initial>
+    rule <k> "sv.initial" ( .ValueIdList ) ( R:Region ) : ( .Types ) -> ( .Types ) => .K ... </k>
+        <initial> L:List => L ListItem("sv.initial" ( .ValueIdList ) ( R ) : ( .Types ) -> ( .Types )) </initial>
         <cmd> #bootstrap ... </cmd>
     
     rule <k> "sv.always" ( VL:ValueIdList ) ( R:Region ) { Attr:Map } : ( .Types ) -> ( .Types ) => .K ... </k>

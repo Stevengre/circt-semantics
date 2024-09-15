@@ -21,16 +21,9 @@ module CONF
                 <always> .List </always>
                 <initial> .List </initial>
                 <k> .K </k>
-                // <ks> 
-                //     <kmap multiplicity="*" type="Map"> 
-                //         <kkey> 0:Int </kkey>
-                //         <k> .K </k>
-                //     </kmap> 
-                // </ks>
-                // <circuit> .K </circuit>
                 <parent> "" </parent>
                 <last> .Map </last>
-                <curr> .Map </curr>
+                // <curr> .Map </curr>
                 <locals> .Map </locals>
                 <module> "" </module>
                 <in-ports> .List </in-ports>

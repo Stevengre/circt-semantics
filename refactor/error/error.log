@@ -1,0 +1,3 @@
+Error while communicating with the solver:
+    fd:25: hFlush: resource vanished (Broken pipe)
+Solver exit code: -2

@@ -1,0 +1,52 @@
+kore-exec: [143972319] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [144032448] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [144129030] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [144169234] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [144210728] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [151504329] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [151540670] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [151893785] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [151931989] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [151969419] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [152009656] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [152285845] Warning (WarnStuckClaimState):
+    The left-hand side of the claim has been simplified to bottom. Location: /home/ppk/work/mlir/k-circt/refactor/spec/spec-mlir.k:24:11-26:33
+Context:
+    (InfoReachability) while simplifying the claim
+kore-exec: [357292869] Error (ErrorException):
+    Error while communicating with the solver:
+        fd:25: hFlush: resource vanished (Broken pipe)
+    Solver exit code: -2

@@ -9,3 +9,7 @@ temp/
 .scala-build/
 a.*
 tmp/
+*-llvm/
+*-haskell/
+*.xml
+

@@ -9,11 +9,5 @@ module MAIN
     imports COMB
     imports HW
     imports SEQ
-
-    // configuration <T>
-    //     <circt>
-    //         <common/>
-    //     </circt>
-    // </T>
-
+    
 endmodule

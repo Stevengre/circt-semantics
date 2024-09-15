@@ -1,4 +1,4 @@
-requires "./mlir.k"
+requires "./mlir-syntax.k"
 
 module BUILTIN-SYNTAX 
     imports MLIR-SYNTAX

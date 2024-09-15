@@ -15,9 +15,6 @@ module COMMON-SYNTAX
     // - Return Values to the parent circuit
     syntax KmdCIRCT ::= "#KCallBack" String
 
-    syntax Control ::= "#toStimulate"
-                     | "#stimulating"
-
     syntax CmdCIRCT ::= "#CIRCTstimulate" SymbolRefId "(" AttributeValueList ")"
     syntax KmdCIRCT ::= "#Kstimulate" String "(" StdValues ")" "by" String "as" String
 
@@ -72,57 +69,57 @@ module COMMON-HELPER
     rule Type2BitSize( T:IntegerType ) => getIntegerTypeSize(T)
 
     // refine operation
-    syntax Operation ::= CIRCTrefineOp ( Operation ) [function]
+    // syntax Operation ::= CIRCTrefineOp ( Operation ) [function]
     
-    // - if generate values, but no id to consume them. just throw it away.
-    rule CIRCTrefineOp(Rs = Op:GenericOperation) => CIRCTrefineGop(Op) requires Rs ==K .OpResults
-    rule CIRCTrefineOp(Rs = Op:GenericOperation) => Rs = CIRCTrefineGop(Op) [owise]
+    // // - if generate values, but no id to consume them. just throw it away.
+    // rule CIRCTrefineOp(Rs = Op:GenericOperation) => CIRCTrefineGop(Op) requires Rs ==K .OpResults
+    // rule CIRCTrefineOp(Rs = Op:GenericOperation) => Rs = CIRCTrefineGop(Op) [owise]
 
-    // ## refine generic operation
-    syntax GenericOperation ::= CIRCTrefineGop ( GenericOperation ) [function]
+    // // ## refine generic operation
+    // syntax GenericOperation ::= CIRCTrefineGop ( GenericOperation ) [function]
     
-    // -- 11
-    rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-        => N (Vs) <{AL}> (CIRCTrefineRegions(R)) {AL2} : FT
-        requires AL =/=K .Map andBool R =/=K .Regions
-    // -- 01
-    rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-        => N (Vs) (CIRCTrefineRegions(R)) {AL2} : FT
-        requires AL ==K .Map andBool R =/=K .Regions
-    // -- 10
-    rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-        => N (Vs) <{AL}> {AL2} : FT
-        requires AL =/=K .Map andBool R ==K .Regions
-    // -- 00
-    rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-        => N (Vs) {AL2} : FT
-        requires AL ==K .Map andBool R ==K .Regions
+    // // -- 11
+    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
+    //     => N (Vs) <{AL}> (CIRCTrefineRegions(R)) {AL2} : FT
+    //     requires AL =/=K .Map andBool R =/=K .Regions
+    // // -- 01
+    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
+    //     => N (Vs) (CIRCTrefineRegions(R)) {AL2} : FT
+    //     requires AL ==K .Map andBool R =/=K .Regions
+    // // -- 10
+    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
+    //     => N (Vs) <{AL}> {AL2} : FT
+    //     requires AL =/=K .Map andBool R ==K .Regions
+    // // -- 00
+    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
+    //     => N (Vs) {AL2} : FT
+    //     requires AL ==K .Map andBool R ==K .Regions
     
-    // -- unexpected
-    rule CIRCTrefineGop(Op:GenericOperation) => Op [owise]
+    // // -- unexpected
+    // rule CIRCTrefineGop(Op:GenericOperation) => Op [owise]
     
-    // ## refine regions
-    syntax Regions ::= CIRCTrefineRegions (Regions) [function]
-    rule CIRCTrefineRegions(.Regions) => .Regions 
-    rule CIRCTrefineRegions( R:Region, Rs:Regions ) => CIRCTrefine(R) , CIRCTrefineRegions(Rs) [owise]
+    // // refine regions
+    // syntax Regions ::= CIRCTrefineRegions (Regions) [function]
+    // rule CIRCTrefineRegions(.Regions) => .Regions 
+    // rule CIRCTrefineRegions( R:Region, Rs:Regions ) => CIRCTrefine(R) , CIRCTrefineRegions(Rs) [owise]
     
-    // ## refine region
-    syntax Region ::= CIRCTrefine( Region ) [function]
-    rule CIRCTrefine( {OPs:OperationList BL:BlockList} ) => {CIRCTrefineOps(OPs) CIRCTrefineBlocks(BL)}
+    // // refine region
+    // syntax Region ::= CIRCTrefine( Region ) [function]
+    // rule CIRCTrefine( {OPs:OperationList BL:BlockList} ) => {CIRCTrefineOps(OPs) CIRCTrefineBlocks(BL)}
     
-    // ## refine OperationList
-    syntax OperationList ::= CIRCTrefineOps( OperationList ) [function]
-    rule CIRCTrefineOps( .OperationList ) => .OperationList
-    rule CIRCTrefineOps( OP:Operation OPs:OperationList ) => CIRCTrefineOp(OP) CIRCTrefineOps(OPs) [owise]
+    // // refine OperationList
+    // syntax OperationList ::= CIRCTrefineOps( OperationList ) [function]
+    // rule CIRCTrefineOps( .OperationList ) => .OperationList
+    // rule CIRCTrefineOps( OP:Operation OPs:OperationList ) => CIRCTrefineOp(OP) CIRCTrefineOps(OPs) [owise]
     
-    // ## refine BlockList
-    syntax BlockList ::= CIRCTrefineBlocks( BlockList ) [function]
-    rule CIRCTrefineBlocks( .BlockList ) => .BlockList
-    rule CIRCTrefineBlocks( B:Block BL:BlockList ) => CIRCTrefineBlock(B) CIRCTrefineBlocks(BL) [owise]
+    // // refine BlockList
+    // syntax BlockList ::= CIRCTrefineBlocks( BlockList ) [function]
+    // rule CIRCTrefineBlocks( .BlockList ) => .BlockList
+    // rule CIRCTrefineBlocks( B:Block BL:BlockList ) => CIRCTrefineBlock(B) CIRCTrefineBlocks(BL) [owise]
     
-    // ## refine Block
-    syntax Block ::= CIRCTrefineBlock( Block ) [function]
-    rule CIRCTrefineBlock( BL:BlockLabel OPs:OperationList ) => BL CIRCTrefineOps(OPs) 
+    // // refine Block
+    // syntax Block ::= CIRCTrefineBlock( Block ) [function]
+    // rule CIRCTrefineBlock( BL:BlockLabel OPs:OperationList ) => BL CIRCTrefineOps(OPs) 
 
     syntax List ::= toList(AttributeValueList) [function]
     rule toList(V:AttributeValue, VL:AttributeValueList) => ListItem(V) toList(VL)
@@ -142,7 +139,7 @@ module COMMON
 
 
     rule <phase> #preprocess => #toStimulate </phase>
-        <prog> .TopLevel </prog>
+        <prog> .K </prog>
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
@@ -192,26 +189,24 @@ module COMMON
    
     
     // - first stimulation
-    rule <phase> #toStimulate </phase>
-        <cmd> .K => #CirctGetOp String2SymbolRefId(ID) ~> #CIRCTrefineOp ~> ID ~> #bootstrap ~> #initial ~> #always </cmd>
-        <entry> ID:String </entry>
-        // [owise]
-   
-   
-    rule <phase> #toStimulate </phase>
-        <cmd> 
-            #CirctGetOp ID:SymbolRefId
-            => #if SymbolRefId2String(ID) in_keys(M)
-            #then M [ SymbolRefId2String(ID) ]
-            #else #Stop "cannot find operation from <table>" ~> ID
-            #fi
-            ... 
-        </cmd>
-        <table> M:Map </table>
+    // rule <phase> #toStimulate </phase>
+    //     <cmd> .K => #CirctGetOp String2SymbolRefId(ID) ~> #CIRCTrefineOp ~> ID ~> #bootstrap ~> #initial ~> #always </cmd>
+    //     <entry> ID:String </entry>
+        
+    // rule <phase> #toStimulate </phase>
+    //     <cmd> 
+    //         #CirctGetOp ID:SymbolRefId
+    //         => #if SymbolRefId2String(ID) in_keys(M)
+    //         #then M [ SymbolRefId2String(ID) ]
+    //         #else #Stop "cannot find operation from <table>" ~> ID
+    //         #fi
+    //         ... 
+    //     </cmd>
+    //     <table> M:Map </table>
 
     
-    rule <phase> #toStimulate </phase>
-        <cmd> Op:Operation ~> #CIRCTrefineOp => CIRCTrefineOp(Op) ... </cmd>
+    // rule <phase> #toStimulate </phase>
+    //     <cmd> Op:Operation ~> #CIRCTrefineOp => CIRCTrefineOp(Op) ... </cmd>
     
     // rule <k> Op:Operation ~> #KrefineOp => CIRCTrefineOp(Op) ... </k>
     
@@ -222,22 +217,41 @@ module COMMON
    
     
     // build the circuit
+    // rule <phase> #toStimulate => #build </phase>
+    //     <cmd> ( Op:Operation ~> Mod:String => .K ) ~> #bootstrap ... </cmd>
+    //     <ckts>
+    //         ...
+    //         (.Bag =>
+    //         <ckt>
+    //             <cid> Mod </cid>
+    //             <k> Op </k> 
+    //             <module> Mod </module>
+    //             // <args> toList(Vs) </args>
+    //             ...
+    //         </ckt>)
+    //         ...
+    //     </ckts>
+    //     <running> L:List => L ListItem(Mod) </running>
+    //     <boot> Boot:List => Boot ListItem(Mod) </boot>
+
     rule <phase> #toStimulate => #build </phase>
-        <cmd> ( Op:Operation ~> Mod:String => .K ) ~> #bootstrap ... </cmd>
+        <entry> ID:String </entry>
+        <table> M:Map </table>
+        <cmd> .K => #bootstrap ~> #initial ~> #always ... </cmd>
         <ckts>
             ...
             (.Bag =>
             <ckt>
-                <cid> Mod </cid>
-                <k> Op </k> 
-                <module> Mod </module>
+                <cid> ID </cid>
+                <k> M [ID] orDefault "no such module" </k> 
+                <module> ID </module>
                 // <args> toList(Vs) </args>
                 ...
             </ckt>)
             ...
         </ckts>
-        <running> L:List => L ListItem(Mod) </running>
-        <boot> Boot:List => Boot ListItem(Mod) </boot>
+        <running> L:List => L ListItem(ID) </running>
+        <boot> Boot:List => Boot ListItem(ID) </boot>
     
     rule <ckt>
             <cid> Inst </cid>
@@ -279,7 +293,19 @@ module COMMON
     //         => OL ~> B
     //         ...
     //     </k>
-    
+
+    rule <k> OpName:String (VL:ValueIdList) [ .Successors ] ( Rs:Regions ) { Attr:Map } : FT:FunctionType 
+            => OpName (VL) (Rs) {Attr} : FT
+            ...
+        </k>
+        <cmd> #bootstrap ... </cmd>
+
+    rule <k> .OpResults = OpName:String (VL:ValueIdList) [ .Successors ] ( Rs:Regions ) { Attr:Map } : FT:FunctionType 
+            => OpName (VL) (Rs) {Attr} : FT
+            ...
+        </k>
+        <cmd> #bootstrap ... </cmd>
+
     rule <k>
             "hw.module" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
             => R
@@ -320,15 +346,8 @@ module COMMON
     rule <k> _:Int ~> #token("^bb0", "CaretId") ( .ValueIdAndTypeList ) : => .K ... </k>
         <cmd> #bootstrap ... </cmd>
 
-    
-    // rule <k> #KWArgs (ListItem(V:Int) Vs:List => Vs)
-    //         ~> (X:ValueId : T:Type , VTs:ValueIdAndTypeList => VTs)
-    //         ...
-    //     </k>
-    //     <locals> Locals:Map => Locals [X <- AV2Bits(V, T) : T] </locals>
-    
-    // rule <k> #KWArgs .List ~> .ValueIdAndTypeList => .K ... </k>
 
+    // SSA statements
     rule <k> X:ValueId = Op:GenericOperation => .K ... </k>
         <locals> Locals:Map => Locals [X <- Op] </locals>
         <cmd> #bootstrap ... </cmd>
@@ -338,11 +357,8 @@ module COMMON
         <locals> Locals:Map => Locals [X <- Op] </locals>
         <cmd> #bootstrap ... </cmd>
 
-    rule <k> "hw.output" ( Vs:ValueIdList ) { .Map } : ( _:Types ) -> ( .Types ) => .K ... </k>
-        <out-vars> _ => Vs </out-vars>
-        <cmd> #bootstrap ... </cmd>
 
-
+    // hw.instance
     rule <k> 
             (.K => 0 ~> M["instanceName"]) ~>
             (
@@ -379,8 +395,7 @@ module COMMON
             (.Bag =>
             <ckt>
                 <cid> Inst </cid>
-                <k> CIRCTrefineOp(Op) </k> 
-                // <circuit> Op </circuit>
+                <k> Op </k>
                 <module> SymbolRefId2String(Mod) </module>
                 <args> ValueRefListWrapper(VL, Parent) </args>
                 ...
@@ -493,18 +508,6 @@ module COMMON
     // // ## Read the output ports
     // rule <k> #KReadOuts => #KReadCurr VIDs ... </k>
     //     <out-vars> VIDs </out-vars>
-
-
-    
-    rule <k>
-            "sv.passign" ( Dst:ValueId , Src:ValueId ) { .Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types ) 
-            => Src ~> #SvPassign ~> Dst
-            ...
-        </k>
-        // <cmd> #initial ... </cmd>
-
-    rule <k> V:StdValue ~> #SvPassign ~> Dst:ValueId => .K ... </k>
-        <regs> ... Dst |-> hw.inout ( "reg" , i8 , _ => V ) ... </regs>
     
     
     // lookup ValueId
@@ -512,15 +515,10 @@ module COMMON
         <locals> M:Map </locals>
         requires X in_keys(M)
 
-    // rule <k> X:ValueId 
-    //         => substrString(ValueId2String(X), 0, findChar(ValueId2String(X), "#", 0)) 
-    //         ~> substrString(ValueId2String(X), findChar(ValueId2String(X), "#", 0) +Int 1, lengthString(ValueId2String(X)))
-    //         ... 
-    //     </k>
-    //     requires findChar(ValueId2String(X), "#", 0) >Int -1
 
-    rule <k> X:ValueId 
-            => #ValueIdIndexLookup ~> ValueId2String(X) ~> findChar(ValueId2String(X), "#", 0)
+    // lookup ValueId with index: %foo#0, %foo#1
+    rule <k> 
+            X:ValueId => #ValueIdIndexLookup ~> ValueId2String(X) ~> findChar(ValueId2String(X), "#", 0)
             ... 
         </k>
         requires findChar(ValueId2String(X), "#", 0) >Int -1
@@ -533,8 +531,7 @@ module COMMON
         </k>
 
     rule <k> L:List ~> #ValueIdIndexLookup ~> Idx:Int => L[Idx] ... </k>
-        
-
+    
 
     // lookup ValueIdList
     rule <k> VL:ValueIdList => .List ~> VL ... </k>
@@ -545,20 +542,6 @@ module COMMON
     // rule <k> (.K => X) ~> (X:ValueId, Xs:ValueIdList => Xs) ... </k>
     // rule <k> (V:StdValue => .K) ~> _:ValueIdList ~> (L:List => L ListItem(V)) ... </k>
     // rule <k> .ValueIdList => .K ... </k>
-
-    
-    // rule <k> "comb.add" ( VL:ValueIdList ) { .Map } : ( _:Types ) -> ( T:Type )
-    //         => VL ~> .List ~> #CombAdd ~> T
-    //         ...
-    //     </k>
-
-    // rule <k> L:List ~> #CombAdd ~> T:Type => BitsAdd(ListStdValue2Bits(L)) : T ... </k>
-
-    rule <k> "sv.read_inout" ( X:ValueId ) { .Map } : ( !hw.inout < T:Type > ) -> ( T:Type )
-            => V
-            ...
-        </k>
-        <regs> ... X |-> hw.inout ( "reg" , T , V ) ... </regs>
 
 
 
