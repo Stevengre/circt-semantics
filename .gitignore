@@ -12,4 +12,5 @@ tmp/
 *-llvm/
 *-haskell/
 *.xml
-
+.vscode/
+.idea/
