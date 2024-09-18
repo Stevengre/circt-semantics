@@ -1,0 +1,569 @@
+module SV
+    imports CIRCT
+    imports K-IO
+
+    syntax KmdCIRCT ::= #SvForce
+                      | #SvRelease
+
+    // sv.force
+    rule <k>
+            "sv.force" ( Src:ValueId , Dst:ValueId ) { .Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types )
+            => #KReadCurr Src ~> #KWriteCurr Dst ~> #KReadCurr Dst ~> #SvForce Dst
+            ...
+        </k>
+
+    rule <k> Old:StdValue ~> #SvForce Dst => . ... </k>
+        <force> M:Map => M [Dst <- Old] </force>
+
+    // sv.release
+    rule <k>
+            "sv.release" ( X:ValueId ) { .Map } : ( !hw.inout < T:Type > ) -> ( .Types )
+            => #KReadForce X ~> #KWriteCurr X ~> #SvRelease X
+            ...
+        </k>
+    
+    rule <k> #SvRelease X:ValueId => . ... </k>
+        <force> M:Map => M [X <- undef] </force>
+
+    
+    // sv.struct_field_inout
+    rule <k>
+            "sv.struct_field_inout" ( X:ValueId ) { Attr:Map } : ( !hw.inout < struct < Fs:StructFields > > ) -> ( !hw.inout < _T:IntegerType > )
+            ~> #KReadCurr X ~> Attr[#token("field", "BareId")] ~> #SvStructFieldInout
+            ...
+        </k>
+    
+    rule <k> V:Bits : !hw.inout < T:HwStructType > ~> Field:BareID ~> #SvStructFieldInout
+            => BitsSlice(V, HwStructFindFieldOffs(T, Field), HwStructGetFieldSize(T, Field)) : !hw.inout < HwStructGetFieldType(T, Field) >
+            ...
+        </k>
+
+
+    // sv.array_index_inout
+     rule <k>
+            "sv.array_index_inout" ( Vs:ValueIdList ) { .Map } : ( !hw.inout < array < Size:SizeX T1:IntegerType > > , T2:Type ) -> ( !hw.inout < T1:IntegerType > )
+            => #KReadCurr Vs ~> #SvArrayIndexInout
+            ...
+        </k>
+    
+    rule <k> V:Bits : !hw.inout < !hw.array < Size T:Type > > , Index:StdValue ~> #SvArrayIndexInout
+            => BitsSlice(V, StdValue2Int(Index) *Int getWidth(T), getWidth(T)) : !hw.inout < T:Type >
+            ...
+        </k>
+
+    // sv.readmem
+    rule <k>
+            "sv.readmem" ( X:ValueId ) { Attr:Map } : ( !hw.inout < _:IntegerType > ) -> ( .Types )
+            => 
+                Attr[#token("base", "BareId")] 
+                ~> Attr[#token("filename", "BareId")] 
+                ~> #SvReadmem
+                ~> #KWriteCurr X
+            ...
+        </k>
+
+    rule <k> Base:Int ~> (Filename:String => #open(FileName)) ~> #KSvReadmem ... </k>
+    
+    rule <k> (Base:Int 
+            => #if Base ==Int 0 
+                #then #read(Fd, getWidth(T)) 
+                #else #read(Fd, getWidth(T) /Int 4)  
+                #fi)
+            ~> Fd:Int ~> #KSvReadmem 
+            ...
+        </k>
+    
+    rule <k> (Data:String => String2StdValue(Data))
+            ~> (Fd:Int ~> #KSvReadmem => #if #close(Fd) #then .K #else .K #fi)
+            ...
+        </k>
+
+    
+    // sv.assert
+    rule <k>
+            "sv.assert" ( X:ValueId ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
+            => #KReadCurr X ~> #SvAssert
+            ...
+        </k>
+    
+    rule <k> V:StdValue ~> #SvAssert 
+            => #if StdValue2Int(V) ==Int 0 
+                #then "assertion error" 
+                #else .K
+                #if // .K or a empty list?
+            ... 
+        </k>
+
+    
+    // sv.assert.concurrent
+    rule <k>
+            "sv.assert.concurrent" ( Clk:ValueId , Cond:ValueId ) { Attr:Map } : ( _:Type , _:Type ) -> ( .Types )
+            => Attr[#token("event", "BareId")] ~> #KEventCheck Clk ~> #KReadCurr Cond ~> #SvAssert
+            ...
+        </K>
+
+    rule <k> 
+            Attr[#token("event", "BareId")] ~> #KEventCheck Clk 
+            => #if true // todo
+                #then .K
+                #else #KSkip 2
+                #fi
+            ... 
+        </k>
+
+    
+    // sv.assume
+    rule <k> 
+            "sv.assume" ( X:ValueId ) { _:Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types )
+            => #KReadCurr X ~> #SvAssert
+            ...
+        </k>
+
+    
+    // sv.assume.concurrent
+    rule <k> 
+            ("sv.assume.concurrent" => "sv.assert.concurrent") ( _Clk:Var , _Cond:Var ) { _:Map } : ( _:Type , _:Type ) -> ( .Types )
+            ...
+        </k>
+
+
+    // sv.ordered
+    rule <k> 
+            "sv.ordered" ( .VarList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => #SvOrdered R
+            ...
+        </k>
+
+    rule <k> (.K => O) ~> #SvOrdered { (O:Operation Os:OperationList => Os) BlockList }
+            ...
+        </k>
+
+    
+    // sv.constantX
+    rule <k> 
+            "sv.constantX" ( .ValueIdList ) { .Map } : ( .Types ) -> ( T:Type )
+            => bits(#x, getWidth(T)) : T
+            ...
+        </k>
+
+
+    // sv.constantZ
+    rule <k> circt </k>
+        <circt-exec> 
+            "sv.constantZ" ( .ValueIdList ) { .Map } : ( .Types ) -> ( T:Type )
+            => bits(#z, getWidth(T)) : T
+            ...
+        </circt-exec>
+
+    
+    // sv.case
+    rule <k> 
+            "sv.case" ( I:Var ) ( Rs:Regions ) { Attr:Map } : ( T:Type ) -> ( .Types )
+            => #KReadCurr I ~> Attr[#token("casePatterns", "BareId")] ~> #SvCase Rs
+            ...
+        </k>
+
+    rule <k> V:StdValue ~> [ X:Int : _:IntegerType, L:AttributeValueList ] ~> #SvCase R:Region, Rs
+            => #if StdValue2Int(V) ==Int X #then R #else
+                V ~> [ L ] ~> #SvCase Rs
+            #fi
+            ...
+        </k>
+
+    rule <k> _:StdValue ~> [ (unit, .AttributeValueList):AttributeValueList ] ~> #SvCase R:Region
+            => R
+            ...
+        </k>
+
+
+    // sv.finish
+    rule <k> "sv.finish" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => #SvFinish
+            ...
+        </k>
+    
+
+    // sv.stop
+    rule <k> "sv.stop" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => #SvStop
+            ...
+        </k>
+    
+
+    // sv.exit
+    rule <k> "sv.exit" ( .ValueIdList ) { _:Map } : ( .Types ) -> ( .Types )
+            => #SvExit
+            ...
+        </k>
+
+    
+    // sv.if
+    rule <k> "sv.if" ( X:ValueId ) ( R1:Region , R2:Region ) { .Map } : ( T:Type ) -> ( .Types )
+            => #KReadCurr I ~> #SvIf R1 R2
+            ...
+        </k>
+       
+
+    rule <k> X:StdValue ~> #SvIf R1 R2 
+            => #if StdValue2Int(X) ==Int 0 #then R2 #else R1 #fi
+            ...
+        </k>
+
+
+
+    // sv.error
+    rule <k>  "sv.error" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => Attr[#token("message", "BareId")] ~> #SvError
+            ...
+        </k>
+    
+
+    // sv.warning
+    rule <k> "sv.warning" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => Attr[#token("message", "BareId")] ~> #SvWarning
+            ...
+        </k>
+    
+
+    // sv.info
+    rule <k> "sv.info" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => Attr[#token("message", "BareId")] ~> #SvInfo
+            ...
+        </k>
+
+
+    // sv.fatal
+    rule <k> "sv.fatal" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => Attr[#token("message", "BareId")] ~> Attr[#token("verbosity", "BareId")] ~> #SvFatal
+            ...
+        </k>
+        
+    
+    // sv.verbatim
+    rule <k> "sv.verbatim" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => Attr[#token("format_string", "BareId")] ~> #SvVerbatim
+            ...
+        </k>
+
+    
+    // sv.fwrite
+    rule <k> 
+            "sv.fwrite" ( X:ValueId ) { Attr:Map } : ( T:Type ) -> ( .Types )
+            => #KReadCurr X ~> Attr[#token("format_string", "BareId")] ~> #SvFwrite
+            ...
+        </k>
+
+    rule <k> V:StdValue ~> S:String ~> #SvFwrite
+            => #KSkip 1 ~> #write(StdValue2Int(V), S)
+            ...
+        </k>
+
+    
+    // sv.reg
+    rule <k> "sv.reg" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:Type > )
+            => Attr[#token("name", "BareId")] ~> T ~> #SvReg
+        </k>
+    
+    rule <k> Name:String ~> T:Type ~> #SvReg ~> #KWriteCurr X:ValueId
+            => #if X in_keys(Curr) #then .K 
+            #else bits(#x, getWidth(T)) : !hw.inout < T > ~> #KWriteCurr X #fi
+            ... 
+        </k>
+        <curr> Curr:Map </curr>
+        <regs> M:Map => M [Name <- X] </regs>
+
+
+    // sv.wire
+    rule <k> "sv.wire" ( .VarList ) {Attr:Map} : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            => Attr[#token("name", "BareId")] ~> T ~> #SvWire
+            ...
+        </k>
+
+    rule <k> Name:String ~> T:Type ~> #SvWire ~> #KWriteCurr X:ValueId
+            => #if X in_keys(Curr) #then .K 
+            #else bits(#x, getWidth(T)) : !hw.inout < T > ~> #KWriteCurr X #fi
+            ... 
+        </k>
+        <curr> Curr:Map </curr>
+        <wires> M:Map => M [Name <- X] </wires>
+
+
+    // sv.logic
+    rule <k> "sv.logic" ( .VarList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:IntegerType > )
+            => Attr[#token("name", "BareId")] ~> T ~> #SvLogic
+            ...
+        </k>
+
+    rule <k> Name:String ~> T:Type ~> #SvLogic ~> #KWriteCurr X:ValueId
+            => #if X in_keys(Curr) #then .K 
+            #else bits(#x, getWidth(T)) : !hw.inout < T > ~> #KWriteCurr X #fi
+            ... 
+        </k>
+        <curr> Curr:Map </curr>
+        <logics> M:Map => M [Name <- X] </logics>
+
+    
+    // sv.read_inout
+    rule <k> "sv.read_inout" ( X:ValueId ) { .Map } : ( !hw.inout < T:Type > ) -> ( T:Type )
+            => #KReadCurr X
+            ...
+        </k>
+
+    
+    // sv.indexed_part_select
+    rule <k>
+            "sv.indexed_part_select" ( X1:ValueId , X2:ValueId ) { Attr:Map } : ( _:Type , _:Type ) -> ( T:Type )
+            => #KReadCurr X1, X2 ~> Attr[#token("width", "BareId")] ~> T ~> #SvIndexedPartSelect
+            ...
+        </k>
+
+
+    rule <k> bits(X:Int, _) : _ , bits(Base:Int, _) : _ ~> Width:Int ~> T:Type ~> #SvIndexedPartSelect
+            => bits(X &Int ((( 2 ^Int Width -Int 1 ) <<Int Base ) >>Int Base), Width) : T
+            ...
+        </k>
+
+    
+    // sv.indexed_part_select_inout
+    rule <k>
+            "sv.indexed_part_select_inout" ( I1:Var , I2:Var ) { Attr:Map } : ( !hw.inout < T1:Type > , T2:Type ) -> ( !hw.inout < T:Type > )
+            => #KReadCurr X1, X2 ~> Attr[#token("width", "BareId")] ~> !hw.inout < T:Type > ~> #SvIndexedPartSelectInout
+            ...
+        </k>
+    
+    rule <k> bits(X:Int, _) : _ , bits(Base:Int, _) : _ ~> Width:Int ~> !hw.inout < T:Type > ~> #SvIndexedPartSelectInout
+            => bits(X &Int ((( 2 ^Int Width -Int 1 ) <<Int Base ) >>Int Base), Width) : !hw.inout < T:Type >
+            ...
+        </k>
+
+    
+    // sv.ifdef
+    rule <k> 
+            "sv.ifdef" ( .VarueIdList ) ( R1:Region, R2:Region ) { Attr:Map } : _:FunctionType
+            => Attr [#token("cond", "BareId")] ~> #SvIfdef ~> R1 ~> R2
+            ...
+        </k>
+
+    rule <k> 
+            (#token("#sv", "AttributeAlias") < #token("macro.ident", "BareId") S:StringLiteral >):DialectAttribute
+            ~> #SvIfdef ~> R1 ~> R2
+            => #if S in_keys(M) #then R1 #else R2 #fi
+            ...
+        </k>
+        <macros> M:Map </macros>
+
+
+    // sv.ifdef.procedural
+    rule <k>
+            "sv.ifdef.procedural" ( .VarueIdList ) ( R1:Region, R2:Region  ) { Attr:Map } : _:FunctionType
+            => Attr [#token("cond", "BareId")] ~> #SvIfdef ~> R1 ~> R2
+            ...
+        </k>
+
+    
+    // sv.macro.ref.se
+    rule <k> 
+            ("sv.macro.ref.se" => "sv.macro.ref") ( .VarueIdList ) { _:Map } : ( .Types ) -> ( _:Type )
+            ...
+        </k>
+
+    
+    // sv.macro.ref, by ident
+    rule <k> "sv.macro.ref" ( .VarueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type )
+            => Attr [#token("ident", "BareId")] ~> T ~> #SvMacroRef
+            ...
+        </k>
+        requires #token("ident", "BareId") in_keys(Attr)
+
+    rule <k> 
+            (
+                (#token("#sv", "AttributeAlias") < #token("macro.ident", "BareId") S:StringLiteral >):DialectAttribute
+                => Macros [S]
+            ) ~> _T ~> #SvMacroRef
+            ...
+        </k>
+        <macros> Macros:Map </macros>
+    
+    rule <k> 
+            S:String ~> T:Type ~> #SvMacroRef => bits(String2Int(S), getWidth(T)) : T
+            ...
+        </k>
+        requires lengthString(S) >Int 0
+
+    rule <k>
+            S:String ~> T:Type ~> #SvMacroRef => bits(0, getWidth(T)) : T
+            ...
+        </k>
+        requires lengthString(S) ==Int 0
+
+
+    // sv.macro.ref, by macroName
+    rule <k>
+            "sv.macro.ref" ( .VarueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type )
+            => Attr [#token("macroName", "BareId")] ~> T ~> #SvMacroRef
+            ...
+        </k>
+        requires #token("macroName", "BareId") in_keys(Attr) andBool (notBool (#token("ident", "BareId") in_keys(Attr)))
+    
+    rule <k>
+            (
+                S:SymbolRefId
+                => Macros [SymbolRefId2String(S)] orDefault (stop S)
+            ) ~> _T ~> #SvMacroRef
+            ...
+        </k>
+        <macros> Macros:Map </macros>
+    
+
+    // sv.macro.def
+    rule <k>  
+            "sv.macro.def" ( .VarList ) { Attr:Map } : ( .Types ) -> ( .Types )
+            => Attr [#token("macroName", "BareId")] 
+            ~> Attr [#token("format_string", "BareId")]
+            ~> #SvMacroDef
+            ...
+        </k>
+    
+    rule <k>
+            S:SymbolRefId ~> Fmt:String ~> #SvMacroDef => .K
+            ...
+        </k>
+        <macros> M:Map => M [SymbolRefId2String(S) <- Fmt] </macros>
+    
+
+    // sv.for
+    rule <k> 
+            "sv.for" (Vs:ValueIdList) ( { .OperationList B:Block } ) { _:Map } : ( T:Type, T:Type, T:Type ) -> ( .Types )
+            => #KReadCurr Vs ~> B ~> #SvFor
+            ...
+        </k>
+
+    rule <k> 
+            (.K => V ~> #KWriteCurr I ~> OPs) 
+            ~> (V:Int => V +Int Step) ~> End:Int ~> Step:Int
+            ~> _:CaretId ( I:Var : T:Type ) : OPs:OperationList ~>
+            ~> #SvFor
+            ...
+        </k>
+        requires V <Int End
+    
+    rule <k> 
+            (
+                V:Int ~> End:Int ~> _V3:Int
+                ~> _:CaretId ( _:Var : _:Type ) : _:OperationList 
+                ~> #SvFor
+            ) => .K
+        </k>
+    requires V >=Int End
+
+
+    // sv.initial
+    rule <k> 
+            "sv.initial" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => #if B #then .K #else R #fi
+            ...
+        </k>
+        <initialized> B:Bool => true </initialized>
+        
+
+    // sv.always 
+    rule <k>
+            "sv.always" ( Vs:ValueIdList ) ( R:Region ) { Attr:Map } : ( _:Types ) -> ( .Types )
+            => Attr[#token("events", "BareId")] ~> #KEventCheck Vs ~> #SvAlways ~> R
+            ...
+        </k>
+    
+    rule <k> B:Bool ~> #SvAlways ~> R
+            => #if B #then R #else .K #fi
+            ... 
+        </k>
+    
+
+    // sv.alwayscomb
+    rule <k> 
+            "sv.alwayscomb" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            => R
+            ...
+        </k>
+    
+    
+    // sv.alwaysff
+    rule <k>
+            ("sv.alwaysff" => "sv.always") ( _:ValueIdList ) ( _R:Region ) { _:Map } : ( .Types ) -> ( .Types )
+            ...
+        </k>
+
+
+    // sv.assign
+    rule <k> "sv.assign" ( Reg:ValueId , X:ValueId ) { .Map } : ( !hw.inout < T1:Type > , T2:Type ) -> ( .Types )
+            => #KReadCurr X ~> #KUpdateReg Reg
+            ...
+        </k>
+    
+
+    // sv.bpassign
+    rule <k>
+            "sv.bpassign" ( Reg:ValueId , X:ValueId ) { _:Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types )
+            => #KReadCurr X ~> #KUpdateRegNow Reg
+            ...
+        </k>
+
+    
+    // sv.passign
+    rule <k> 
+            "sv.passign" ( Reg:ValueId , X:ValueId ) { _:Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types )
+            => #KReadCurr X ~> #KUpdateRegSoon Reg
+            ...
+        </k>
+
+
+    // sv.xmr.ref
+    rule <k>
+            (.K => .List) ~>
+            (.K => M [ SymbolRefId2String({Attr[#token("ref", "BareId")]}:>SymbolRefId) ]) ~>
+            "sv.xmr.ref" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < _T:Type > )
+            => Attr[#token("ref", "BareId")] ~> #GetHierPath ~> #SvXmrRef
+            ...
+        </k>
+
+    rule <k> 
+            ( Ref:SymbolRefId ~> #GetHierPath => .List ~> M [SymbolRefId2String(Ref)] )
+            ~> #SvXmrRef 
+            ...
+        </k>
+        <hw-hierpath> M:Map </hw-hierpath>
+
+    rule <k> 
+            (L:List => L ListItem(SymbolRefId2String(Mod) +String "::" +String SymbolRefId2String(Ins)))
+            ~> [ #hw.innerNameRef < Mod:SymbolRefId :: Ins:SymbolRefId > , AL:AttributeValueList => AL ]
+            ~> #SvXmrRef 
+            ... 
+        </k> 
+
+    rule <k> 
+            ( .List ~> L:List ListItem(Terminal:String) ~> #SvXmrRef ) 
+            => ( getTrace(ListItem(Mod) L) ~> Terminal ~> #SvXmr )
+            ...
+        </k>
+
+    
+     // sv.xmr
+    rule <k>
+            "sv.xmr" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < _T:IntegerType > )
+            => .List ~> Attr[#token("path", "BareId")] ~> Attr[#token("terminal", "BareId")] ~> #SvXmr
+            ...
+        </k>
+
+    rule <k>
+            ( [ AL:AttributeValueList ] => getTrace(toList(AL)))
+            ~> Terminal:String
+            ~> #SvXmr
+            ...
+        </k>
+
+    rule <k> Path:String ~> Terminal:String ~> (#SvXmr => #KGetNode) ... </k>
+    
+
+    // ------------------ todo -------------------
+
+endmodule
