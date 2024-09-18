@@ -17,4 +17,4 @@ runs:
       uses: Gr1N/setup-poetry@v9
     - name: 'Install package'
       shell: bash
-      run: poetry -C kproj install
+      run: poetry install

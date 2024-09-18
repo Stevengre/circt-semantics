@@ -7,12 +7,13 @@ default: check test-unit
 all: check cov
 
 .PHONY: clean
-clean: docs-clean
+clean: 
 	rm -rf dist .coverage cov-* .mypy_cache .pytest_cache
 	find -type d -name __pycache__ -prune -exec rm -rf {} \;
 
 .PHONY: build
-build: kbuild-circt
+build: poetry-install
+	$(POETRY) build
 
 
 .PHONY: poetry-install
@@ -114,4 +115,4 @@ pyupgrade: poetry-install
 
 # Documentation
 
-pr: poetry-install format check test
+pr: poetry-install format check pyupgrade test
