@@ -7,7 +7,7 @@ source = "./src/kcirct"
 backend = "llvm"
 main-file = "circt.k"
 main-module = "CIRCT"
-syntax-module = "CIRCT-SYNTAX"
+syntax-module = "MLIR-SYNTAX"
 
 [targets.haskell]
 backend = "haskell"

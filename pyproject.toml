@@ -18,7 +18,7 @@ pyk = { git = "https://github.com/runtimeverification/pyk.git", rev="79b24b78a2b
 vcdvcd = "^2.3.4"
 
 [tool.poetry.scripts]
-kirct = "kproj.__main__:main"
+kirct = "kcirct.__main__:main"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "*"
