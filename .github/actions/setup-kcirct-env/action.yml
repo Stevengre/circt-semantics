@@ -1,5 +1,5 @@
-name: 'Set Up kproj Environment'
-description: 'Set up kproj test environment'
+name: 'Set Up kcirct Environment'
+description: 'Set up kcirct test environment'
 inputs:
   python-version:
     description: 'Python version'
