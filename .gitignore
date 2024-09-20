@@ -9,3 +9,6 @@ temp/
 .scala-build/
 a.*
 tmp/
+kirct/
+.idea/
+.vscode/

@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 120
+extend-select = B9, TC1
+extend-ignore = B907,B950,E,W1,W2,W3,W4,W5
+type-checking-strict = true
