@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, TextIO
-
-from collections.abc import Iterable
+from typing import TYPE_CHECKING, TextIO
 
 from .context import _changed_signal, _changed_signal_history
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from .context import Signal
     from .model import KimulatorModel
 
