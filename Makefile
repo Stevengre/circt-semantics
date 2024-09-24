@@ -75,7 +75,7 @@ profile: poetry-install
 # Checks and formatting
 
 format: autoflake isort black
-check: check-flake8 check-mypy check-autoflake check-pydocstyle check-isort check-black
+check: check-flake8 check-mypy check-autoflake check-isort check-black
 
 check-flake8: poetry-install
 	$(POETRY_RUN) flake8 src

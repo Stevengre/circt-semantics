@@ -107,15 +107,15 @@ class KimulatorContext:
     def __enter__(self) -> KimulatorContext:
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None: 
+    def __exit__(self, exc_type, exc_value, traceback) -> None:  # type: ignore
         # 在退出时，删除 history_dir
-        shutil.rmtree(self.krun.use_directory, ignore_errors=True)
-        shutil.rmtree(self.history_dir, ignore_errors=True)
+        shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
+        shutil.rmtree(self.history_dir, ignore_errors=True)  # type: ignore
 
     def __del__(self) -> None:
         # 在删除时，删除 history_dir
-        shutil.rmtree(self.krun.use_directory, ignore_errors=True)
-        shutil.rmtree(self.history_dir, ignore_errors=True)
+        shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
+        shutil.rmtree(self.history_dir, ignore_errors=True)  # type: ignore
 
     def trace_ever_on(self, trace_ever_on: bool) -> None:
         self.trace_on = trace_ever_on

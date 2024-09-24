@@ -26,7 +26,7 @@ def k_collection_symbol(s: str, t: str) -> str:
     return f'Lbl{camel_case_str}Cell{t}Item'
 
 
-def get_cell(term: Pattern, cells: list[tuple[str, CellType]]) -> Optional[Pattern]:
+def get_cell(term: Pattern, cells: list[tuple[str, CellType]]) -> Pattern | None:
     if len(cells) == 0:
         return term
     if len(cells) == 1:
