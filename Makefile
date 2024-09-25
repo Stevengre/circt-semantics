@@ -111,7 +111,13 @@ SRC_FILES := $(shell find src -type f -name '*.py')
 
 pyupgrade: poetry-install
 	$(POETRY_RUN) pyupgrade --py310-plus $(SRC_FILES)
-
+	sh -c '$(POETRY_RUN) pyupgrade --py310-plus $(SRC_FILES); result=$$?; \
+    if [ $$result -eq 1 ]; then \
+        echo "pyupgrade returned 1, but continuing..."; \
+    elif [ $$result -ne 0 ]; then \
+        echo "pyupgrade failed with error code $$result"; \
+        exit $$result; \
+    fi'
 
 # Documentation
 
