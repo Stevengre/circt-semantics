@@ -16,12 +16,12 @@ module SV-REG
         <cmd> #bootstrap ... </cmd>
 
 
-    rule <k> "sv.read_inout" ( X:ValueId ) { .Map } : ( !hw.inout < T:Type > ) -> ( T:Type ) => V ... </k>
+    rule <k> "sv.read_inout" ( X:ValueId ) : ( !hw.inout < T:Type > ) -> ( T:Type ) => V ... </k>
         <regs> ... X |-> hw.inout ( "reg" , T , V ) ... </regs>
 
     
     rule <k>
-            "sv.passign" ( Dst:ValueId , Src:ValueId ) { .Map } : ( !hw.inout < T:Type > , T:Type ) -> ( .Types ) 
+            "sv.passign" ( Dst:ValueId , Src:ValueId ) : ( !hw.inout < T:Type > , T:Type ) -> ( .Types ) 
             => Src ~> #SvPassign ~> Dst
             ...
         </k>

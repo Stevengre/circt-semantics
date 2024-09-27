@@ -44,6 +44,9 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8) {
 ```
 
 hw.triggered
+```mlir
+
+```
 
 hw.bitcast
 ```mlir
@@ -57,7 +60,7 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i16) {
 hw.constant
 ```mlir
 hw.module @Foo(out res: i8) {
-    %result = hw.constant 42 : i8
+    %out = hw.constant 42 : i8
     hw.output %out : i8
 }
 ```
@@ -75,6 +78,7 @@ hw.module @Foo(out res: i1) {
 
 hw.param.value
 ```mlir
+
 ```
 
 
@@ -89,9 +93,9 @@ hw.module @Foo(out res: i8) {
 
 hw.aggregate_constant
 ```mlir
-hw.module @Foo(out res: !hw.struct<a: i2, b: i2, c: i2>) {
-    %a = hw.aggregate.constant [1 : i1, 2 : i2, 3 : i2] : !hw.struct<a: i2, b: i2, c: i2>
-    hw.output %a : !hw.struct<a: i2, b: i2, c: i2>
+hw.module @Foo(out res: !hw.struct<a: i1, b: i2, c: i2>) {
+    %a = hw.aggregate_constant [1 : i1, 2 : i2, 3 : i2] : !hw.struct<a: i1, b: i2, c: i2>
+    hw.output %a : !hw.struct<a: i1, b: i2, c: i2>
 }
 ```
 

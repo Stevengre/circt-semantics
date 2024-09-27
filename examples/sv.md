@@ -346,8 +346,9 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
 
 sv.ifdef
 ```mlir
+sv.macro.decl @MACRO ["1"]
 hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
-    sv.ifdef "MACRO" {
+    sv.ifdef @MACRO {
     } else {
         sv.always{
             sv.error "not defined"
@@ -360,9 +361,10 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
 
 sv.ifdef.procedural
 ```mlir
+sv.macro.decl @MACRO ["1"]
 hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
     sv.always {
-        sv.ifdef.procedural "MACRO" {
+        sv.ifdef.procedural @MACRO {
         } else {
             sv.error "undefined"
         }
@@ -408,7 +410,9 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
 sv.info
 ```mlir
 hw.module @Foo(in %a: i8, in %b: i8, out res: i8) {
-    sv.info "info"
+    sv.initial {
+        sv.info "info"
+    }
     %out = comb.add %a, %b: i8
     hw.output %out : i8
 }
@@ -431,9 +435,13 @@ sv.interface.modport
 sv.interface.signal
 sv.interface.signal.assign
 sv.interface.signal.read
+```mlir
+
+```
 
 sv.localparam
 ```mlir
+
 ```
 
 sv.logic
@@ -486,7 +494,7 @@ sv.macro.ref.se
 sv.macro.decl @MACRO
 hw.module @Foo(in %a: i8, in %b: i8, out res: i8) {
     sv.macro.def @MACRO "1"
-    %macro = sv.macro.ref.se @MACRO(%a) : () -> i1
+    %macro = sv.macro.ref.se @MACRO() : () -> i1
     sv.always {
         sv.assert %macro, "immediate"
     }
@@ -498,10 +506,12 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8) {
 
 sv.modport.get
 ```mlir
+
 ```
 
 sv.nonstandard.deposit
 ```mlir
+
 ```
 
 sv.ordered
@@ -527,11 +537,11 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8) {
     %reg_a = sv.reg : !hw.inout<i8>
     %reg_b = sv.reg : !hw.inout<i8>
     sv.always {
-        sv.passign %wire_a, %a : i8
-        sv.passign %wire_b, %b : i8
+        sv.passign %reg_a, %a : i8
+        sv.passign %reg_b, %b : i8
     }
-    %aa = sv.read_inout %wire_a : !hw.inout<i8>
-    %bb = sv.read_inout %wire_b : !hw.inout<i8>
+    %aa = sv.read_inout %reg_a : !hw.inout<i8>
+    %bb = sv.read_inout %reg_b : !hw.inout<i8>
     %out = comb.add %aa, %bb : i8
     hw.output %out : i8
 }
@@ -605,6 +615,7 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
 sv.system
 sv.system.sampled
 ```mlir
+
 ```
 
 sv.verbatim
@@ -638,10 +649,12 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
 sv.warning
 ```mlir
 hw.module @Adder(in %a: i8, in %b: i8, out result: i8 ) {
-    sv.error "error"
-    sv.info "info"
-    sv.warning "warning"
-    sv.verbatim "verbatim"
+    sv.initial {
+        sv.error "error"
+        sv.info "info"
+        sv.warning "warning"
+        sv.verbatim "verbatim"
+    }
 
     %out = comb.add %a, %b: i8
     hw.output %out : i8

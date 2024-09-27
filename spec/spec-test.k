@@ -1,6 +1,6 @@
 requires "../src/main.k"
 
-module TEST-SPEC-SYNTAX
+module SPEC-TEST-SYNTAX
     syntax BareId ::= "value" [token]
                     | "name" [token]
                     | "res" [token]
@@ -13,14 +13,14 @@ endmodule
 
 module VERIFICATION
     imports K-EQUAL
-    imports TEST-SPEC-SYNTAX
+    imports SPEC-TEST-SYNTAX
     imports MAIN
 
     // rule { M:Map [ K <- V ] #Equals M [ K <- V' ] } => { V #Equals V' } [simplification]
 endmodule
 
 
-module TEST-SPEC
+module SPEC-TEST
     imports VERIFICATION
 
     claim

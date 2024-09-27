@@ -11,7 +11,8 @@ module CONF
         <mlir/> 
         <cmd> .K </cmd>
         <entry> $Entry:String </entry>
-        <input> ListItem(bits ( 1 , 8 ) : i8) </input>
+        // <input> ListItem(bits ( 1 , 8 ) : i8) </input>
+        <input> $Input:List </input>
         <clock> 0 </clock>
         <running> .List </running>
         <boot> .List </boot>
