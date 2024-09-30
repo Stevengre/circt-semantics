@@ -2,6 +2,7 @@ POETRY     := poetry
 POETRY_RUN := $(POETRY) run
 FIRTOOL_VERSION := 1.71.0
 VERILATOR_VERSION := 4
+IVERILOG_VERSION := 13
 
 
 default: check test-unit
@@ -109,7 +110,8 @@ check-black: poetry-install
 check-dependencies: 
 	@echo "Checking external dependencies..."
 	@firtool --version | grep $(FIRTOOL_VERSION) > /dev/null && echo "firtool version is correct" || (echo "firtool version is incorrect"; exit 1)
-	@verilator --version | awk '{if ($$2 > $(VERILATOR_VERSION)) print "verilator version is correct"; else {print "verilator version is incorrect"; exit 1}}'
+	@verilator --version | awk '{if ($$2 >= $(VERILATOR_VERSION)) print "verilator version is correct"; else {print "verilator version is incorrect"; exit 1}}'
+	@iverilog -V | grep $(IVERILOG_VERSION) > /dev/null && echo "iverilog version is correct" || (echo "iverilog version is incorrect"; exit 1)
 
 # Optional tools
 
