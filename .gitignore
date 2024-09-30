@@ -12,3 +12,4 @@ tmp/
 kirct/
 .idea/
 .vscode/
+.mypy_cache/
