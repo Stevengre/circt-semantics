@@ -10,7 +10,6 @@ authors = [
     "JianhongZhao <zhaojianhong96@gmail.com>",
     "Jinhui Kang",
 ]
-include = ["src"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

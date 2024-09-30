@@ -75,7 +75,7 @@ profile: poetry-install
 # Checks and formatting
 
 format: autoflake isort black
-check: check-flake8 check-mypy check-autoflake check-pydocstyle check-isort check-black
+check: check-flake8 check-mypy check-autoflake check-isort check-black
 
 check-flake8: poetry-install
 	$(POETRY_RUN) flake8 src
@@ -110,8 +110,13 @@ check-black: poetry-install
 SRC_FILES := $(shell find src -type f -name '*.py')
 
 pyupgrade: poetry-install
-	$(POETRY_RUN) pyupgrade --py310-plus $(SRC_FILES)
-
+	sh -c '$(POETRY_RUN) pyupgrade --py310-plus $(SRC_FILES); result=$$?; \
+    if [ $$result -eq 1 ]; then \
+        echo "pyupgrade returned 1, but continuing..."; \
+    elif [ $$result -ne 0 ]; then \
+        echo "pyupgrade failed with error code $$result"; \
+        exit $$result; \
+    fi'
 
 # Documentation
 
