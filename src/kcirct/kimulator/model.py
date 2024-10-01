@@ -11,10 +11,11 @@ from pyk.kore.syntax import App, SortApp
 from pyk.ktool.kprint import KAstInput, KAstOutput
 from pyk.ktool.krun import KRunOutput, _krun
 
+from .context import KimulatorContext, Signal  # noqa
+
 if TYPE_CHECKING:
     from pyk.kore.syntax import Pattern
 
-    from .context import KimulatorContext, Signal
 
 # todo: make them easy to configure
 # Change the following codes when something in the semantics changed.

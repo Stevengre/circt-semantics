@@ -58,6 +58,12 @@ After building the project, you can access the `kcirct` CLI via `poetry`:
 poetry run kcirct --help
 ```
 
+Note that you need to run the following command to make `diffvcd.py` executable:
+
+```
+chmod u+x src/kcirct/lib/diffvcd.py
+```
+
 ## Test
 
 - src/tests/unit: Simple tests that do not require kompile
