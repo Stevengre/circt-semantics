@@ -1,6 +1,5 @@
 .build
 .venv/
-kdist/
 *-kompiled/
 .DS_Store
 .pytest_cache/
@@ -12,3 +11,6 @@ tmp/
 kirct/
 .idea/
 .vscode/
+.mypy_cache/
+__pycache__/
+dist/
