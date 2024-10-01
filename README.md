@@ -31,7 +31,7 @@ make check-dependencies
 
 ### Building
 
-To obtain `kirct` to use the formal semantics, execute:
+To obtain `kcirct` to use the formal semantics, execute:
 ```
 make build
 ```
@@ -48,20 +48,14 @@ Note that LLVM backend is for concrete execution, while Haskell backend is for s
 
 ## Usage
 
-After building the project, you can access the `kimp` CLI via `poetry`:
+After building the project, you can access the `kcirct` CLI via `poetry`:
 
 ```
-poetry run kirct --help
-```
-
-or 
-
-```
-bin/kirct --help
+poetry run kcirct --help
 ```
 
 ## Test
-generator: 生成 generic 的 mlir 和 adder.py (module of Adder)
+generator: generate generic mlir and adder.py (module of Adder)
 model: MLIR module
 context: all runtime context
 vcd:
