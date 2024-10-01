@@ -24,11 +24,9 @@ build: poetry-install
 poetry-install:
 	$(POETRY) install
 
-.PHONY: kbuild-circt
-kbuild-circt: poetry-install
-	$(POETRY) build
-	$(POETRY_RUN) kbuild kompile llvm
-	$(POETRY_RUN) kbuild kompile haskell
+.PHONY: kcirct
+kcirct: build
+	$(POETRY_RUN) kdist build
 
 
 

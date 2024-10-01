@@ -28,23 +28,27 @@ The recommended version for these tools are included in the Makefile. You can us
 make check-dependencies
 ```
 
+If something goes wrong, you can check the dependencies of the K framework [here](https://github.com/runtimeverification/k/blob/d0d2553f1254991600a830b108d98fe9febc1f5a/install-build-deps).
+
 
 ### Building
 
 To obtain `kcirct` to use the formal semantics, execute:
 ```
-make build
+make kcirct
 ```
 
 ### Accessing compiled K definitions
 
-The definitions are built with `kbuild`, which places the compiled definitions in `~/.kbuild`. To get an exact path to the definition, use:
+The definitions are built with `kdist`. To get an exact path to the definition, use:
+
 ```
-poetry run kbuild which llvm # for LLVM
-poetry run kbuild which haskell # for Haskell
+poetry run kdist which llvm # for LLVM Backend
 ```
 
 Note that LLVM backend is for concrete execution, while Haskell backend is for symbolic execution and verification.
+
+For more information about `kdist`, please use `poetry run kdist --help`.
 
 ## Usage
 
@@ -55,9 +59,25 @@ poetry run kcirct --help
 ```
 
 ## Test
+
+- src/tests/unit: Simple tests that do not require kompile
+- src/tests/integration: Tests that require kompile
+- src/tests/profiling: Tests for profiling
+
 generator: generate generic mlir and adder.py (module of Adder)
 model: MLIR module
 context: all runtime context
 vcd:
 - class KimulatorVCD, manage vcd files, dump the result of simulation
 - vcd.diff, comparing two vcd files.
+
+## TODO
+
+- [ ] scripts/mlir2kast.py: transform mlir to kast
+- [ ] scripts/hardware-setup.py: setup hardware for continuous simulation
+- [ ] scripts/hardware-run.py: run hardware
+- [ ] scripts/hardware-sim.py: run simulation
+- [ ] scripts/hardware-veri.py: run verification
+- [ ] scripts/hardware-sym.py: run symbolic execution
+- [ ] scripts/hardware-bench.py: run benchmark
+- [ ] scripts/hardware-test.py: run test
