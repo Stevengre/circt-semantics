@@ -26,7 +26,7 @@ poetry-install:
 
 .PHONY: kcirct
 kcirct: build
-	$(POETRY_RUN) kdist build
+	$(POETRY_RUN) kdist build -v
 
 
 
