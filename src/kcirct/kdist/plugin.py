@@ -17,7 +17,7 @@ class SourceTarget(Target):
     SRC_DIR: Final = Path(__file__).parent
 
     def build(self, output_dir: Path, deps: dict[str, Path], args: dict[str, Any], verbose: bool) -> None:
-        shutil.copytree(self.SRC_DIR / 'circt-semantics', output_dir / 'circt-semantics')
+        shutil.copytree(self.SRC_DIR / 'circt_semantics', output_dir / 'circt_semantics')
 
     def source(self) -> tuple[Path, ...]:
         return (self.SRC_DIR,)
@@ -42,10 +42,20 @@ class KompileTarget(Target):
 
 __TARGETS__: Final = {
     'source': SourceTarget(),
+    'coverage': KompileTarget(
+        lambda src_dir: {
+            'backend': PykBackend.LLVM,
+            'main_file': src_dir / 'circt_semantics/main.k',
+            'main_module': 'MAIN',
+            'syntax_module': 'MAIN-SYNTAX',
+            'gen_glr_bison_parser': True,
+            'coverage': True,
+        },
+    ),
     'llvm': KompileTarget(
         lambda src_dir: {
             'backend': PykBackend.LLVM,
-            'main_file': src_dir / 'circt-semantics/main.k',
+            'main_file': src_dir / 'circt_semantics/main.k',
             'main_module': 'MAIN',
             'syntax_module': 'MAIN-SYNTAX',
             'warnings_to_errors': True,

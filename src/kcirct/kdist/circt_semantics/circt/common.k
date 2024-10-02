@@ -138,10 +138,10 @@ module COMMON
     imports HW-INOUT-SYNTAX
     imports COMB-SYNTAX
 
-
-    rule <phase> #preprocess => #toStimulate </phase>
-        <prog> .K </prog>
-        // <cmd> .K => Set2List(keys(M))  ... </cmd>
+    // - Phase Change: Preprocess; TODO: this is setup manually
+    // rule <phase> #preprocess => #toStimulate </phase>
+    //     <prog> .K </prog>
+    //     // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
     // # Phase Change: Stop/Finish Current Simulation
@@ -238,7 +238,7 @@ module COMMON
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
-        <cmd> .K => #bootstrap ~> #initial ~> #always ... </cmd>
+        <cmd> .K => #bootstrap ~> end ~> #initial ~> end ~> #always ... </cmd>
         <ckts>
             ...
             (.Bag =>
