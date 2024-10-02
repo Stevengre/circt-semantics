@@ -34,13 +34,20 @@ If something goes wrong, you can check the dependencies of the K framework [here
 ### Building
 
 To obtain `kcirct` to use the formal semantics, execute:
+
 ```
 make kcirct
 ```
 
 ### Accessing compiled K definitions
 
-The definitions are built with `kdist`. To get an exact path to the definition, use:
+The definitions are built with `kdist`. To build the definitions, run:
+
+```
+make circt-semantics
+```
+
+To get an exact path to the definition, use:
 
 ```
 poetry run kdist which llvm # for LLVM Backend
@@ -67,8 +74,8 @@ chmod u+x src/kcirct/lib/diffvcd.py
 ## Test
 
 - src/tests/unit: Simple tests that do not require kompile
-- src/tests/integration: Tests that require kompile
-- src/tests/profiling: Tests for profiling
+- src/tests/integration: Tests that require kompile. `make circt-semantics` is required.
+- src/tests/profiling: Tests for profiling. `make circt-semantics` is required.
 
 generator: generate generic mlir and adder.py (module of Adder)
 model: MLIR module

@@ -47,7 +47,7 @@ __TARGETS__: Final = {
             'backend': PykBackend.LLVM,
             'main_file': src_dir / 'circt-semantics/main.k',
             'main_module': 'MAIN',
-            'syntax_module': 'MLIR-SYNTAX',
+            'syntax_module': 'MAIN-SYNTAX',
             'warnings_to_errors': True,
             'gen_glr_bison_parser': True,
             'opt_level': 3,
