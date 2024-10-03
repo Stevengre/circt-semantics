@@ -178,21 +178,21 @@ module COMB
 
     // comb.shru
     rule <k> 
-            "comb.shru" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.shru" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombShru ~> T ...
         </k>
 
     
     // comb.shl
     rule <k> 
-            "comb.shl" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.shl" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombShl ~> T ...
         </k>
 
 
     // comb.concat
     rule <k> 
-            "comb.concat" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:Type )
+            "comb.concat" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombConcat ~> T
             ...
         </k>
@@ -200,47 +200,47 @@ module COMB
 
     // comb.divs
     rule <k> 
-            "comb.divs" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.divs" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombDivs ~> T ...
         </k>
 
 
     // comb.divu
     rule <k> 
-            "comb.divu" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.divu" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombDivu ~> T ...
         </k>
 
 
     // comb.mods
     rule <k> 
-            "comb.mods" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.mods" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombMods ~> T ...
         </k>
 
     // comb.modu
     rule <k> 
-            "comb.modu" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.modu" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombModu ~> T ...
         </k>
 
 
     // comb.sub
     rule <k> 
-            "comb.sub" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( T:Type )
+            "comb.sub" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:Type )
             => Vs ~> #CombSub ~> T ...
         </k>
 
     
     // comb.parity
     rule <k> 
-            "comb.parity" ( V:ValueId ) {_:Map} : ( _:Type ) -> ( T:Type )
+            "comb.parity" ( V:ValueId ) : ( _:Type ) -> ( T:Type )
             => V ~> #CombParity ~> T ...
         </k>
 
     // comb.mux
     rule <k> 
-            "comb.mux" ( Vs:ValueIdList ) {_:Map} : ( _:Types ) -> ( _:Type )
+            "comb.mux" ( Vs:ValueIdList ) : ( _:Types ) -> ( _:Type )
             => Vs ~> #CombMux
             ...
         </k>

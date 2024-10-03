@@ -5,7 +5,7 @@ module {
     hw.output %0 : i8
   }
   hw.module private @AddTwo(in %io_a : i8, out res2 : i8) {
-    %i0.out = hw.instance "i3" @AddOne(io_a: %io_a: i8) -> (res: i8)
+    %i0.out = hw.instance "i0" @AddOne(io_a: %io_a: i8) -> (res: i8)
     %i1.out = hw.instance "i1" @AddOne(io_a: %i0.out: i8) -> (res: i8)
     hw.output %i1.out : i8
   }

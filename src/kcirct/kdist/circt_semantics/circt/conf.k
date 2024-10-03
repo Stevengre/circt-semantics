@@ -11,7 +11,8 @@ module CONF
         <mlir/> 
         <cmd> .K </cmd>
         <entry> "":String </entry>
-        <input> .List </input> // List of StdValue
+        // <input> ListItem(bits ( 1 , 8 ) : i8) </input>
+        <input> .List </input>
         <clock> 0 </clock>
         <running> .List </running>
         <boot> .List </boot>

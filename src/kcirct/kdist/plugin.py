@@ -42,26 +42,36 @@ class KompileTarget(Target):
 
 __TARGETS__: Final = {
     'source': SourceTarget(),
-    'coverage': KompileTarget(
-        lambda src_dir: {
-            'backend': PykBackend.LLVM,
-            'main_file': src_dir / 'circt_semantics/main.k',
-            'main_module': 'MAIN',
-            'syntax_module': 'MAIN-SYNTAX',
-            'gen_glr_bison_parser': True,
-            'coverage': True,
-        },
-    ),
     'llvm': KompileTarget(
         lambda src_dir: {
             'backend': PykBackend.LLVM,
             'main_file': src_dir / 'circt_semantics/main.k',
             'main_module': 'MAIN',
             'syntax_module': 'MAIN-SYNTAX',
-            'warnings_to_errors': True,
-            'gen_glr_bison_parser': True,
-            'opt_level': 3,
-            'ccopts': ['-g'],
+            # 'gen_glr_bison_parser': True,
+            # 'coverage': True,
         },
     ),
+    # 'coverage': KompileTarget(
+    #     lambda src_dir: {
+    #         'backend': PykBackend.LLVM,
+    #         'main_file': src_dir / 'circt_semantics/main.k',
+    #         'main_module': 'MAIN',
+    #         'syntax_module': 'MAIN-SYNTAX',
+    #         'gen_glr_bison_parser': True,
+    #         'coverage': True,
+    #     },
+    # ),
+    # 'llvm': KompileTarget(
+    #     lambda src_dir: {
+    #         'backend': PykBackend.LLVM,
+    #         'main_file': src_dir / 'circt_semantics/main.k',
+    #         'main_module': 'MAIN',
+    #         'syntax_module': 'MAIN-SYNTAX',
+    #         'warnings_to_errors': True,
+    #         'gen_glr_bison_parser': True,
+    #         'opt_level': 3,
+    #         'ccopts': ['-g'],
+    #     },
+    # ),
 }

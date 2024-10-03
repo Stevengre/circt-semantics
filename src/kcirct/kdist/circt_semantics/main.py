@@ -27,5 +27,17 @@ def cmd_symbol(cmd: str) -> str:
 def cmd(cmd: str) -> Pattern:
     return inj(SortApp('SortCmdCIRCT'), SORT_K_ITEM, App(cmd_symbol(cmd)))
 
-def bits(value: int, width: int) -> Pattern:
-    return App(symbol="Lbl'UndsColnUndsUnds'STDVALUE-SYNTAX'Unds'StdValue'Unds'Bits'Unds'Type", sorts=(), args=(App(symbol="Lblbits'LParUndsCommUndsRParUnds'BITS'Unds'Bits'Unds'BitsValue'Unds'Int", sorts=(), args=(App(symbol='inj', sorts=(SortApp(name='SortInt', sorts=()), SortApp(name='SortBitsValue', sorts=())), args=(DV(sort=SortApp(name='SortInt', sorts=()), value=String(value=f'{value}')),)), DV(sort=SortApp(name='SortInt', sorts=()), value=String(value=f'{width}')))), App(symbol='inj', sorts=(SortApp(name='SortSignlessIntegerType', sorts=()), SortApp(name='SortType', sorts=())), args=(DV(sort=SortApp(name='SortSignlessIntegerType', sorts=()), value=String(value=f'i{width}')),))))
+
+def bits(value: int, size: int) -> Pattern:
+    # TODO: really hard to understand and maintain. optimize later.
+    # TODO: Generate Symbols automatically
+    k_type_dv = DV(SortApp('SortSignlessIntegerType'), String(f'i{size}'))
+    k_type = inj(SortApp('SortSignlessIntegerType'), SortApp('SortType'), k_type_dv)
+    bits_value = inj(SortApp('SortInt'), SortApp('SortBitsValue'), dv(value))
+    bits = App(symbol="Lblbits'LParUndsCommUndsRParUnds'BITS'Unds'Bits'Unds'BitsValue'Unds'Int", args=(bits_value, dv(size)))
+    return App("Lbl'UndsColnUndsUnds'STDVALUE-SYNTAX'Unds'StdValue'Unds'Bits'Unds'Type", args=(bits, k_type))
+
+
+def bits_list(values: list[tuple[int, int]]) -> Pattern:
+    args = [inj(SortApp('SortStdValue'), SortApp('SortKItem'), bits(value, size)) for value, size in values]
+    return App(LBL_LIST, args=(App(LBL_LIST_ITEM, args=(arg,)) for arg in args))

@@ -37,7 +37,7 @@ module HW-ENUM
     imports HW-ENUM-SYNTAX
 
     
-    rule <k> "hw.enum.cmp" ( Vs:ValueIdList ) { .Map } : ( ET:HwEnumType, ET:HwEnumType ) -> ( #token("i1", "SignlessIntegerType") )
+    rule <k> "hw.enum.cmp" ( Vs:ValueIdList ) : ( ET:HwEnumType, ET:HwEnumType ) -> ( #token("i1", "SignlessIntegerType") )
             => Vs ~> #HwEnumCmp ~> ET
             ...
         </k>

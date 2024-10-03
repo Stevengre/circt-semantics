@@ -7,6 +7,7 @@ It does not include:
 from __future__ import annotations
 
 from pathlib import Path
+import time
 from typing import Iterable
 
 from pyk.kast.inner import *
@@ -55,19 +56,21 @@ class KCIRCT:
     def compile_expression(self, expression: str, sort: str) -> Pattern:
         """Translate a string expression in the CIRCT semantics to Kore."""
         result = _kast(
+            # file=self.definition_dir / (sort + 'parser'),
             definition_dir=self.definition_dir,
             input='program',
             output='kore',
             expression=expression,
             sort=sort,
+            # gen_glr_parser=True,
         )
         if result.returncode != 0:
             raise RuntimeError(result.stderr)
         return KoreParser(result.stdout).pattern()
 
-    def run(self, pattern: Pattern) -> Pattern:
+    def run(self, pattern: Pattern, depth: int | None = None, check: bool = False) -> Pattern:
         """Run the CIRCT Semantics pipeline on Kore."""
-        return self._krun.run_pattern(pattern)
+        return self._krun.run_pattern(pattern, depth=depth, check=check)
 
     def run_preprocess(self, pgm: Pattern) -> Pattern:
         """Run the preprocess step on Kore.
@@ -85,13 +88,17 @@ class KCIRCT:
         Use the hardware setup in `circt-semantics/circt` and `circt-semantics/dialects`.
         phase = "toStimulate" | "build"
         """
+        # x = self.compile_expression(expression="#toStimulate", sort="PhaseControl")
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('phase'):
-                assert isinstance(pattern.args[0], App) and pattern.args[0].symbol == phase_symbol("preprocess")
                 return pattern.let_patterns([App(phase_symbol("toStimulate"))])
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('entry'):
                 return pattern.let_patterns([dv(top_module)])
             return pattern
+        # res = self.run(state.top_down(_rewrite), depth=28, check=True)
+        # rewritten = state.top_down(_rewrite)
+        # res = self.run(rewritten)
+        # print(self.pretty(res))
         return self.run(state.top_down(_rewrite))
 
     def run_initialize(self, state: Pattern) -> Pattern:
@@ -112,17 +119,35 @@ class KCIRCT:
         This is the fourth step in the CIRCT Semantics pipeline.
         phase = "simulate"
         """
+        # count time cost
+        # time_start = time.time()
+        # term = ''
+        # for input in inputs:
+        #     term += f'ListItem(bits({input[0]}, {input[1]}) : i{input[1]}) '
+        # term = self.compile_expression(expression=term, sort='List')
+        # time_compile = time.time()
+        # compile_time = time_compile - time_start
+        # print(f'compile time: {compile_time}')
+        # x = bits_list(inputs)
+        # time_list = time.time()
+        # list_time = time_list - time_compile
+        # print(f'list pattern time: {list_time}')
+        # print(f'compare time: {list_time - compile_time}')
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('cmd'):
                 return pattern.let_patterns([kseq([cmd("initial"), cmd("always")])])
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('input'):
-                return pattern.let_patterns([list_pattern(*[bits(value, width) for value, width in inputs])])
+                return pattern.let_patterns([bits_list(inputs)])
             return pattern
         return self.run(state.top_down(_rewrite))
 
     def pretty(self, state: Pattern) -> str:
         """Pretty print Kore."""
         return self._kprint.kore_to_pretty(state)
+    
+    def read_outputs(self, state: Pattern) -> dict[str, Mapping[str, int]]:
+        """Read the outputs from the Kore pattern."""
+        ...
 
     # Getters and Setters for Attributes
 
