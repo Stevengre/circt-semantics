@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pyk.kcfg.semantics import DefaultSemantics
-from pyk.kore.syntax import *
-from pyk.kore.prelude import *
+from pyk.kore.prelude import LBL_LIST, LBL_LIST_ITEM, SORT_K_ITEM, dv, inj
+from pyk.kore.syntax import DV, App, SortApp, String
+
+if TYPE_CHECKING:
+    from pyk.kore.syntax import Pattern
+
 
 # TODO: implement
 class CirctSemantics(DefaultSemantics): ...
@@ -34,7 +40,9 @@ def bits(value: int, size: int) -> Pattern:
     k_type_dv = DV(SortApp('SortSignlessIntegerType'), String(f'i{size}'))
     k_type = inj(SortApp('SortSignlessIntegerType'), SortApp('SortType'), k_type_dv)
     bits_value = inj(SortApp('SortInt'), SortApp('SortBitsValue'), dv(value))
-    bits = App(symbol="Lblbits'LParUndsCommUndsRParUnds'BITS'Unds'Bits'Unds'BitsValue'Unds'Int", args=(bits_value, dv(size)))
+    bits = App(
+        symbol="Lblbits'LParUndsCommUndsRParUnds'BITS'Unds'Bits'Unds'BitsValue'Unds'Int", args=(bits_value, dv(size))
+    )
     return App("Lbl'UndsColnUndsUnds'STDVALUE-SYNTAX'Unds'StdValue'Unds'Bits'Unds'Type", args=(bits, k_type))
 
 

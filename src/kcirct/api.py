@@ -7,21 +7,21 @@ It does not include:
 from __future__ import annotations
 
 from pathlib import Path
-import time
-from typing import Iterable
+from typing import TYPE_CHECKING
 
-from pyk.kast.inner import *
-from pyk.kdist import kdist, target_ids
-from pyk.konvert import *
+from pyk.kdist import kdist
 from pyk.kore.parser import KoreParser
-from pyk.kore.prelude import *
-from pyk.kore.syntax import *
-from pyk.kore.syntax import Pattern
+from pyk.kore.prelude import SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint, _kast
 from pyk.ktool.krun import KRun
 
-from kcirct.kdist.circt_semantics.state import KCIRCTState
-from kcirct.kdist.circt_semantics.main import *
+from kcirct.kdist.circt_semantics.main import bits_list, cell_symbol, cmd, phase_symbol
+
+if TYPE_CHECKING:
+    from typing import Mapping
+
+    from pyk.kore.syntax import Pattern
+
 
 class KCIRCT:
     # Tools
@@ -37,9 +37,11 @@ class KCIRCT:
 
     # Tools
 
-    def build(self, target_ids: Iterable[str] = target_ids(), verbose: bool = True, clean: bool = True) -> None:
-        """Build the CIRCT Semantics."""
-        kdist.build(target_ids=target_ids, verbose=verbose, clean=clean)
+    # def build(self, _target_ids: Iterable[str] | None = None, verbose: bool = True, clean: bool = True) -> None:
+    #     """Build the CIRCT Semantics."""
+    #     if _target_ids is None:
+    #         _target_ids = target_ids()
+    #     kdist.build(target_ids=_target_ids, verbose=verbose, clean=clean)
 
     def compile(self, file: Path) -> Pattern:
         """Translate Generic MLIR to Kore."""
@@ -70,6 +72,7 @@ class KCIRCT:
 
     def run(self, pattern: Pattern, depth: int | None = None, check: bool = False) -> Pattern:
         """Run the CIRCT Semantics pipeline on Kore."""
+        assert self._krun is not None, 'KRun is not initialized'
         return self._krun.run_pattern(pattern, depth=depth, check=check)
 
     def run_preprocess(self, pgm: Pattern) -> Pattern:
@@ -79,7 +82,7 @@ class KCIRCT:
         Use the MLIR static semantics in `circt-semantics/mlir`.
         phase = "preprocess" | "canonicalized"
         """
-        return self.run(KCIRCTState.initialize(pgm))
+        return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm)}))
 
     def run_setup(self, state: Pattern, top_module: str) -> Pattern:
         """Run the hardware setup step on Kore.
@@ -88,13 +91,15 @@ class KCIRCT:
         Use the hardware setup in `circt-semantics/circt` and `circt-semantics/dialects`.
         phase = "toStimulate" | "build"
         """
+
         # x = self.compile_expression(expression="#toStimulate", sort="PhaseControl")
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('phase'):
-                return pattern.let_patterns([App(phase_symbol("toStimulate"))])
+                return pattern.let_patterns([App(phase_symbol('toStimulate'))])
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('entry'):
                 return pattern.let_patterns([dv(top_module)])
             return pattern
+
         # res = self.run(state.top_down(_rewrite), depth=28, check=True)
         # rewritten = state.top_down(_rewrite)
         # res = self.run(rewritten)
@@ -107,10 +112,12 @@ class KCIRCT:
         This is the third step in the CIRCT Semantics pipeline.
         phase = "initialize"
         """
+
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('cmd'):
-                return pattern.let_patterns([kseq([cmd("bootstrap"), cmd("initial")])])
+                return pattern.let_patterns([kseq([cmd('bootstrap'), cmd('initial')])])
             return pattern
+
         return self.run(state.top_down(_rewrite))
 
     def run_simulate(self, state: Pattern, inputs: list[tuple[int, int]]) -> Pattern:
@@ -119,6 +126,7 @@ class KCIRCT:
         This is the fourth step in the CIRCT Semantics pipeline.
         phase = "simulate"
         """
+
         # count time cost
         # time_start = time.time()
         # term = ''
@@ -135,19 +143,22 @@ class KCIRCT:
         # print(f'compare time: {list_time - compile_time}')
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('cmd'):
-                return pattern.let_patterns([kseq([cmd("initial"), cmd("always")])])
+                return pattern.let_patterns([kseq([cmd('initial'), cmd('always')])])
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('input'):
                 return pattern.let_patterns([bits_list(inputs)])
             return pattern
+
         return self.run(state.top_down(_rewrite))
 
     def pretty(self, state: Pattern) -> str:
         """Pretty print Kore."""
+        assert self._kprint is not None, 'KPrint is not initialized'
         return self._kprint.kore_to_pretty(state)
-    
+
     def read_outputs(self, state: Pattern) -> dict[str, Mapping[str, int]]:
         """Read the outputs from the Kore pattern."""
         ...
+        return {}
 
     # Getters and Setters for Attributes
 
@@ -162,5 +173,5 @@ class KCIRCT:
         self._kprint = KPrint(definition_dir=self.definition_dir)
 
     @property
-    def definition_dir(self) -> str:
-        return kdist.get(self.kdist_target)
+    def definition_dir(self) -> Path:
+        return Path(kdist.get(self.kdist_target))
