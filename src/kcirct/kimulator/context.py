@@ -7,10 +7,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
+from pyk.kdist import kdist
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.krun import KRun
-
-from ..utils import kbuild_definition_dir
 
 if TYPE_CHECKING:
     from pyk.kore.syntax import Pattern
@@ -80,8 +79,11 @@ class Abbrev:
 
 
 class KimulatorContext:
+    # TODO: This should be more configurable
+    # TODO: We should use KCFG to store the trace & print them
     trace_on: bool
     sim_time: int
+    kompile_dir: Path
     krun: KRun
     kprint: KPrint
     history_dir: Path  # filename(sim_time.json): mlir_gen_name -> Signal
@@ -92,13 +94,15 @@ class KimulatorContext:
     def __init__(self) -> None:
         self.trace_on = False
         self.sim_time = 0
+
         use_dir = Path(__file__).parent.joinpath('temp', datetime.now().strftime('%Y%m%d%H%M%S%f') + '_krun_temp_dir')
         history_dir = Path(__file__).parent.joinpath('temp', datetime.now().strftime('%Y%m%d%H%M%S%f') + '_history')
-
         use_dir.mkdir(parents=True, exist_ok=True)
         history_dir.mkdir(parents=True, exist_ok=True)
-        self.krun = KRun(definition_dir=kbuild_definition_dir('llvm'), use_directory=use_dir)
-        self.kprint = KPrint(definition_dir=kbuild_definition_dir('llvm'), use_directory=use_dir)
+
+        self.kompile_dir = kdist.get('circt-semantics.llvm')
+        self.krun = KRun(definition_dir=self.kompile_dir, use_directory=use_dir)
+        self.kprint = KPrint(definition_dir=self.kompile_dir, use_directory=use_dir)
         self.history_dir = history_dir
         self.state = None
         self.signals = {}
@@ -108,12 +112,12 @@ class KimulatorContext:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:  # type: ignore
-        # 在退出时，删除 history_dir
+        """Exit the context manager."""
         shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
         shutil.rmtree(self.history_dir, ignore_errors=True)  # type: ignore
 
     def __del__(self) -> None:
-        # 在删除时，删除 history_dir
+        """Delete the temporary directory."""
         shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
         shutil.rmtree(self.history_dir, ignore_errors=True)  # type: ignore
 
@@ -122,9 +126,11 @@ class KimulatorContext:
         return
 
     def time(self) -> int:
+        """Get the current simulation time."""
         return self.sim_time
 
     def time_inc(self, time_inc: int) -> None:
+        """Increment the simulation time."""
         _changed_signal_history[self.sim_time] = copy.deepcopy(_changed_signal)
         _changed_signal.clear()
         self.sim_time += time_inc

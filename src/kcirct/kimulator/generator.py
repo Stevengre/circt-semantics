@@ -10,14 +10,14 @@ if TYPE_CHECKING:
 
 from pyk.utils import ensure_dir_path
 
-from ..constants.struct_from_file import StatesJson
+from ..lib.struct_from_file import StatesJson
 from .context import Abbrev, Signal
 
 # todo: improve efficiency
 # todo: support multiple modules
 # inputs: generic_mlir_path, signals, model_name, module_name
 HEADER_TEMPLATE = """from pathlib import Path
-from kirct.kimulator.model import KimulatorModel, KimulatorContext, Signal
+from kcirct.kimulator.model import KimulatorModel, KimulatorContext, Signal
 
 generic_mlir_path: str = '{generic_mlir_path}'
 
@@ -62,24 +62,19 @@ MODEL_CHILD_TEMPLATE = """'{name}': {model},
 
 class Generator:
     source: Path
-    output_dir: Path | None
-    temp_dir: Path | None
+    output_dir: Path
     _generic_mlir_path: Path
     _state_json_path: Path
     _header_path: Path
 
-    def __init__(self, source: Path, *, output_dir: Path | None = None, temp_dir: Path | None = None):
+    def __init__(self, source: Path, *, output_dir: Path | None = None):
         self.source = source
         if output_dir is None:
             output_dir = source.parent.joinpath(self.source.stem)
-        if temp_dir is None:
-            temp_dir = source.parent.joinpath(self.source.stem)
         ensure_dir_path(output_dir)
-        ensure_dir_path(temp_dir)
         self.output_dir = output_dir
-        self.temp_dir = temp_dir
         self._generic_mlir_path = self.output_dir.joinpath(self.source.stem + '.generic.mlir')
-        self._state_json_path = self.temp_dir.joinpath('state.json')
+        self._state_json_path = self.output_dir.joinpath('state.json')
         self._header_path = self.output_dir.joinpath(self.source.stem.lower() + '.py')
 
     def generate(self) -> None:

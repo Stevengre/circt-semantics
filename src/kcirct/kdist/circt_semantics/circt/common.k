@@ -127,7 +127,7 @@ module COMMON-HELPER
     rule toList(.AttributeValueList) => .List
 
     syntax List ::= ValueRefListWrapper(ValueIdList, String) [function]
-    rule ValueRefListWrapper(V:ValueId, VL:ValueIdList, Inst:String) => ListItem(V) ValueRefListWrapper(VL, Inst)
+    rule ValueRefListWrapper(V:ValueId, VL:ValueIdList, Inst:String) => ListItem(#ValueRef(Inst, V)) ValueRefListWrapper(VL, Inst)
     rule ValueRefListWrapper(.ValueIdList, _:String) => .List
 endmodule
 
@@ -138,9 +138,9 @@ module COMMON
     imports HW-INOUT-SYNTAX
     imports COMB-SYNTAX
 
-
-    rule <phase> #preprocess => #toStimulate </phase>
-        <prog> .K </prog>
+// - Phase Change: Preprocess; TODO: this is setup manually
+//    rule <phase> #preprocess => #toStimulate </phase>
+//        <prog> .K </prog>
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
@@ -214,7 +214,7 @@ module COMMON
     
     
     
-    // # Phase Change: Initialize Operation with Arguments in <cmd>
+    // Phase Change: Initialize Operation with Arguments in <cmd>
    
     
     // build the circuit
@@ -238,7 +238,7 @@ module COMMON
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
-        <cmd> .K => #bootstrap ~> #initial ~> #always ... </cmd>
+        <cmd> .K => #bootstrap ~> end ~> #initial ~> end ~> #always ... </cmd>
         <ckts>
             ...
             (.Bag =>
@@ -553,6 +553,8 @@ module COMMON
     rule <k> L:List ~> #HwOutput => .K ... </k>
         <out-ports> _ => L </out-ports>
 
+
+    // ---------- value ref -----------
     rule <k> #ArgRef ( Index:Int ) => Args[Index] ... </k>
         <args> Args:List </args>
 
@@ -563,4 +565,14 @@ module COMMON
             <out-ports> L:List </out-ports>
             ...
         </ckt>
+
+    // todo, use new context
+    rule <k> #ValueRef ( Inst:String , V:ValueId ) => M [V] orDefault "???" ... </k>
+        <ckt>
+            <cid> Inst </cid>
+            // <k> .K </k>
+            <locals> M:Map </locals>
+            ...
+        </ckt>
+
 endmodule

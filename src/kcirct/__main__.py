@@ -1,3 +1,11 @@
+"""Command Line Interface for KCIRCT.
+
+It includes:
+1. `kcirct`
+2. `kdist`
+3. `kimulator` and its subcommands.
+"""
+
 from __future__ import annotations
 
 import logging

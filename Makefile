@@ -19,16 +19,16 @@ clean:
 build: poetry-install
 	$(POETRY) build
 
-
 .PHONY: poetry-install
 poetry-install:
 	$(POETRY) install
 
+.PHONY: circt-semantics
+circt-semantics: poetry-install
+	$(POETRY_RUN) kdist --verbose build
+
 .PHONY: kcirct
-kcirct: build
-	$(POETRY_RUN) kdist build -v
-
-
+kcirct: build circt-semantics
 
 # Tests
 
