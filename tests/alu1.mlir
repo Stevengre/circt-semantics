@@ -1,3 +1,4 @@
+// krun tests/alu1.mlir -cEntry='"Foo"' -cInput="ListItem(bits(1, 8) : i8)" -d main-llvm
 #loc = loc("tests/a.mlir":1:24)
 #loc1 = loc("tests/a.mlir":19:31)
 "builtin.module"() ({

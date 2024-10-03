@@ -8,57 +8,38 @@ from pyk.konvert import _kore_to_kast
 from pyk.kast.pretty import PrettyPrinter
 from pyk.kast.outer import KDefinition
 from pathlib import Path
-import json
 
 
 # filename = './tests/1.mlir'
 # filename = './tests/1.mlir'
 filename = './tests/mini_generic.mlir'
-
-# with open(filename, 'r') as f:
-#     pgm_text = f.read()
+KOMPILED_LLVM = 'main-llvm'
 
 
-kompiled = 'main-kompiled'
+def run():
+    pgm_kore = _kast(definition_dir=KOMPILED_LLVM, input='program', 
+                    output='kore', file=filename, gen_glr_parser=True).stdout
+    pgm = KoreParser(pgm_kore).pattern()
+    # print(pgm)
 
-pgm_kore = _kast(
-    definition_dir=kompiled, 
-    input='program', 
-    output='kore', 
-    file=filename, 
-    gen_glr_parser=True
-).stdout
-pgm = KoreParser(pgm_kore).pattern()
-# print(pgm)
+    entry_kore = _kast(
+        definition_dir=KOMPILED_LLVM, 
+        input=KAstInput.PROGRAM, output=KAstOutput.KORE, 
+        expression='"Foo"', sort='String',
+        gen_glr_parser=True
+    ).stdout
+    entry = KoreParser(entry_kore).pattern()
 
-entry_kore = _kast(
-    definition_dir=kompiled, 
-    input=KAstInput.PROGRAM, output=KAstOutput.KORE, 
-    expression='"Foo"', sort='String',
-    gen_glr_parser=True
-).stdout
-entry = KoreParser(entry_kore).pattern()
-# print(entry)
+    init_pattern = top_cell_initializer({
+        '$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm),
+        '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, entry)
+    })
 
-# exit()
-# ctrl_kore = _kast(definition_dir=kompiled, 
-#                   input=KAstInput.PROGRAM,
-#                   output=KAstOutput.KORE,
-#                   expression='circtTest @Adder(0,0,1,2)',
-#                   sort='Control').stdout
-# ctrl = KoreParser(ctrl_kore).pattern()
-# # print(ctrl)
+    krun = KRun(definition_dir=Path(KOMPILED_LLVM))
 
-init_pattern = top_cell_initializer({
-    '$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm),
-    '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, entry)
-})
-
-krun = KRun(definition_dir=Path(kompiled))
-
-# # state = llvm_interpret(pattern=init_pattern, definition_dir=kompiled, depth=0)
-# state = krun.run_pattern(pattern=init_pattern, depth=0)
-state = krun.run_pattern(pattern=init_pattern)
+    # state = llvm_interpret(pattern=init_pattern, definition_dir=kompiled, depth=0)
+    # state = krun.run_pattern(pattern=init_pattern, depth=0)
+    state = krun.run_pattern(pattern=init_pattern)
 
 # init = state
 
@@ -71,6 +52,6 @@ state = krun.run_pattern(pattern=init_pattern)
 # init2 = Pattern.from_dict(init)
 
 # state = krun.run_pattern(init2)
-with open('c.xml', 'w') as f:
-    res = kore_print(state, definition_dir=kompiled, output=PrintOutput.PRETTY)
-    f.write(res)
+    with open('c.xml', 'w') as f:
+        res = kore_print(state, definition_dir=KOMPILED_LLVM, output=PrintOutput.PRETTY)
+        f.write(res)

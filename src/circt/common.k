@@ -44,6 +44,7 @@ module COMMON-SYNTAX
                       | "#SvPassign"
                       | "#HwOutput"
                       | "#ValueIdIndexLookup"
+                      | "#ValueRefLookup"
 
     syntax KmdCIRCT ::= "#done"
     
@@ -566,12 +567,21 @@ module COMMON
             ...
         </ckt>
 
-    // todo, use new context
-    rule <k> #ValueRef ( Inst:String , V:ValueId ) => M [V] orDefault "???" ... </k>
+    // use new context, race risk?
+    rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>
+        <cid> Caller:String </cid>
         <ckt>
             <cid> Inst </cid>
-            // <k> .K </k>
             <locals> M:Map </locals>
+            <k> .K => M[V] orDefault "???" ~> Caller ~> #ValueRefLookup ... </k>
+            ...
+        </ckt>
+
+    rule <k> #ValueRefLookup ~> Callee:String => V ... </k>
+        <cid> Caller:String </cid>
+        <ckt>
+            <cid> Callee </cid>
+            <k> V:StdValue ~> Caller ~> #ValueRefLookup => .K ... </k>
             ...
         </ckt>
 
