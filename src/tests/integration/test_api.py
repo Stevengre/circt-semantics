@@ -33,6 +33,7 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
     setup = kcirct.run_setup(preprocessed, top_module)
     initialized = kcirct.run_initialize(setup)
     simulate_once = kcirct.run_simulate(initialized, inputs[0])
+    outputs = kcirct.read_outputs(simulate_once)
     print(simulate_once)
     # Then: no error
 

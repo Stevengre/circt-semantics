@@ -12,9 +12,10 @@ from typing import TYPE_CHECKING
 
 from pyk.kdist import kdist
 from pyk.kore.parser import KoreParser
-from pyk.kore.prelude import SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
+from pyk.kore.prelude import SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer, DV
 from pyk.ktool.kprint import KPrint, _kast
 from pyk.ktool.krun import KRun, KRunOutput, _build_arg_list
+from pyk.cterm import CTerm
 
 from kcirct.kdist.circt_semantics.main import bits_list, cell_symbol, cmd, phase_symbol
 
@@ -184,10 +185,29 @@ class KCIRCT:
         assert self._kprint is not None, 'KPrint is not initialized'
         return self._kprint.kore_to_pretty(state)
 
-    def read_outputs(self, state: Pattern) -> dict[str, Mapping[str, int]]:
+    def read_outputs(self, state: Pattern) -> list[tuple[int, int]]:
         """Read the outputs from the Kore pattern."""
-        ...
-        return {}
+        output_patterns: list[Pattern] = []
+
+        def _find_outputs(pattern: Pattern) -> Pattern:
+            if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-ports'):
+                output_patterns.append(pattern)
+            return pattern
+        state.bottom_up(_find_outputs)
+        
+        int_patterns: list[Pattern] = []
+        def _find_list_items(pattern: Pattern) -> Pattern:
+            if isinstance(pattern, DV) and pattern.sort == SortApp('SortInt'):
+                int_patterns.append(pattern)
+            return pattern
+        
+        output_patterns[0].bottom_up(_find_list_items)
+        ints = [int(p.value.value) for p in int_patterns]
+        outputs = []
+        for i in range(0, len(ints), 2):
+            outputs.append((ints[i], ints[i + 1]))
+
+        return outputs
 
     # Getters and Setters for Attributes
 
