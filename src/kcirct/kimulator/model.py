@@ -5,8 +5,10 @@ from typing import Final
 
 from .context import KimulatorContext, Signal  # noqa
 
+
 # if TYPE_CHECKING:
 #     pass
+
 
 
 # todo: make them easy to configure

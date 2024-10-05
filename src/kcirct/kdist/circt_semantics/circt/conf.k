@@ -10,8 +10,10 @@ module CONF
     <circt> 
         <mlir/> 
         <cmd> .K </cmd>
-        <entry> "":String </entry>
+        // <entry> $Entry:String </entry>
         // <input> ListItem(bits ( 1 , 8 ) : i8) </input>
+        // <input> $Input:List </input>
+        <entry> "":String </entry>
         <input> .List </input>
         <clock> 0 </clock>
         <running> .List </running>

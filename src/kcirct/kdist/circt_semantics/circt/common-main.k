@@ -139,8 +139,9 @@ module COMMON
     imports HW-INOUT-SYNTAX
     imports COMB-SYNTAX
 
-    // rule <phase> #preprocess => #toStimulate </phase>
-    //     <prog> .K </prog>
+
+    rule <phase> #preprocess => #toStimulate </phase>
+        <prog> .K </prog>
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
@@ -238,7 +239,7 @@ module COMMON
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
-        <cmd> .K => #bootstrap ~> end ~> #initial ~> #always ... </cmd>
+        <cmd> .K => #bootstrap ~> #initial ~> #always ... </cmd>
         <ckts>
             ...
             (.Bag =>
@@ -565,7 +566,6 @@ module COMMON
             <out-ports> L:List </out-ports>
             ...
         </ckt>
-
 
     // use new context, race risk?
     rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>
