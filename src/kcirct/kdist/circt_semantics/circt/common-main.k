@@ -140,8 +140,8 @@ module COMMON
     imports COMB-SYNTAX
 
 
-    // rule <phase> #preprocess => #toStimulate </phase>
-    //     <prog> .K </prog>
+    rule <phase> #preprocess => #toStimulate </phase>
+        <prog> .K </prog>
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
@@ -239,7 +239,7 @@ module COMMON
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
-        <cmd> .K => #bootstrap ~> end ~> #initial ~> #always ... </cmd>
+        <cmd> .K => #bootstrap ~> #initial ~> #always ... </cmd>
         <ckts>
             ...
             (.Bag =>
