@@ -50,5 +50,5 @@ def test_coverage_demo() -> None:
     kcirct = KCIRCT()
     mlir_file = MODULES_EXPECTED_GENERIC_MLIR_FILES[0]
     compiled = kcirct.compile(mlir_file)
-    preprocessed = kcirct.run_preprocess(compiled)
+    kcirct.run_preprocess(compiled)
     # setup = kcirct.run_setup(preprocessed, top_module)

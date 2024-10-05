@@ -7,20 +7,18 @@ It does not include:
 from __future__ import annotations
 
 from pathlib import Path
-import subprocess
 from typing import TYPE_CHECKING
 
 from pyk.kdist import kdist
 from pyk.kore.parser import KoreParser
-from pyk.kore.prelude import SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer, DV
+from pyk.kore.prelude import DV, SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint, _kast
-from pyk.ktool.krun import KRun, KRunOutput, _build_arg_list
-from pyk.cterm import CTerm
+from pyk.ktool.krun import KRun
 
 from kcirct.kdist.circt_semantics.main import bits_list, cell_symbol, cmd, phase_symbol
 
 if TYPE_CHECKING:
-    from typing import Mapping
+    pass
 
     from pyk.kore.syntax import Pattern
 
@@ -114,7 +112,7 @@ class KCIRCT:
         """
         return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm)}))
 
-    def run_setup(self, state: Pattern, top_module: str) -> tuple[Pattern, int]:
+    def run_setup(self, state: Pattern, top_module: str) -> Pattern:
         """Run the hardware setup step on Kore.
 
         This is the second step in the CIRCT Semantics pipeline.
@@ -193,14 +191,16 @@ class KCIRCT:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-ports'):
                 output_patterns.append(pattern)
             return pattern
+
         state.bottom_up(_find_outputs)
-        
-        int_patterns: list[Pattern] = []
+
+        int_patterns: list[DV] = []
+
         def _find_list_items(pattern: Pattern) -> Pattern:
             if isinstance(pattern, DV) and pattern.sort == SortApp('SortInt'):
                 int_patterns.append(pattern)
             return pattern
-        
+
         output_patterns[0].bottom_up(_find_list_items)
         ints = [int(p.value.value) for p in int_patterns]
         outputs = []

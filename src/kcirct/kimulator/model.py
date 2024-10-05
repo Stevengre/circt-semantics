@@ -1,20 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
-
-from pyk.cterm import CTerm
-from pyk.kast.manip import cell_label_to_var_name, flatten_label
-from pyk.kore.parser import KoreParser
-from pyk.kore.prelude import inj, kseq
-from pyk.kore.syntax import App, SortApp
-from pyk.ktool.kprint import KAstInput, KAstOutput
-from pyk.ktool.krun import KRunOutput, _krun
+from typing import Final
 
 from .context import KimulatorContext, Signal  # noqa
 
-if TYPE_CHECKING:
-    from pyk.kore.syntax import Pattern
+# if TYPE_CHECKING:
+#     pass
 
 
 # todo: make them easy to configure
@@ -72,26 +64,29 @@ class KimulatorModel:
 
     def get_signal(self, signal: str) -> Signal:
         return self.signals[signal]
-    
+
     def compile(self) -> None:
-        compiled = self.context.kcirct.compile(self.source_file)
+        assert self.context is not None
+        compiled = self.context.kcirct.compile(Path(self.source_file))
         preprocessed = self.context.kcirct.run_preprocess(compiled)
         setup = self.context.kcirct.run_setup(preprocessed, self.module_name)
         initialized = self.context.kcirct.run_initialize(setup)
         self.context.state = initialized
 
     def eval(self) -> None:
+        assert self.context is not None
         # simulate
         args = []
         for signal in self.signals.values():
             if signal.is_input:
                 args.append((signal.signal_value, signal.num_bits))
+        assert self.context.state is not None
         self.context.state = self.context.kcirct.run_simulate(self.context.state, args)
         # read outputs
         outputs = self.context.kcirct.read_outputs(self.context.state)
         index = 0
-        for key, value in self.signals.items():
-            if not value.is_input:
+        for signal in self.signals.values():
+            if not signal.is_input:
                 output_value = outputs[index]
-                value.signal_value = output_value[0]
+                signal.signal_value = output_value[0]
                 index += 1

@@ -7,10 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from pyk.kdist import kdist
-from pyk.ktool.kprint import KPrint
-from pyk.ktool.krun import KRun
-from src.kcirct.api import KCIRCT
+from kcirct.api import KCIRCT
 
 if TYPE_CHECKING:
     from pyk.kore.syntax import Pattern

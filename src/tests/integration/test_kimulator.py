@@ -1,7 +1,9 @@
 def test_model_eval_simple() -> None:
     # Given
     from ..resources.modules.adder.expected.adder import adder_model
-    
+
+    assert adder_model.context is not None
+
     adder_model.compile()
 
     adder_model.io_a = 6
