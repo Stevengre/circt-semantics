@@ -7,9 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from pyk.kdist import kdist
-from pyk.ktool.kprint import KPrint
-from pyk.ktool.krun import KRun
+from kcirct.api import KCIRCT
 
 if TYPE_CHECKING:
     from pyk.kore.syntax import Pattern
@@ -83,9 +81,7 @@ class KimulatorContext:
     # TODO: We should use KCFG to store the trace & print them
     trace_on: bool
     sim_time: int
-    kompile_dir: Path
-    krun: KRun
-    kprint: KPrint
+    kcirct: KCIRCT
     history_dir: Path  # filename(sim_time.json): mlir_gen_name -> Signal
     state: Pattern | None
     signals: dict[str, Signal]  # mlir_gen_name -> Signal
@@ -95,14 +91,10 @@ class KimulatorContext:
         self.trace_on = False
         self.sim_time = 0
 
-        use_dir = Path(__file__).parent.joinpath('temp', datetime.now().strftime('%Y%m%d%H%M%S%f') + '_krun_temp_dir')
         history_dir = Path(__file__).parent.joinpath('temp', datetime.now().strftime('%Y%m%d%H%M%S%f') + '_history')
-        use_dir.mkdir(parents=True, exist_ok=True)
         history_dir.mkdir(parents=True, exist_ok=True)
 
-        self.kompile_dir = kdist.get('circt-semantics.llvm')
-        self.krun = KRun(definition_dir=self.kompile_dir, use_directory=use_dir)
-        self.kprint = KPrint(definition_dir=self.kompile_dir, use_directory=use_dir)
+        self.kcirct = KCIRCT()
         self.history_dir = history_dir
         self.state = None
         self.signals = {}

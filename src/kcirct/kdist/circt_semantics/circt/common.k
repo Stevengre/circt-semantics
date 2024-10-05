@@ -139,7 +139,6 @@ module COMMON
     imports HW-INOUT-SYNTAX
     imports COMB-SYNTAX
 
-
     // rule <phase> #preprocess => #toStimulate </phase>
     //     <prog> .K </prog>
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
@@ -566,6 +565,7 @@ module COMMON
             <out-ports> L:List </out-ports>
             ...
         </ckt>
+
 
     // use new context, race risk?
     rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>

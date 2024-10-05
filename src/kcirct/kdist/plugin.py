@@ -48,8 +48,10 @@ __TARGETS__: Final = {
             'main_file': src_dir / 'circt_semantics/main.k',
             'main_module': 'MAIN',
             'syntax_module': 'MAIN-SYNTAX',
+            # 'gen_bison_parser': True,
             # 'gen_glr_bison_parser': True,
-            # 'coverage': True,
+            # 'bison-stack-max-depth': 10000000,
+            'coverage': True,
         },
     ),
     # 'coverage': KompileTarget(
