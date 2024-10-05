@@ -148,9 +148,9 @@ module BUILTIN-SYNTAX
                          | "memref" "<" "*x" Type ">"
                          | "memref" "<" "*x" Type "," AttributeValue ">"
     
-    syntax DimensionElement ::= Dimension "x" [token] 
-                              | r"[0-9]+x" [token,prefer] 
-                              | "?x" [token] // TODO: kind of weird
+    syntax DimensionTerminal ::= r"[0-9]+x" [token,prefer] | "?x" [token]
+    syntax DimensionElement ::= Dimension "x" 
+                              | DimensionTerminal
     syntax DimensionList ::= DimensionElement | DimensionElement DimensionList 
     // NoneType
     syntax BuiltinType ::= NoneType
