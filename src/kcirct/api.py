@@ -209,7 +209,6 @@ class KCIRCT:
 
         return outputs
 
-
     # Getters and Setters for Attributes
 
     @property
