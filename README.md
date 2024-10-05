@@ -94,3 +94,5 @@ vcd:
 - [ ] scripts/hardware-sym.py: run symbolic execution
 - [ ] scripts/hardware-bench.py: run benchmark
 - [ ] scripts/hardware-test.py: run test
+
+K_OPTS+=-Xms64m -Xmx8192m -Xss32m

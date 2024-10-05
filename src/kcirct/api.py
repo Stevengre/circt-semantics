@@ -7,13 +7,14 @@ It does not include:
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
 from typing import TYPE_CHECKING
 
 from pyk.kdist import kdist
 from pyk.kore.parser import KoreParser
 from pyk.kore.prelude import SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint, _kast
-from pyk.ktool.krun import KRun
+from pyk.ktool.krun import KRun, KRunOutput, _build_arg_list
 
 from kcirct.kdist.circt_semantics.main import bits_list, cell_symbol, cmd, phase_symbol
 
@@ -70,10 +71,38 @@ class KCIRCT:
             raise RuntimeError(result.stderr)
         return KoreParser(result.stdout).pattern()
 
-    def run(self, pattern: Pattern, depth: int | None = None, check: bool = False) -> Pattern:
+    def run(self, pattern: Pattern, depth: int | None = None, check: bool = True) -> Pattern:
         """Run the CIRCT Semantics pipeline on Kore."""
         assert self._krun is not None, 'KRun is not initialized'
         return self._krun.run_pattern(pattern, depth=depth, check=check)
+        # with self._krun._temp_file() as ntf:
+        #     pattern.write(ntf)
+        #     ntf.flush()
+
+        #     args = _build_arg_list(
+        #         command='krun',
+        #         input_file=Path(ntf.name),
+        #         definition_dir=self.definition_dir,
+        #         output=KRunOutput.KORE,
+        #         parser='cat',
+        #         depth=depth,
+        #         pmap=None,
+        #         cmap=None,
+        #         term=True,
+        #         temp_dir=self._krun.use_directory,
+        #         no_expand_macros=True,
+        #         search_final=False,
+        #         no_pattern=False,
+        #         debugger=False,
+        #         proof_hint=False,
+        #     )
+
+        #     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #     stdout, stderr = process.communicate()
+        #     if process.returncode != 0:
+        #         raise RuntimeError(stderr)
+
+        #     return KoreParser(stdout.decode('utf-8')).pattern(), process.pid
 
     def run_preprocess(self, pgm: Pattern) -> Pattern:
         """Run the preprocess step on Kore.
@@ -84,7 +113,7 @@ class KCIRCT:
         """
         return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm)}))
 
-    def run_setup(self, state: Pattern, top_module: str) -> Pattern:
+    def run_setup(self, state: Pattern, top_module: str) -> tuple[Pattern, int]:
         """Run the hardware setup step on Kore.
 
         This is the second step in the CIRCT Semantics pipeline.

@@ -32,8 +32,8 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
     preprocessed = kcirct.run_preprocess(compiled)
     setup = kcirct.run_setup(preprocessed, top_module)
     initialized = kcirct.run_initialize(setup)
-    kcirct.run_simulate(initialized, inputs[0])
-    # print(simulate_once)
+    simulate_once = kcirct.run_simulate(initialized, inputs[0])
+    print(simulate_once)
     # Then: no error
 
 
@@ -43,3 +43,11 @@ def test_performance_demo() -> None:
     timer = timeit.Timer(lambda: kcirct.compile(mlir_file))
     execution_time = timer.timeit(number=1)
     print(f'Execution time: {execution_time} seconds')
+
+
+def test_coverage_demo() -> None:
+    kcirct = KCIRCT()
+    mlir_file = MODULES_EXPECTED_GENERIC_MLIR_FILES[0]
+    compiled = kcirct.compile(mlir_file)
+    preprocessed = kcirct.run_preprocess(compiled)
+    # setup = kcirct.run_setup(preprocessed, top_module)
