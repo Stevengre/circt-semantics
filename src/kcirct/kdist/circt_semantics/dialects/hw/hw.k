@@ -10,7 +10,7 @@ module HW-SYNTAX
      imports HW-UNION-SYNTAX
      imports HW-ENUM-SYNTAX
      imports HW-MODTY-SYNTAX
- endmodule
+endmodule
 
 module HW
     imports HW-ARRAY

@@ -12,8 +12,13 @@ module CIRCT-CONF
     imports CONF
 endmodule
 
+
 module CIRCT-SYNTAX
     imports CIRCT-CONF
+
+    syntax Set ::= toSet(ValueIdList) [function]
+    rule toSet(V:ValueId, VL:ValueIdList) => SetItem(V) toSet(VL)
+    rule toSet(.ValueIdList) => .Set
 endmodule
 
 

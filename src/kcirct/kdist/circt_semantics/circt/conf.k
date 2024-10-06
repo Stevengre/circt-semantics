@@ -4,17 +4,16 @@ module CONF
     imports INT
     imports STRING
     imports LIST
+    imports SET
     imports CIRCT-SYNTAX-CORE
 
     configuration
     <circt> 
         <mlir/> 
         <cmd> .K </cmd>
-        // <entry> $Entry:String </entry>
-        // <input> ListItem(bits ( 1 , 8 ) : i8) </input>
-        // <input> $Input:List </input>
-        <entry> "":String </entry>
-        <input> .List </input>
+        <entry> $Entry:String </entry>
+        // <input> ListItem(ListItem(bits (1 , 8) : i8) ListItem(bits (2 , 8) : i8)) </input>
+        <input> $Input:List </input>
         <clock> 0 </clock>
         <running> .List </running>
         <boot> .List </boot>
@@ -26,6 +25,7 @@ module CONF
                 <k> .K </k>
                 <parent> "" </parent>
                 <last> .Map </last>
+                <last-vars> .Set </last-vars>
                 // <curr> .Map </curr>
                 <locals> .Map </locals>
                 <module> "" </module>
@@ -36,7 +36,12 @@ module CONF
                 <args> .List </args>
                 <regs> .Map </regs>
                 <wires> .Map </wires>
-                // <hw/>
+                // <ref-reqs>
+                //     <req multiplicity="*" type="Map">
+                //         <caller> "" </caller>
+                //         <k> .K </k>
+                //     </req>
+                // </ref-reqs>
             </ckt>
         </ckts>
         // <hw-g/>

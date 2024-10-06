@@ -20,6 +20,19 @@ module SV-SYNTAX
                       | "#SvAlways"
 endmodule
 
+
+module SV-HELPER
+    imports SV-SYNTAX
+
+    // check edge events
+    syntax Bool ::= eventCheck(Int, Int, Int) [function]
+
+    rule eventCheck(0, 1, 0) => true
+    rule eventCheck(1, 0, 1) => true
+    rule eventCheck(_:Int, _:Int, _:Int) => false [owise]
+endmodule
+
+
 module SV-MSG
     imports SV-SYNTAX
 
