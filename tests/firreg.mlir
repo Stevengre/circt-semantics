@@ -9,3 +9,10 @@
         "hw.output"(%reg) : (i8) -> ()
     }) {module_type = !hw.modty<input clk : !seq.clock, input rst : i1, output res : i8>, parameters = [], result_locs = [#loc], sym_name = "Foo"} : () -> ()
 }) : () -> ()
+
+// ListItem( ListItem(bits(0, 1) : i1) ListItem(bits(0, 1) : i1) )
+// ListItem( ListItem(bits(1, 1) : i1) ListItem(bits(1, 1) : i1) )
+// ListItem( ListItem(bits(0, 1) : i1) ListItem(bits(0, 1) : i1) )
+// ListItem( ListItem(bits(1, 1) : i1) ListItem(bits(0, 1) : i1) )
+// ListItem( ListItem(bits(0, 1) : i1) ListItem(bits(0, 1) : i1) )
+// ListItem( ListItem(bits(1, 1) : i1) ListItem(bits(0, 1) : i1) )

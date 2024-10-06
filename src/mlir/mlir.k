@@ -68,6 +68,10 @@ module MLIR-PREPROCESS
         <prog> _:String (_:ValueIdList) : _:FunctionType => .K ... </prog>
 
     rule <phase> #preprocess </phase>
+        <prog> _:String (_:ValueIdList) {_:Map} : _:FunctionType => .K ... </prog>
+
+
+    rule <phase> #preprocess </phase>
         <prog> B:Block BL:BlockList => B ~> BL ... </prog>
     
     rule <phase> #preprocess </phase>
