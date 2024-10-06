@@ -6,12 +6,7 @@ module MLIR-HELPER
     imports LIST
     imports K-EQUAL
     
-    // Predefined Status
-    
-    // Attribute Value Helpers
-
-
-    // ## Get Attribute Value
+    // Get Attribute Value
     // syntax AttributeValue ::= getAttr(Operation, String) [function]
     // rule getAttr(_ = _ (_) [_:Successors] <{_:Map}> (_:Regions) {AL2:Map} : _, BID) => {AL2[BID] orDefault #undefined}:>AttributeValue
     // rule getAttr(_ = _ (_) (_:Regions) {AL2:Map} : _, BID) => {AL2[BID] orDefault #undefined}:>AttributeValue
@@ -249,6 +244,12 @@ module MLIR-HELPER
     
     rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) [Ss:Successors] (Rs:Regions) { AL:AttributeEntryList } : FT:FunctionType)
         => Op (VL) [Ss] (stdize(Rs)) {attrEntryList2Map(AL)} : stdize(FT)
+
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) <{AL:AttributeEntryList}> : FT:FunctionType)
+        => Op (VL) {attrEntryList2Map(AL)} : stdize(FT)
+
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) <{AL1:AttributeEntryList}> {AL2:AttributeEntryList} : FT:FunctionType)
+        => Op (VL) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} : stdize(FT)
 
 
     syntax Regions       ::= stdize(Regions) [function]

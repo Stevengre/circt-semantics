@@ -155,4 +155,6 @@ module MLIR-SYNTAX
 
     syntax AttributeValue ::= AttributeValueHelper
     syntax AttributeValueHelper ::= "#undefined"
+
+    syntax None ::= "#None" [token]
 endmodule

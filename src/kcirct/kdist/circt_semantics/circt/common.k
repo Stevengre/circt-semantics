@@ -45,13 +45,15 @@ module COMMON-SYNTAX
                       | "#HwOutput"
                       | "#ValueIdIndexLookup"
                       | "#ValueRefLookup"
+                      | "#Last"
+                      | "#EdgeCheck"
 
     syntax KmdCIRCT ::= "#done"
     
     syntax CmdCIRCT ::= "#bootstrap"
                       | "#initial"
                       | "#always"
-                      | "end"
+                      | "#end"
 endmodule
 
 
@@ -139,8 +141,9 @@ module COMMON
     imports HW-INOUT-SYNTAX
     imports COMB-SYNTAX
 
-    // rule <phase> #preprocess => #toStimulate </phase>
-    //     <prog> .K </prog>
+
+    rule <phase> #preprocess => #toStimulate </phase>
+        <prog> .K </prog>
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
@@ -238,7 +241,7 @@ module COMMON
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
-        <cmd> .K => #bootstrap ~> end ~> #initial ~> #always ... </cmd>
+        <cmd> .K => #bootstrap ... </cmd>
         <ckts>
             ...
             (.Bag =>
@@ -264,7 +267,7 @@ module COMMON
     
 
     // bootstrap end
-    rule <cmd> #bootstrap => Boot ... </cmd>
+    rule <cmd> #bootstrap => Boot ~> #initial ... </cmd>
         <running> .List </running>
         <boot> Boot:List </boot>
         
@@ -565,7 +568,6 @@ module COMMON
             <out-ports> L:List </out-ports>
             ...
         </ckt>
-
 
     // use new context, race risk?
     rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>

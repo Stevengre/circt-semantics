@@ -7,15 +7,6 @@ module UTILS
     rule signalEvent(1, 0) => -1
     rule signalEvent(_:Int, _:Int) => 0 [owise]
 
-    
-    // check always events
-    syntax Bool ::= eventCheck(Int, Int, Int) [function]
-
-    rule eventCheck(Last:Int, Now:Int, 0) => true requires Last <Int Now
-    rule eventCheck(Last:Int, Now:Int, 1) => true requires Last >Int Now
-    rule eventCheck(_:Int, _:Int, _:Int) => false [owise]
-
-
     rule <k> #KSkip (N:Int => N -Int 1) ~> (_ => .K) ... </k> requires N >Int 0
     rule <k> #KSkip 0 => .K ... </k>
 
