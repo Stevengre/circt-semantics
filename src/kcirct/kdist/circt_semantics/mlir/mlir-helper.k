@@ -250,6 +250,24 @@ module MLIR-HELPER
 
     rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) <{AL1:AttributeEntryList}> {AL2:AttributeEntryList} : FT:FunctionType)
         => Op (VL) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} : stdize(FT)
+    
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) <{AL:AttributeEntryList}> (Rs:Regions) : FT:FunctionType)
+        => Op (VL) (stdize(Rs)) {attrEntryList2Map(AL)} : stdize(FT)
+    
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) <{AL1:AttributeEntryList}> (Rs:Regions) { AL2:AttributeEntryList } : FT:FunctionType)
+        => Op (VL) (stdize(Rs)) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} : stdize(FT)
+    
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) [Ss:Successors] <{AL:AttributeEntryList}> : FT:FunctionType)
+        => Op (VL) [Ss] {attrEntryList2Map(AL)} : stdize(FT)
+    
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) [Ss:Successors] <{AL1:AttributeEntryList}> { AL2:AttributeEntryList } : FT:FunctionType)
+        => Op (VL) [Ss] {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} : stdize(FT)
+    
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) [Ss:Successors] <{AL:AttributeEntryList}> (Rs:Regions) : FT:FunctionType)
+        => Op (VL) [Ss] (stdize(Rs)) {attrEntryList2Map(AL)} : stdize(FT)
+    
+    rule stdizeGenericOp(Op:StringLiteral (VL:ValueIdList) [Ss:Successors] <{AL1:AttributeEntryList}> (Rs:Regions) { AL2:AttributeEntryList } : FT:FunctionType)
+        => Op (VL) [Ss] (stdize(Rs)) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} : stdize(FT)
 
 
     syntax Regions       ::= stdize(Regions) [function]

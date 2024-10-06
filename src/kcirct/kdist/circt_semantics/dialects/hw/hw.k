@@ -4,6 +4,14 @@ requires "./hw-struct.k"
 requires "./hw-union.k"
 requires "./hw-enum.k"
 
+module HW-SYNTAX
+     imports HW-ARRAY-SYNTAX
+     imports HW-STRUCT-SYNTAX
+     imports HW-UNION-SYNTAX
+     imports HW-ENUM-SYNTAX
+     imports HW-MODTY-SYNTAX
+endmodule
+
 module HW
     imports HW-ARRAY
     imports HW-STRUCT
