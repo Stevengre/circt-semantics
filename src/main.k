@@ -9,5 +9,4 @@ module MAIN
     imports COMB
     imports HW
     imports SEQ
-    
 endmodule

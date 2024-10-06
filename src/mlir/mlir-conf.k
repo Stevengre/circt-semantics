@@ -5,7 +5,6 @@ module MLIR-CONF
 
     syntax PhaseControl ::= "#preprocess" 
                           | "#build"
-                          | "#end"
                           | "#toStimulate"
                           | "#stimulating"
 

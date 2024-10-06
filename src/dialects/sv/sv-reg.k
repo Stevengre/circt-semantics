@@ -10,14 +10,14 @@ endmodule
 module SV-REG
     imports SV-REG-SYNTAX
 
-    rule <k> X:ValueId = "sv.reg" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( !hw.inout < T:Type > ) => .K ... </k>
+    rule <k> X:ValueId = "sv.reg" (.ValueIdList) {Attr:Map} : (.Types) -> (!hw.inout < T:Type >) => .K ... </k>
         <regs> Regs:Map => Regs [ X <- hw.inout({Attr["name"]}:>String , T , #x) ] </regs>
-        <locals> Locals:Map => Locals [ X <- "sv.reg" ( .ValueIdList ) { Attr } : ( .Types ) -> ( !hw.inout < T > ) ] </locals>
+        <locals> Locals:Map => Locals [ X <- "sv.reg" (.ValueIdList) {Attr} : (.Types) -> (!hw.inout < T >) ] </locals>
         <cmd> #bootstrap ... </cmd>
 
 
     rule <k> "sv.read_inout" ( X:ValueId ) : ( !hw.inout < T:Type > ) -> ( T:Type ) => V ... </k>
-        <regs> ... X |-> hw.inout ( "reg" , T , V ) ... </regs>
+        <regs> ... X |-> hw.inout (_:String , T , V) ... </regs>
 
     
     rule <k>
@@ -28,5 +28,5 @@ module SV-REG
 
     // sv.passign
     rule <k> V:StdValue ~> #SvPassign ~> Dst:ValueId => .K ... </k>
-        <regs> ... Dst |-> hw.inout ( "reg" , i8 , _ => V ) ... </regs>
+        <regs> ... Dst |-> hw.inout (_:String , _:Type , _ => V) ... </regs>
 endmodule

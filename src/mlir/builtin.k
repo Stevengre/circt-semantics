@@ -120,7 +120,7 @@ module BUILTIN-SYNTAX
                              | "unrealized_conversion_cast" ValueIdList ":" Types "to" Types
                              | "unrealized_conversion_cast" ValueIdList ":" Types "to" Types DictionaryAttribute
 
-    // ------------------------- Types ------------------------- //
+    // ------------------------- Types -------------------------
     // FloatType
     syntax FloatType ::= "bf16" | "f16" | "f32" | "f64" | "f80" | "f128" 
     syntax FloatType ::= "f8E4M3FN" | "f8E4M3FNUZ" | "f8E5M2" | "f8E5M2FNUZ" 

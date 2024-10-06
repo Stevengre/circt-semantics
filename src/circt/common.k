@@ -45,13 +45,15 @@ module COMMON-SYNTAX
                       | "#HwOutput"
                       | "#ValueIdIndexLookup"
                       | "#ValueRefLookup"
+                      | "#Last"
+                      | "#EdgeCheck"
 
     syntax KmdCIRCT ::= "#done"
     
     syntax CmdCIRCT ::= "#bootstrap"
                       | "#initial"
                       | "#always"
-                      | "end"
+                      | "#end"
 endmodule
 
 
@@ -239,7 +241,7 @@ module COMMON
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
-        <cmd> .K => #bootstrap ~> #initial ~> #always ... </cmd>
+        <cmd> .K => #bootstrap ... </cmd>
         <ckts>
             ...
             (.Bag =>
@@ -265,7 +267,7 @@ module COMMON
     
 
     // bootstrap end
-    rule <cmd> #bootstrap => Boot ... </cmd>
+    rule <cmd> #bootstrap => Boot ~> #initial ... </cmd>
         <running> .List </running>
         <boot> Boot:List </boot>
         
