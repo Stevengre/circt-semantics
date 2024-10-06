@@ -23,7 +23,7 @@ module SEQ-SYNTAX
 endmodule
 
 
-module SEQ
+module SEQ-FIRREG
     imports SEQ-SYNTAX
 
     // ---------------- bootstrap phase --------------------
@@ -75,4 +75,12 @@ module SEQ
     
     rule <k> V:StdValue ~> #SeqFirreg ~> X:ValueId => .K ... </k>
         <locals> ... X |-> seq.firreg(_:String , _:Type , _ => V ) ... </locals>
+endmodule
+
+
+module SEQ
+    imports SEQ-FIRREG
+    
+    // seq.from_clock
+    rule <k> "seq.from_clock" ( X:ValueId ) : ( !seq.clock ) -> ( i1 ) => X ... </k>
 endmodule
