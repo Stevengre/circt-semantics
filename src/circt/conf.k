@@ -29,8 +29,10 @@ module CONF
                 // <curr> .Map </curr>
                 <locals> .Map </locals>
                 <module> "" </module>
-                <in-ports> .List </in-ports>
+                <in-names> .List </in-names>
+                <in-ports> .Map  </in-ports>
                 <in-vars> .ValueIdAndTypeList </in-vars>
+                <out-names> .List </out-names>
                 <out-ports> .List </out-ports>
                 <out-vars> .ValueIdList </out-vars>
                 <args> .List </args>
