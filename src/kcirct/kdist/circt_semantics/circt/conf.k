@@ -36,15 +36,8 @@ module CONF
                 <args> .List </args>
                 <regs> .Map </regs>
                 <wires> .Map </wires>
-                // <ref-reqs>
-                //     <req multiplicity="*" type="Map">
-                //         <caller> "" </caller>
-                //         <k> .K </k>
-                //     </req>
-                // </ref-reqs>
             </ckt>
         </ckts>
-        // <hw-g/>
         <exit>
           <exit-code exit=""> 0 </exit-code>
           <exit-info> "Success" </exit-info>

@@ -18,6 +18,7 @@ module SV-SYNTAX
                       | "#SvFor"
                       | "#SvInitial"
                       | "#SvAlways"
+                      | "#SvAssert"
 endmodule
 
 
@@ -88,6 +89,18 @@ module SV-TASK
 endmodule
 
 
+module SV-ASSERT
+    imports SV-SYNTAX
+
+    // sv.assert
+    rule <k> "sv.assert" ( Cond:ValueId ) { Attr:Map } : ( i1 ) -> ( .Types ) 
+            => Cond ~> #SvAssert ~> Attr["defer"] orDefault "Error: sv.assert doesn't have 'defer' key in AttributeDictionary"
+            ... 
+        </k>
+    
+    rule <k> bits(1, 1) : i1 ~> #SvAssert ~> 0 : i32 => .K ... </k>
+endmodule
+
 
 module SV
     imports SV-MSG
@@ -96,6 +109,7 @@ module SV
     imports SV-ALWAYS
     imports SV-FOR
     imports SV-REG
+    imports SV-ASSERT
 
 
     rule <k> "sv.if" ( X:ValueId ) ( R1:Region , R2:Region ) { .Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types ) 
