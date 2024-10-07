@@ -94,7 +94,7 @@ module SV-ASSERT
 
     // sv.assert
     rule <k> "sv.assert" ( Cond:ValueId ) { Attr:Map } : ( i1 ) -> ( .Types ) 
-            => Cond ~> #SvAssert ~> Attr["defer"] orDefault "???"
+            => Cond ~> #SvAssert ~> Attr["defer"] orDefault "Error: sv.assert doesn't have 'defer' key in AttributeDictionary"
             ... 
         </k>
     
