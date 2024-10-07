@@ -310,12 +310,6 @@ module COMMON
         </k>
         <cmd> #bootstrap ... </cmd>
 
-    rule <k>
-            "hw.module" ( .ValueIdList ) ( R:Region ) { _:Map } : ( .Types ) -> ( .Types )
-            => R
-            ...
-        </k>
-        <cmd> #bootstrap ... </cmd>
     
     rule <k> { OL:OperationList B:BlockList } => OL ~> B ... </k>
         <cmd> #bootstrap ... </cmd>
@@ -558,8 +552,12 @@ module COMMON
 
 
     // ---------- value ref -----------
-    rule <k> #ArgRef ( Index:Int ) => Args[Index] ... </k>
+    rule <k> #ArgRef ( Index:Int ) => Args[Index] ~> #ArgRef ( Index ) ... </k>
         <args> Args:List </args>
+
+    rule <k> V:StdValue ~> #ArgRef ( Index:Int ) => V ... </k>
+        <in-ports> M:Map => M [ L[Index] <- V ] </in-ports>
+        <in-names> L:List </in-names>
 
     rule <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
         <ckt>
