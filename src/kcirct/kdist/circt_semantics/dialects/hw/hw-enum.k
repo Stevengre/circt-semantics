@@ -33,10 +33,10 @@ module HW-ENUM-SYNTAX
     rule getEnumSize(!hw.enum < .HwEnumItems >) => 0
 endmodule
 
+
 module HW-ENUM
     imports HW-ENUM-SYNTAX
 
-    
     rule <k> "hw.enum.cmp" ( Vs:ValueIdList ) : ( ET:HwEnumType, ET:HwEnumType ) -> ( #token("i1", "SignlessIntegerType") )
             => Vs ~> #HwEnumCmp ~> ET
             ...
