@@ -29,11 +29,16 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
 
     # When
     compiled = kcirct.compile(mlir_file)
-    preprocessed = kcirct.run_preprocess(compiled)
-    setup = kcirct.run_setup(preprocessed, top_module)
-    initialized = kcirct.run_initialize(setup)
-    simulate_once = kcirct.run_simulate(initialized, inputs[0])
-    outputs = kcirct.read_outputs(simulate_once)
+    # preprocessed = kcirct.run_preprocess(compiled)
+    # setup = kcirct.run_setup(preprocessed, top_module)
+    # initialized = kcirct.run_initialize(setup)
+    # simulate_once = kcirct.run_simulate(initialized, inputs[0])
+    
+    simulate_once = kcirct.run_first_simulate(compiled, top_module, inputs[0])
+    simulate_twice = kcirct.run_simulate(simulate_once, inputs[1])
+    # krun adder.generic.mlir -cEntry='"Adder"' -cInput="ListItem(bits(10, 8):i8) ListItem(bits(2,8):i8)"
+    # print(kcirct.pretty(simulate_once))
+    outputs = kcirct.read_ports(simulate_twice)
     print(outputs)
     # Then: no error
 

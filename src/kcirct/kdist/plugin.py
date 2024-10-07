@@ -51,7 +51,7 @@ __TARGETS__: Final = {
             # 'gen_bison_parser': True,
             # 'gen_glr_bison_parser': True,
             # 'bison-stack-max-depth': 10000000,
-            'coverage': True,
+            # 'coverage': True,
         },
     ),
     # 'coverage': KompileTarget(

@@ -48,4 +48,4 @@ def bits(value: int, size: int) -> Pattern:
 
 def bits_list(values: list[tuple[int, int]]) -> Pattern:
     args = [inj(SortApp('SortStdValue'), SortApp('SortKItem'), bits(value, size)) for value, size in values]
-    return App(LBL_LIST, args=(App(LBL_LIST_ITEM, args=(arg,)) for arg in args))
+    return App(LBL_LIST_ITEM, args=(App(LBL_LIST, args=(App(LBL_LIST_ITEM, args=(arg,)) for arg in args)),))

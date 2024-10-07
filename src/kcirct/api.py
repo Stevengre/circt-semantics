@@ -14,7 +14,9 @@ from pyk.kore.parser import KoreParser
 from pyk.kore.prelude import DV, SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint, _kast
 from pyk.ktool.krun import KRun
+import time
 
+import subprocess
 from kcirct.kdist.circt_semantics.main import bits_list, cell_symbol, cmd, phase_symbol
 
 if TYPE_CHECKING:
@@ -72,36 +74,29 @@ class KCIRCT:
 
     def run(self, pattern: Pattern, depth: int | None = None, check: bool = True) -> Pattern:
         """Run the CIRCT Semantics pipeline on Kore."""
-        assert self._krun is not None, 'KRun is not initialized'
-        return self._krun.run_pattern(pattern, depth=depth, check=check)
-        # with self._krun._temp_file() as ntf:
-        #     pattern.write(ntf)
-        #     ntf.flush()
+        current_time = time.strftime("%Y%m%d%H%M%S")
+        file_path = Path(__file__).parent / f"tmp/tmp{current_time}.kore"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w') as file:
+            pattern.write(file)
 
-        #     args = _build_arg_list(
-        #         command='krun',
-        #         input_file=Path(ntf.name),
-        #         definition_dir=self.definition_dir,
-        #         output=KRunOutput.KORE,
-        #         parser='cat',
-        #         depth=depth,
-        #         pmap=None,
-        #         cmap=None,
-        #         term=True,
-        #         temp_dir=self._krun.use_directory,
-        #         no_expand_macros=True,
-        #         search_final=False,
-        #         no_pattern=False,
-        #         debugger=False,
-        #         proof_hint=False,
-        #     )
+        command = [
+            'krun',
+            str(file_path),
+            '--definition', str(self.definition_dir),
+            '--output', 'kore',
+            '--parser', 'cat',
+            '--term',
+            '--no-expand-macros'
+        ]
 
-        #     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #     stdout, stderr = process.communicate()
-        #     if process.returncode != 0:
-        #         raise RuntimeError(stderr)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
 
-        #     return KoreParser(stdout.decode('utf-8')).pattern(), process.pid
+        if process.returncode != 0:
+            raise RuntimeError(stderr.decode('utf-8'))
+
+        return KoreParser(stdout.decode('utf-8')).pattern()
 
     def run_preprocess(self, pgm: Pattern) -> Pattern:
         """Run the preprocess step on Kore.
@@ -110,6 +105,7 @@ class KCIRCT:
         Use the MLIR static semantics in `circt-semantics/mlir`.
         phase = "preprocess" | "canonicalized"
         """
+        # TODO: this is wrong for current semantics
         return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm)}))
 
     def run_setup(self, state: Pattern, top_module: str) -> Pattern:
@@ -147,6 +143,55 @@ class KCIRCT:
             return pattern
 
         return self.run(state.top_down(_rewrite))
+    
+    def kore_input(self,inputs: list[tuple[int, int]]) -> Pattern:
+        def _bits_list(inputs: list[tuple[int, int]]) -> Pattern:
+            res = ''
+            for input in inputs:
+                res += f'ListItem(bits({input[0]}, {input[1]}) : i{input[1]}) '
+            return res
+        
+        return self.compile_expression(expression=f'ListItem({_bits_list(inputs)})', sort='List')
+        
+    def run_first_simulate(self, pgm: Pattern, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
+        """Run the first simulate step on Kore.
+
+        This is a batch step of the preprocess, setup, and initialize steps.
+        """
+        # TODO: Before performance evaluation, we need to use bits_list to avoid parse, or just generate a bison parser for List
+        
+        return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm), 
+                                              '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, dv(top_module)), 
+                                              '$Input': inj(SortApp('SortList'), SORT_K_ITEM, self.kore_input(inputs))}))
+
+
+    # def run_first_simulate(self, pgm: Path, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
+    #     """Run the first simulate step on Kore.
+
+    #     This is a batch step of the preprocess, setup, and initialize steps.
+    #     """
+    #     # TODO: we use this, because the semantics does not support stop between phases
+    #     # self.compile_expression(expression="ListItem(bits(8, 8): i8) ListItem(bits(2, 8): i8) ", sort="List")
+        
+    #     def _bits_list(inputs: list[tuple[int, int]]) -> Pattern:
+    #         res = ''
+    #         for input in inputs:
+    #             res += f'ListItem(bits({input[0]}, {input[1]}) : i{input[1]}) '
+    #         return res
+            
+    #     cmd_list = ['krun', str(pgm), 
+    #                 '--definition', str(self.definition_dir), 
+    #                 '--output', 'kore', 
+    #                 '--depth', '0',
+    #                f'-cEntry="{top_module}"',
+    #                f'-cInput={_bits_list(inputs)}']
+    #     # print(' '.join(cmd_list))
+    #     # print(proc_res.stderr.decode('utf-8'))
+    #     proc_res = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #     if proc_res.returncode != 0:
+    #         raise RuntimeError(proc_res.stderr.decode('utf-8'))
+        
+    #     return self.run(KoreParser(proc_res.stdout.decode('utf-8')).pattern())
 
     def run_simulate(self, state: Pattern, inputs: list[tuple[int, int]]) -> Pattern:
         """Run the simulate step on Kore.
@@ -173,7 +218,7 @@ class KCIRCT:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('cmd'):
                 return pattern.let_patterns([kseq([cmd('initial'), cmd('always')])])
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('input'):
-                return pattern.let_patterns([bits_list(inputs)])
+                return pattern.let_patterns([self.kore_input(inputs)])
             return pattern
 
         return self.run(state.top_down(_rewrite))
@@ -183,8 +228,16 @@ class KCIRCT:
         assert self._kprint is not None, 'KPrint is not initialized'
         return self._kprint.kore_to_pretty(state)
 
-    def read_outputs(self, state: Pattern) -> list[tuple[int, int]]:
+    def read_ports(self, state: Pattern) -> dict[str, list[tuple[int, int]]]:
         """Read the outputs from the Kore pattern."""
+        
+        def _find_ckt(pattern: Pattern) -> Pattern:
+            if isinstance(pattern, App) and pattern.symbol == cell_symbol('ckt'):
+                
+                return pattern
+            return pattern
+        
+        
         output_patterns: list[Pattern] = []
 
         def _find_outputs(pattern: Pattern) -> Pattern:
