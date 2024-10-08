@@ -26,7 +26,6 @@ module CONF
                 <parent> "" </parent>
                 <last> .Map </last>
                 <last-vars> .Set </last-vars>
-                // <curr> .Map </curr>
                 <locals> .Map </locals>
                 <module> "" </module>
                 <in-names> .List </in-names>
@@ -38,6 +37,7 @@ module CONF
                 <args> .List </args>
                 <regs> .Map </regs>
                 <wires> .Map </wires>
+                // <lock> false </lock>
             </ckt>
         </ckts>
         <exit>

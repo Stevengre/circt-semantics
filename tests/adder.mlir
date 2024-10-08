@@ -1,0 +1,28 @@
+#loc = loc("adder.mlir":2:48)
+#loc1 = loc("adder.mlir":7:48)
+#loc2 = loc("adder.mlir":12:39)
+#loc3 = loc("adder.mlir":12:58)
+"builtin.module"() ({
+    "hw.module"() ({
+    ^bb0(%arg0: i8):
+        %0 = "hw.constant"() {value = 1 : i8} : () -> i8
+        %1 = "comb.add"(%arg0, %0) {sv.namehint = "_out_T"} : (i8, i8) -> i8
+        "hw.output"(%1) : (i8) -> ()
+    }) {module_type = !hw.modty<input io_a : i8, output res : i8>, parameters = [], result_locs = [#loc], sym_name = "AddOne", sym_visibility = "private"} : () -> ()
+    
+    "hw.module"() ({
+    ^bb0(%arg0: i8):
+        %0 = "hw.instance"(%arg0) {argNames = ["io_a"], instanceName = "i3", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+        %1 = "hw.instance"(%0) {argNames = ["io_a"], instanceName = "i1", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+        "hw.output"(%1) : (i8) -> ()
+    }) {module_type = !hw.modty<input io_a : i8, output res2 : i8>, parameters = [], result_locs = [#loc1], sym_name = "AddTwo", sym_visibility = "private"} : () -> ()
+    
+    "hw.module"() ({
+    ^bb0(%arg0: i8):
+        %0 = "hw.instance"(%arg0) {argNames = ["io_a"], instanceName = "i0", moduleName = @AddTwo, parameters = [], resultNames = ["res2"]} : (i8) -> i8
+        %1 = "hw.instance"(%0) {argNames = ["io_a"], instanceName = "i2", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+        "hw.output"(%0, %1) : (i8, i8) -> ()
+    }) {module_type = !hw.modty<input io_a : i8, output res_out2 : i8, output res_out1 : i8>, parameters = [], result_locs = [#loc2, #loc3], sym_name = "Adder"} : () -> ()
+}) : () -> ()
+
+
