@@ -147,42 +147,6 @@ module COMMON
         // <cmd> .K => Set2List(keys(M))  ... </cmd>
         // <table> M:Map </table>
 
-    // # Phase Change: Stop/Finish Current Simulation
-    // rule <ks>
-    //         <kmap>
-    //             <kkey> _ </kkey>
-    //             <k> #KClockFinish => .K ... </k> 
-    //         </kmap>
-    //     </ks>
-    //     <clock> I:Int => I +Int 1 </clock>
-    // todo: #CIRCTinitOp 以结束 和 #KinitOp 以 #KFinish结束
-
-    // rule <ks> 
-    //         <kmap>
-    //             <kkey> _ </kkey>
-    //             <k> #KFinish => #KReadOuts ~> #KFinish ... </k>
-    //         </kmap>
-    //     </ks>
-   
-    // rule <ckt>
-    //         <cid> CID </cid>
-    //         <ks> 
-    //             <kmap> 
-    //                 <kkey> _ </kkey> 
-    //                 <k> TVs:StdValues ~> #KFinish => .K ... </k>
-    //             </kmap>
-    //         </ks>
-    //         <curr> CURR => .Map </curr>
-    //         <last> _ => CURR </last>
-    //         <parent> FID </parent>
-    //         ...
-    //     </ckt>
-    //     <ckt>
-    //         <cid> FID </cid>
-    //         <k> #KCallBack CID => TVs ... </k>
-    //         ...
-    //     </ckt>        
-    
 
     // bootstrap, entry module
     rule <phase> #toStimulate => #build </phase>
@@ -257,14 +221,6 @@ module COMMON
     rule <k> .OperationList => .K ... </k>
         <cmd> #bootstrap ... </cmd>
 
-
-    // rule <k> 
-    //         #token("^bb0", "CaretId") ( VTs:ValueIdAndTypeList ) : OL:OperationList
-    //         => #KWArgs Args ~> VTs ~> OL
-    //         ...
-    //     </k>
-    //     <args> Args:List </args>
-
     rule <k> BL:BlockLabel OL:OperationList => 0 ~> BL ~> OL ... </k>
         <cmd> #bootstrap ... </cmd>
 
@@ -301,7 +257,8 @@ module COMMON
 
     
     rule <k> (Index:Int => Index +Int 1) ~> Inst:String ~> (X:ValueId, Xs:OpResults => Xs) ... </k>
-        <locals> Locals:Map => Locals [X <- #OutPortRef(Inst, Index) ] </locals>
+        <cid> Base:String </cid>
+        <locals> Locals:Map => Locals [X <- #OutPortRef(Base +String "/" +String Inst, Index) ] </locals>
         <cmd> #bootstrap ... </cmd>
     
     rule <k> _:Int ~> _:String ~> .OpResults => .K ... </k>
@@ -335,108 +292,6 @@ module COMMON
         <boot> Boot:List => Boot ListItem(Parent +String "/" +String Inst) </boot>
         <table> ... SymbolRefId2String(Mod) |-> Op ... </table>
         <cmd> #bootstrap ... </cmd>
-    
-    
-    // rule <k> #KWArgs A:AttributeValueList ~> V:ValueIdAndTypeList
-    //         => #KHalt "An error occurs in #KWArgs!" ~> #KWArgs A ~> V
-    //         ...
-    //     </k> 
-    //     [owise]
-    
-    // rule <k> _:CaretId ( VTs:ValueIdAndTypeList ) : OL:OperationList ~> #KWArgs TVs:StdValues
-    //         => #KWArgs TVs ~> VTs ~> OL
-    //         ...
-    //     </k>
-    
-    // rule <k> #KWArgs TV:StdValue, TVs ~> (VID:_T):ValueIdAndType, VTs:ValueIdAndTypeList 
-    //         => #KWArgs TVs ~> VTs
-    //         ...
-    //     </k>
-    //     <curr> M:Map => M[VID <- TV] </curr>
-    
-    // rule <k> #KWArgs .StdValues ~> .ValueIdAndTypeList => .K ... </k>
-
-    // # Parallelize Operations
-    // rule <ks> 
-    //         ... 
-    //         <kmap>
-    //             <kkey> _ </kkey>
-    //             <k> Op:Operation Ops:OperationList => Ops ... </k>
-    //         </kmap>
-    //         (
-    //             .Bag => 
-    //             <kmap>
-    //                 <kkey> !_:Int </kkey>
-    //                 <k> Op </k>
-    //             </kmap>
-    //         )
-    //         ... 
-    //     </ks>
-    
-    // rule <ks> 
-    //         ... 
-    //         (<kmap> 
-    //             <kkey> _ </kkey> 
-    //             <k> .OperationList => .K </k> 
-    //         </kmap>) 
-    //         ... 
-    //     </ks>
-    
-    // rule <ks> 
-    //         ... 
-    //         (<kmap> 
-    //             <kkey> _ </kkey> 
-    //             <k> .K </k> 
-    //         </kmap> => .Bag) 
-    //         ... 
-    //     </ks>
-
-    // # Setup Trigger of Result Assignment
-    // rule <k> Rs = Op:GenericOperation => Op ~> #KWriteCurr OpResults2ValueIdList(Rs) ... </k>
-    
-    // # Effect Handlers
-    // ## Read the current state
-    // -- todo: add type-checking
-    
-    // rule <k> 
-    //         #KReadCurr VID:ValueId, VIDs:ValueIdList 
-    //         => ListItem(M[VID]) ~> #KReadCurr VIDs 
-    //         ... 
-    //     </k>
-    //     <curr> M </curr> 
-    //     requires VID in_keys(M)
-    
-    // rule <k> 
-    //         L:List ~> #KReadCurr VID:ValueId, VIDs:ValueIdList 
-    //         => L ListItem(M[VID]) ~> #KReadCurr VIDs
-    //         ... 
-    //     </k>
-    //     <curr> M </curr> 
-    //     requires VID in_keys(M)
-    
-    // rule <k> L:List ~> #KReadCurr .ValueIdList => List2StdValues(L) ... </k>
-    
-
-
-    // Write the current state
-    // rule <k> TV:StdValue, Vs:StdValues ~> #KWriteCurr VID:ValueId, VIDs:ValueIdList
-    //         => Vs ~> #KWriteCurr VIDs
-    //         ...
-    //     </k>
-    //     <curr> M => M[VID <- TV] </curr>
-
-    // rule <k> TV:StdValue ~> #KWriteCurr VID:ValueId, .ValueIdList => .K ... </k>
-    //     <curr> M => M[VID <- TV] </curr> 
-
-    // rule <k> .StdValues ~> #KWriteCurr .ValueIdList => .K ... </k>
-    
-    // // -- may be failed, can cause some strange behaviors
-    // rule <k> _:StdValues ~> #KWriteCurr _:ValueIdList => .K ...</k>
-    //     [owise]
-    
-    // // ## Read the output ports
-    // rule <k> #KReadOuts => #KReadCurr VIDs ... </k>
-    //     <out-vars> VIDs </out-vars>
     
     
     // lookup ValueId
@@ -507,6 +362,7 @@ module COMMON
             <k> .K => M[V] orDefault "???" ~> Caller ~> #ValueRefLookup ... </k>
             ...
         </ckt>
+        [priority(200)]
 
     rule <k> #ValueRefLookup ~> Callee:String => V ... </k>
         <cid> Caller:String </cid>
@@ -515,5 +371,7 @@ module COMMON
             <k> V:StdValue ~> Caller ~> #ValueRefLookup => .K ... </k>
             ...
         </ckt>
+        [priority(1)]
+
 
 endmodule
