@@ -181,69 +181,15 @@ module COMMON
     //         <cid> FID </cid>
     //         <k> #KCallBack CID => TVs ... </k>
     //         ...
-    //     </ckt>
+    //     </ckt>        
+    
 
-    // # Stimuate a circuit with arguments
-
-    // rule <phase> #build => #building </phase>
-    //     <cmd> ListItem(Module:) L:List => L ... </cmd>
-    //     <table> M:Map </table>
-        
-
-   
-    
-    // - first stimulation
-    // rule <phase> #toStimulate </phase>
-    //     <cmd> .K => #CirctGetOp String2SymbolRefId(ID) ~> #CIRCTrefineOp ~> ID ~> #bootstrap ~> #initial ~> #always </cmd>
-    //     <entry> ID:String </entry>
-        
-    // rule <phase> #toStimulate </phase>
-    //     <cmd> 
-    //         #CirctGetOp ID:SymbolRefId
-    //         => #if SymbolRefId2String(ID) in_keys(M)
-    //         #then M [ SymbolRefId2String(ID) ]
-    //         #else #Stop "cannot find operation from <table>" ~> ID
-    //         #fi
-    //         ... 
-    //     </cmd>
-    //     <table> M:Map </table>
-
-    
-    // rule <phase> #toStimulate </phase>
-    //     <cmd> Op:Operation ~> #CIRCTrefineOp => CIRCTrefineOp(Op) ... </cmd>
-    
-    // rule <k> Op:Operation ~> #KrefineOp => CIRCTrefineOp(Op) ... </k>
-    
-    
-    
-    
-    // Phase Change: Initialize Operation with Arguments in <cmd>
-   
-    
-    // build the circuit
-    // rule <phase> #toStimulate => #build </phase>
-    //     <cmd> ( Op:Operation ~> Mod:String => .K ) ~> #bootstrap ... </cmd>
-    //     <ckts>
-    //         ...
-    //         (.Bag =>
-    //         <ckt>
-    //             <cid> Mod </cid>
-    //             <k> Op </k> 
-    //             <module> Mod </module>
-    //             // <args> toList(Vs) </args>
-    //             ...
-    //         </ckt>)
-    //         ...
-    //     </ckts>
-    //     <running> L:List => L ListItem(Mod) </running>
-    //     <boot> Boot:List => Boot ListItem(Mod) </boot>
-
+    // bootstrap, entry module
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
         <table> M:Map </table>
         <cmd> .K => #bootstrap ... </cmd>
         <ckts>
-            ...
             (.Bag =>
             <ckt>
                 <cid> ID </cid>
@@ -252,7 +198,6 @@ module COMMON
                 // <args> toList(Vs) </args>
                 ...
             </ckt>)
-            ...
         </ckts>
         <running> L:List => L ListItem(ID) </running>
         <boot> Boot:List => Boot ListItem(ID) </boot>
@@ -271,20 +216,6 @@ module COMMON
         <running> .List </running>
         <boot> Boot:List </boot>
         
-    // rule <k> Op:Operation ~> #KinitOp ID ( TVs ) by FID as CID => #KCallBack CID ... </k>
-    //     (.Bag =>
-    //     <ckt>
-    //        <cid> CID </cid>
-    //        <ks> <kmap> <kkey> !_:Int </kkey> <k> Op ~> #KWArgs TVs ~> #KFinish</k> </kmap> </ks>
-    //        <circuit> Op </circuit>
-    //        <module> ID </module>
-    //        <parent> FID </parent>
-    //        ...
-    //     </ckt>)
-
-    // # Write Arguments to the Entry Block in <k>
-
-
 
     // rule <k>
     //         "hw.module" ( .ValueIdList ) ( { .OperationList B:Block } ) { _:Map } : ( .Types ) -> ( .Types )
@@ -392,7 +323,7 @@ module COMMON
             </ckt>
             (.Bag =>
             <ckt>
-                <cid> Inst </cid>
+                <cid> Parent +String "/" +String Inst </cid>
                 <k> Op </k>
                 <module> SymbolRefId2String(Mod) </module>
                 <args> ValueRefListWrapper(VL, Parent) </args>
@@ -400,8 +331,8 @@ module COMMON
             </ckt>)
             ...
         </ckts>
-        <running> L:List => L ListItem(Inst) </running>
-        <boot> Boot:List => Boot ListItem(Inst) </boot>
+        <running> L:List => L ListItem(Parent +String "/" +String Inst) </running>
+        <boot> Boot:List => Boot ListItem(Parent +String "/" +String Inst) </boot>
         <table> ... SymbolRefId2String(Mod) |-> Op ... </table>
         <cmd> #bootstrap ... </cmd>
     
