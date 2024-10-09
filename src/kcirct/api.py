@@ -6,6 +6,8 @@ It does not include:
 
 from __future__ import annotations
 
+import subprocess
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -14,10 +16,8 @@ from pyk.kore.parser import KoreParser
 from pyk.kore.prelude import DV, SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint, _kast
 from pyk.ktool.krun import KRun
-import time
 
-import subprocess
-from kcirct.kdist.circt_semantics.main import bits_list, cell_symbol, cmd, phase_symbol
+from kcirct.kdist.circt_semantics.main import cell_symbol, cmd, phase_symbol
 
 if TYPE_CHECKING:
     pass
@@ -83,11 +83,14 @@ class KCIRCT:
         command = [
             'krun',
             str(file_path),
-            '--definition', str(self.definition_dir),
-            '--output', 'kore',
-            '--parser', 'cat',
+            '--definition',
+            str(self.definition_dir),
+            '--output',
+            'kore',
+            '--parser',
+            'cat',
             '--term',
-            '--no-expand-macros'
+            '--no-expand-macros',
         ]
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -143,27 +146,32 @@ class KCIRCT:
             return pattern
 
         return self.run(state.top_down(_rewrite))
-    
-    def kore_input(self,inputs: list[tuple[int, int]]) -> Pattern:
+
+    def kore_input(self, inputs: list[tuple[int, int]]) -> Pattern:
         def _bits_list(inputs: list[tuple[int, int]]) -> Pattern:
             res = ''
             for input in inputs:
                 res += f'ListItem(bits({input[0]}, {input[1]}) : i{input[1]}) '
             return res
-        
+
         return self.compile_expression(expression=f'ListItem({_bits_list(inputs)})', sort='List')
-        
+
     def run_first_simulate(self, pgm: Pattern, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
         """Run the first simulate step on Kore.
 
         This is a batch step of the preprocess, setup, and initialize steps.
         """
         # TODO: Before performance evaluation, we need to use bits_list to avoid parse, or just generate a bison parser for List
-        
-        return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm), 
-                                              '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, dv(top_module)), 
-                                              '$Input': inj(SortApp('SortList'), SORT_K_ITEM, self.kore_input(inputs))}))
 
+        return self.run(
+            top_cell_initializer(
+                {
+                    '$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm),
+                    '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, dv(top_module)),
+                    '$Input': inj(SortApp('SortList'), SORT_K_ITEM, self.kore_input(inputs)),
+                }
+            )
+        )
 
     # def run_first_simulate(self, pgm: Path, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
     #     """Run the first simulate step on Kore.
@@ -172,16 +180,16 @@ class KCIRCT:
     #     """
     #     # TODO: we use this, because the semantics does not support stop between phases
     #     # self.compile_expression(expression="ListItem(bits(8, 8): i8) ListItem(bits(2, 8): i8) ", sort="List")
-        
+
     #     def _bits_list(inputs: list[tuple[int, int]]) -> Pattern:
     #         res = ''
     #         for input in inputs:
     #             res += f'ListItem(bits({input[0]}, {input[1]}) : i{input[1]}) '
     #         return res
-            
-    #     cmd_list = ['krun', str(pgm), 
-    #                 '--definition', str(self.definition_dir), 
-    #                 '--output', 'kore', 
+
+    #     cmd_list = ['krun', str(pgm),
+    #                 '--definition', str(self.definition_dir),
+    #                 '--output', 'kore',
     #                 '--depth', '0',
     #                f'-cEntry="{top_module}"',
     #                f'-cInput={_bits_list(inputs)}']
@@ -190,7 +198,7 @@ class KCIRCT:
     #     proc_res = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #     if proc_res.returncode != 0:
     #         raise RuntimeError(proc_res.stderr.decode('utf-8'))
-        
+
     #     return self.run(KoreParser(proc_res.stdout.decode('utf-8')).pattern())
 
     def run_simulate(self, state: Pattern, inputs: list[tuple[int, int]]) -> Pattern:
@@ -216,7 +224,7 @@ class KCIRCT:
         # print(f'compare time: {list_time - compile_time}')
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('cmd'):
-                return pattern.let_patterns([kseq([cmd('initial'), cmd('always')])])
+                return pattern.let_patterns([kseq([cmd('always')])])
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('input'):
                 return pattern.let_patterns([self.kore_input(inputs)])
             return pattern
@@ -227,73 +235,75 @@ class KCIRCT:
         """Pretty print Kore."""
         assert self._kprint is not None, 'KPrint is not initialized'
         return self._kprint.kore_to_pretty(state)
-    
+
     def write_pretty(self, state: Pattern, file_path: Path) -> None:
         """Write the pretty print of Kore to a file."""
         file_path.parent.mkdir(parents=True, exist_ok=True)
         with open(file_path, 'w') as file:
             file.write(self.pretty(state))
 
-    def read_ports(self, state: Pattern) -> dict[str, list[tuple[int, int]]]:
+    def read_ports(self, state: Pattern) -> dict[str, tuple[int, int]]:
         """Read the outputs from the Kore pattern."""
         # cid.port_name -> (port_value, port_size)
-        ports: dict[str, list[tuple[int, int]]] = {}
+        ports: dict[str, tuple[int, int]] = {}
         matched_ckts: list[dict[str, Pattern]] = []
-        
+
         def _find_ckt(pattern: Pattern) -> Pattern:
-            
+
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('ckt'):
                 ps: dict[str, Pattern] = {}
-                
+
                 def _find_ckt_cid(pattern: Pattern) -> Pattern:
                     if isinstance(pattern, App) and pattern.symbol == cell_symbol('cid'):
                         ps['cid'] = pattern
                         return pattern
                     return pattern
-                
+
                 def _find_in_ports(pattern: Pattern) -> Pattern:
                     if isinstance(pattern, App) and pattern.symbol == cell_symbol('in-ports'):
                         ps['in-ports'] = pattern
                         return pattern
                     return pattern
-                
+
                 def _find_out_names(pattern: Pattern) -> Pattern:
                     if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-names'):
                         ps['out-names'] = pattern
                         return pattern
                     return pattern
-                
+
                 def _find_out_ports(pattern: Pattern) -> Pattern:
                     if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-ports'):
                         ps['out-ports'] = pattern
                         return pattern
                     return pattern
-                
-                pattern.top_down(_find_ckt_cid).top_down(_find_in_ports).top_down(_find_out_names).top_down(_find_out_ports)
+
+                pattern.top_down(_find_ckt_cid).top_down(_find_in_ports).top_down(_find_out_names).top_down(
+                    _find_out_ports
+                )
                 matched_ckts.append(ps)
                 return pattern
             return pattern
-        
+
         # find all ckt patterns
         state.top_down(_find_ckt)
-        
+
         # desugar
         names: list[str] = []
         values_sizes: list[int] = []
-        
+
         def _find_names(pattern: Pattern) -> Pattern:
             if isinstance(pattern, DV) and pattern.sort == SortApp('SortBareId'):
                 names.append(str(pattern.value.value))
             return pattern
-        
+
         def _find_values(pattern: Pattern) -> Pattern:
             if isinstance(pattern, DV) and pattern.sort == SortApp('SortInt'):
                 values_sizes.append(int(pattern.value.value))
             return pattern
-        
+
         for ckt in matched_ckts:
             cid = ckt['cid'].args[0].value.value
-            
+
             ckt['in-ports'].top_down(_find_names).top_down(_find_values)
             while names:
                 name = names.pop(0)
@@ -305,8 +315,20 @@ class KCIRCT:
                 name = names.pop(0)
                 value = values_sizes.pop(0)
                 ports[f'{cid}/{name}'] = (value, values_sizes.pop(0))
-            
+
         return ports
+
+    # APIs for VCD
+
+    # def generate_vcd_vars(self, ports: dict[str, list[tuple[int, int]]]) -> dict[str, tuple[str, int]]:
+    #     """Generate VCD variables from the port list."""
+    #     res: dict[str, tuple[str, int]] = {}
+    #     # name -> (value, size)
+    #     # translate to
+    #     # name -> (abbrev, size)
+    #     for name, info in ports.items():
+    #         res[name] = (Abbrev.gen(), info[1])
+    #     return res
 
     # Getters and Setters for Attributes
 
