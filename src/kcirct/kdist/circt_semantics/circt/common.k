@@ -35,6 +35,7 @@ module COMMON-SYNTAX
     syntax KmdCIRCT ::= "#KinitOp" String StdValues "by" String "as" String
 
     syntax Ref ::= "#OutPortRef" "(" String "," Int ")"
+                 | "#OutPortRef" "(" String "," Int "," Int ")"
                  | "#InPortRef" "(" String "," ValueId ")"
                  | "#ValueRef" "(" String "," ValueId ")"
                  | "#ArgRef" "(" Int ")"
@@ -241,6 +242,7 @@ module COMMON
     rule <k> X:ValueId : _:IntegerLiteral = Op:GenericOperation => .K ... </k>
         <locals> Locals:Map => Locals [X <- Op] </locals>
         <cmd> #bootstrap ... </cmd>
+        [owise]
 
 
     // hw.instance
@@ -248,8 +250,7 @@ module COMMON
             (.K => 0 ~> M["instanceName"]) ~>
             (
                 Res:OpResults = "hw.instance" ( Vs:ValueIdList ) { M:Map } : ( T1:Types ) -> ( T2:Types )
-                => Res
-                ~> "hw.instance" ( Vs ) { M } : ( T1 ) -> ( T2 )
+                => Res ~> "hw.instance" ( Vs ) { M } : ( T1 ) -> ( T2 )
             )
             ... 
         </k>
@@ -259,6 +260,11 @@ module COMMON
     rule <k> (Index:Int => Index +Int 1) ~> Inst:String ~> (X:ValueId, Xs:OpResults => Xs) ... </k>
         <cid> Base:String </cid>
         <locals> Locals:Map => Locals [X <- #OutPortRef(Base +String "/" +String Inst, Index) ] </locals>
+        <cmd> #bootstrap ... </cmd>
+    
+    rule <k> (Index:Int => Index +Int Size) ~> Inst:String ~> (X:ValueId : Size:IntegerLiteral, Xs:OpResults => Xs) ... </k>
+        <cid> Base:String </cid>
+        <locals> Locals:Map => Locals [X <- #OutPortRef(Base +String "/" +String Inst, Index, Index +Int Size) ] </locals>
         <cmd> #bootstrap ... </cmd>
     
     rule <k> _:Int ~> _:String ~> .OpResults => .K ... </k>
@@ -346,6 +352,14 @@ module COMMON
         <in-names> L:List </in-names>
 
     rule <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
+        <ckt>
+            <cid> Inst </cid>
+            <k> .K </k>
+            <out-ports> L:List </out-ports>
+            ...
+        </ckt>
+
+    rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
         <ckt>
             <cid> Inst </cid>
             <k> .K </k>
