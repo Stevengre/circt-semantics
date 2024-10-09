@@ -6,13 +6,13 @@ It does not include:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import subprocess
+import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pyk.kdist import kdist
 from pyk.kore.parser import KoreParser
 from pyk.kore.prelude import DV, SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint
@@ -33,6 +33,8 @@ PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'TopLevelParser'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'
 OPT_KOMPILE_DIR = WORKING_DIR / 'kompiled-opt'
+
+sys.setrecursionlimit(200000)
 
 
 class KCIRCT:
@@ -123,7 +125,7 @@ class KCIRCT:
         parser_path = PARSER_DIR / (sort + 'Parser')
         if not parser_path.exists():
             self.generate_parser(sort=sort, parser=parser_path)
-        
+
         expression_file = self.data_dir / f"expression.{sort}.kore"
         with open(expression_file, 'w') as file:
             file.write(expression)
@@ -146,13 +148,15 @@ class KCIRCT:
             '--no-expand-macros',
         ]
         if depth:
-            cmd.append('--depth', str(depth))
+            cmd += ['--depth', str(depth)]
         return cmd
-    
+
     @staticmethod
     def read_kore(file: Path) -> Pattern:
         """Parse Kore from a file."""
-        return KoreParser(file.read_text()).pattern()
+        with open(file, 'r') as f:
+            # print(f.read())
+            return KoreParser(f.read()).pattern()
 
     def compile(self, file: Path, output_file: Path | None = None) -> Pattern:
         """Step 1: Translate Generic MLIR to Kore."""
@@ -160,18 +164,21 @@ class KCIRCT:
         if output_file is not None:
             with open(output_file, 'w') as f:
                 f.write(result.stdout)
+        # TODO: KoreParser 太太太太慢了，而且是递归的
         return KoreParser(result.stdout).pattern()
-    
+
     def _init_state_pattern(self, complied_pattern: Pattern, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
         return top_cell_initializer(
-                {
-                    '$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, complied_pattern),
-                    '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, dv(top_module)),
-                    '$Input': inj(SortApp('SortList'), SORT_K_ITEM, self.kore_input(inputs)),
-                }
-            )
-    
-    def init_state(self, compiled_pgm: Path, initial_state: Path, top_module: str, inputs: list[tuple[int, int]]) -> None:
+            {
+                '$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, complied_pattern),
+                '$Entry': inj(SortApp('SortString'), SORT_K_ITEM, dv(top_module)),
+                '$Input': inj(SortApp('SortList'), SORT_K_ITEM, self.kore_input(inputs)),
+            }
+        )
+
+    def init_state(
+        self, compiled_pgm: Path, initial_state: Path, top_module: str, inputs: list[tuple[int, int]]
+    ) -> None:
         """Step 2: Initialize the state with the initial state."""
         complied_pattern = KCIRCT.read_kore(compiled_pgm)
         state_initializer = self._init_state_pattern(complied_pattern, top_module, inputs)
@@ -179,7 +186,7 @@ class KCIRCT:
         with open(state_initializer_path, 'w') as file:
             state_initializer.write(file)
         self.krun_fast(input_file=state_initializer_path, output_file=initial_state, depth=1)
-        
+
     def krun_fast(self, input_file: Path, output_file: Path, depth: int | None = None) -> None:
         """Step 3: Run state with an optional depth."""
         result = KCIRCT.run(self.krun_cmd(input_file, depth=depth))
@@ -189,46 +196,59 @@ class KCIRCT:
 
     def krun(self, pattern: Pattern, depth: int | None = None, check: bool = True) -> Pattern:
         """Run the CIRCT Semantics pipeline on Kore."""
-        
+
         # write pattern to file
         current_time = time.strftime("%Y%m%d%H%M%S")
         input_path = self.data_dir / f"tmp{current_time}.{depth}.source.kore"
         input_path.parent.mkdir(parents=True, exist_ok=True)
         with open(input_path, 'w') as file:
             pattern.write(file)
-        
+
         # run krun
         output_path = self.data_dir / f"tmp{current_time}.{depth}.target.kore"
         self.krun_fast(input_file=input_path, output_file=output_path, depth=depth)
-        
+
         return KCIRCT.read_kore(output_path)
 
     def pretty(self, state: Pattern) -> str:
         """Pretty print Kore."""
         assert self._kprint is not None, 'KPrint is not initialized'
         return self._kprint.kore_to_pretty(state)
-        
+
     def write_pretty(self, kore_path: Path, pretty_path: Path) -> None:
         """Write the pretty print of Kore to a file."""
-        KCIRCT.run(['kast', str(kore_path), '-i', 'kore', '-o', 'pretty', '-d', str(self.definition_dir), '--output_file', str(pretty_path)])
+        KCIRCT.run(
+            [
+                'kast',
+                str(kore_path),
+                '-i',
+                'kore',
+                '-o',
+                'pretty',
+                '-d',
+                str(self.definition_dir),
+                '--output_file',
+                str(pretty_path),
+            ]
+        )
         return
-    
+
     def run_first_simulate(self, pgm: Pattern, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
         """Run the first simulate step on Kore.
 
         This is a batch step of the preprocess, setup, and initialize steps.
         """
         # TODO: Before performance evaluation, we need to use bits_list to avoid parse, or just generate a bison parser for List
-        
+
         return self.krun(self._init_state_pattern(pgm, top_module, inputs))
-    
+
     def run_simulate(self, state: Pattern, inputs: list[tuple[int, int]]) -> Pattern:
         """Run the simulate step on Kore.
 
         This is the fourth step in the CIRCT Semantics pipeline.
         phase = "simulate"
         """
-        
+
         def _rewrite(pattern: Pattern) -> Pattern:
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('cmd'):
                 return pattern.let_patterns([kseq([cmd('always')])])
@@ -317,7 +337,7 @@ class KCIRCT:
     # -------------------------------------------------------------------------------------------------
     # Backup APIs
     # -------------------------------------------------------------------------------------------------
-    
+
     def run_preprocess(self, pgm: Pattern) -> Pattern:
         """Run the preprocess step on Kore.
 

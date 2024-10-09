@@ -105,12 +105,12 @@ class KimulatorContext:
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:  # type: ignore
         """Exit the context manager."""
-        shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
+        # shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
         shutil.rmtree(self.history_dir, ignore_errors=True)  # type: ignore
 
     def __del__(self) -> None:
         """Delete the temporary directory."""
-        shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
+        # shutil.rmtree(self.krun.use_directory, ignore_errors=True)  # type: ignore
         shutil.rmtree(self.history_dir, ignore_errors=True)  # type: ignore
 
     def trace_ever_on(self, trace_ever_on: bool) -> None:
