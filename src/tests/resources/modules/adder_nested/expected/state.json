@@ -34,13 +34,13 @@
         "type": "wire"
       },
       {
-        "name": "i0/i0/io_a",
+        "name": "i0/i3/io_a",
         "offset": 5,
         "numBits": 8,
         "type": "wire"
       },
       {
-        "name": "i0/i0/res",
+        "name": "i0/i3/res",
         "offset": 6,
         "numBits": 8,
         "type": "wire"

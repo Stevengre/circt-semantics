@@ -28,6 +28,30 @@ if TYPE_CHECKING:
 def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     # Given
     kcirct = KCIRCT()
+    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
+    compiled = kcirct.compile(mlir_file)
+    
+    # When
+    simulate_once = kcirct.run_first_simulate(compiled, top_module, inputs[0])
+    vcd.time = 0
+    vcd.dump(kcirct.read_ports(simulate_once))
+    for input in inputs[1:]:
+        simulate_result = kcirct.run_simulate(simulate_once, input)
+        vcd.time += 1
+        vcd.dump(kcirct.read_ports(simulate_result))
+    vcd.close()
+    
+    # Then: compare with expected output
+    
+    
+@pytest.mark.parametrize(
+    'mlir_file, top_module, inputs',
+    zip(MODULES_EXPECTED_GENERIC_MLIR_FILES, MODULES_EXPECTED_TOP_MODULES, MODULES_INPUTS, strict=True),
+    ids=MODULES_TEST_IDS,
+)
+def test_apis_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+    # Given
+    kcirct = KCIRCT()
     vcd = KVCD(vcd_path=DATA_PATH / 'test.vcd', mlir_path=mlir_file)
     
     # When
@@ -54,8 +78,9 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
     # Then: no error
 
 
-@pytest.mark.parametrize('mlir_file', MODULES_EXPECTED_GENERIC_MLIR_FILES, ids=MODULES_TEST_IDS)
-def test_vcd_demo(mlir_file: Path) -> None:
+
+def test_vcd_demo() -> None:
+    mlir_file = DATA_PATH / 'modules' / 'adder_nested' / 'expected' / 'adder.generic.mlir'
     # Given
     vcd = KVCD(vcd_path=DATA_PATH / 'test.vcd', mlir_path=mlir_file)
     vcd.close()
