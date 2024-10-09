@@ -15,3 +15,4 @@ kirct/
 __pycache__/
 dist/
 src/kcirct/kdist/circt_semantics/*.mlir
+src/kcirct/workingdir/kompiled

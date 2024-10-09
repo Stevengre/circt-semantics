@@ -96,3 +96,5 @@ vcd:
 - [ ] scripts/hardware-test.py: run test
 
 K_OPTS+=-Xms64m -Xmx8192m -Xss32m
+
+`pip3 install fire`
