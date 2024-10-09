@@ -10,13 +10,13 @@ module MAIN-SYNTAX
     imports HW-SYNTAX
     imports SEQ-SYNTAX
     
-    syntax HWParamDecl ::= "#hw.param.decl" "<" StringAttr ">"
-                        |  "#hw.param.decl" "<" StringAttr "=" AttributeValue ">"
-    syntax HWParamDeclWithType ::= HWParamDecl ":" Type
-    syntax Type ::= "none"
-    // syntax AttributeValue ::= AttributeValue " : " Type [owise]
+    // syntax HWParamDecl ::= "#hw.param.decl" "<" StringAttr ">"
+    //                     |  "#hw.param.decl" "<" StringAttr "=" AttributeValue ">"
+    // syntax HWParamDeclWithType ::= HWParamDecl ":" Type
+    // syntax Type ::= "none"
+    // // syntax AttributeValue ::= AttributeValue " : " Type [owise]
 
-    syntax DialectAttribute ::= HWParamDecl | HWParamDeclWithType
+    // syntax DialectAttribute ::= HWParamDecl | HWParamDeclWithType
 endmodule
 
 module MAIN
