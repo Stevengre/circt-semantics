@@ -35,6 +35,7 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
     # simulate_once = kcirct.run_simulate(initialized, inputs[0])
     
     simulate_once = kcirct.run_first_simulate(compiled, top_module, inputs[0])
+    outputs = kcirct.read_ports(simulate_once)
     simulate_twice = kcirct.run_simulate(simulate_once, inputs[1])
     # krun adder.generic.mlir -cEntry='"Adder"' -cInput="ListItem(bits(10, 8):i8) ListItem(bits(2,8):i8)"
     # krun adder.generic.nested.mlir -cEntry='"Adder"' -cInput="ListItem(ListItem(bits(10, 8):i8))"

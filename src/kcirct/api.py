@@ -227,40 +227,86 @@ class KCIRCT:
         """Pretty print Kore."""
         assert self._kprint is not None, 'KPrint is not initialized'
         return self._kprint.kore_to_pretty(state)
+    
+    def write_pretty(self, state: Pattern, file_path: Path) -> None:
+        """Write the pretty print of Kore to a file."""
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(self.pretty(state))
 
     def read_ports(self, state: Pattern) -> dict[str, list[tuple[int, int]]]:
         """Read the outputs from the Kore pattern."""
+        # cid.port_name -> (port_value, port_size)
+        ports: dict[str, list[tuple[int, int]]] = {}
+        matched_ckts: list[dict[str, Pattern]] = []
         
         def _find_ckt(pattern: Pattern) -> Pattern:
+            
             if isinstance(pattern, App) and pattern.symbol == cell_symbol('ckt'):
+                ps: dict[str, Pattern] = {}
                 
+                def _find_ckt_cid(pattern: Pattern) -> Pattern:
+                    if isinstance(pattern, App) and pattern.symbol == cell_symbol('cid'):
+                        ps['cid'] = pattern
+                        return pattern
+                    return pattern
+                
+                def _find_in_ports(pattern: Pattern) -> Pattern:
+                    if isinstance(pattern, App) and pattern.symbol == cell_symbol('in-ports'):
+                        ps['in-ports'] = pattern
+                        return pattern
+                    return pattern
+                
+                def _find_out_names(pattern: Pattern) -> Pattern:
+                    if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-names'):
+                        ps['out-names'] = pattern
+                        return pattern
+                    return pattern
+                
+                def _find_out_ports(pattern: Pattern) -> Pattern:
+                    if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-ports'):
+                        ps['out-ports'] = pattern
+                        return pattern
+                    return pattern
+                
+                pattern.top_down(_find_ckt_cid).top_down(_find_in_ports).top_down(_find_out_names).top_down(_find_out_ports)
+                matched_ckts.append(ps)
                 return pattern
             return pattern
         
+        # find all ckt patterns
+        state.top_down(_find_ckt)
         
-        output_patterns: list[Pattern] = []
-
-        def _find_outputs(pattern: Pattern) -> Pattern:
-            if isinstance(pattern, App) and pattern.symbol == cell_symbol('out-ports'):
-                output_patterns.append(pattern)
+        # desugar
+        names: list[str] = []
+        values_sizes: list[int] = []
+        
+        def _find_names(pattern: Pattern) -> Pattern:
+            if isinstance(pattern, DV) and pattern.sort == SortApp('SortBareId'):
+                names.append(str(pattern.value.value))
             return pattern
-
-        state.bottom_up(_find_outputs)
-
-        int_patterns: list[DV] = []
-
-        def _find_list_items(pattern: Pattern) -> Pattern:
+        
+        def _find_values(pattern: Pattern) -> Pattern:
             if isinstance(pattern, DV) and pattern.sort == SortApp('SortInt'):
-                int_patterns.append(pattern)
+                values_sizes.append(int(pattern.value.value))
             return pattern
-
-        output_patterns[0].bottom_up(_find_list_items)
-        ints = [int(p.value.value) for p in int_patterns]
-        outputs = []
-        for i in range(0, len(ints), 2):
-            outputs.append((ints[i], ints[i + 1]))
-
-        return outputs
+        
+        for ckt in matched_ckts:
+            cid = ckt['cid'].args[0].value.value
+            
+            ckt['in-ports'].top_down(_find_names).top_down(_find_values)
+            while names:
+                name = names.pop(0)
+                value = values_sizes.pop(0)
+                ports[f'{cid}/{name}'] = (value, values_sizes.pop(0))
+            ckt['out-ports'].top_down(_find_values)
+            ckt['out-names'].top_down(_find_names)
+            while names:
+                name = names.pop(0)
+                value = values_sizes.pop(0)
+                ports[f'{cid}/{name}'] = (value, values_sizes.pop(0))
+            
+        return ports
 
     # Getters and Setters for Attributes
 
