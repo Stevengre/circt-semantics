@@ -1,0 +1,3 @@
+[submodule "src/tests/resources/arc-test"]
+	path = src/tests/resources/arc-test
+	url = git@cym.github.com:circt/arc-tests.git
