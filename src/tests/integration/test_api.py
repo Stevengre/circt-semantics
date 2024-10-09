@@ -30,7 +30,7 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
     kcirct = KCIRCT()
     vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     compiled = kcirct.compile(mlir_file)
-    
+
     # When
     simulate_once = kcirct.run_first_simulate(compiled, top_module, inputs[0])
     vcd.time = 0
@@ -40,7 +40,7 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
         vcd.time += 1
         vcd.dump(kcirct.read_ports(simulate_result))
     vcd.close()
-    
+
     # Then: compare with expected output
     
     
@@ -53,7 +53,7 @@ def test_apis_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int
     # Given
     kcirct = KCIRCT()
     vcd = KVCD(vcd_path=DATA_PATH / 'test.vcd', mlir_path=mlir_file)
-    
+
     # When
     compiled = kcirct.compile(mlir_file)
     # preprocessed = kcirct.run_preprocess(compiled)
@@ -76,7 +76,6 @@ def test_apis_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int
     print()
     # print(outputs)
     # Then: no error
-
 
 
 def test_vcd_demo() -> None:
