@@ -25,9 +25,45 @@ if TYPE_CHECKING:
     zip(MODULES_EXPECTED_GENERIC_MLIR_FILES, MODULES_EXPECTED_TOP_MODULES, MODULES_INPUTS, strict=True),
     ids=MODULES_TEST_IDS,
 )
+def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+    kcirct = KCIRCT()
+    kcirct.ensure_env()
+    # KCIRCT Parsing: from mlir to kore
+    kcirct.compile_fast(mlir_file, mlir_file.parent / 'pgm.kore')
+    # Kimulator Kore Parsing
+    kcirct.read_kore(mlir_file.parent / 'pgm.kore')
+    # KCIRCT Preprocessing
+    kcirct.run_preprocess_fast(mlir_file.parent / 'pgm.kore', mlir_file.parent / 'preprocessed.kore')
+    # # --- test the preprocessing template
+    # kcirct.krun_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'evaluated.kore')
+    kcirct.write_pretty(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'preprocessed.pretty')
+    # KCIRCT Hardware Setup
+    kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
+    kcirct.write_pretty(mlir_file.parent / 'setup.kore', mlir_file.parent / 'setup.pretty')
+    # KCIRCT Initialization
+    kcirct.run_initialize_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / 'initialized.kore')
+    kcirct.write_pretty(mlir_file.parent / 'initialized.kore', mlir_file.parent / 'initialized.pretty')
+    # KCIRCT Simulation
+    input = inputs[0]
+    time = 0
+    kcirct.run_simulate_fast(mlir_file.parent / 'initialized.kore', mlir_file.parent / f'simulated.{time}.kore', input)
+    kcirct.write_pretty(mlir_file.parent / f'simulated.{time}.kore', mlir_file.parent / f'simulated.{time}.pretty')
+    for input in inputs[1:]:
+        time += 1
+        kcirct.run_simulate_fast(mlir_file.parent / f'simulated.{time-1}.kore', mlir_file.parent / f'simulated.{time}.kore', input)
+        kcirct.write_pretty(mlir_file.parent / f'simulated.{time}.kore', mlir_file.parent / f'simulated.{time}.pretty')
+    print()
+
+
+@pytest.mark.parametrize(
+    'mlir_file, top_module, inputs',
+    zip(MODULES_EXPECTED_GENERIC_MLIR_FILES, MODULES_EXPECTED_TOP_MODULES, MODULES_INPUTS, strict=True),
+    ids=MODULES_TEST_IDS,
+)
 def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     # Given
     kcirct = KCIRCT()
+    kcirct.ensure_env()
     vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     compiled = kcirct.compile(mlir_file)
 

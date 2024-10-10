@@ -42,6 +42,7 @@ class KCIRCT:
     data_dir: Path
     definition_dir: Path
     _kprint: KPrint | None
+    _use_opt: bool
     # TODO: 在语义确定没问题之后，将左右的Kore Parser和top_down从pipeline中删除
 
     def __init__(self, use_opt: bool = False) -> None:
@@ -55,15 +56,18 @@ class KCIRCT:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         print(f'Parser directory: {PARSER_DIR}')
         PARSER_DIR.mkdir(parents=True, exist_ok=True)
-
+        self._use_opt = use_opt
         self.definition_dir = OPT_KOMPILE_DIR if use_opt else KOMPILE_DIR
+        self._kprint = KPrint(definition_dir=self.definition_dir)
+        
+    def ensure_env(self):
         if self.definition_dir.exists():
             print('Kompiled directory exists.')
             print('If you want to re-kompile, please delete the existing directory.')
             print(f'Kompiled directory: {self.definition_dir}')
         else:
             print('Kompiling...')
-            KCIRCT.kompile(use_opt=use_opt)
+            KCIRCT.kompile(use_opt=self._use_opt)
             print(f'Kompiled: {self.definition_dir}')
 
         if not TOP_LEVEL_PARSER.exists():
@@ -73,8 +77,6 @@ class KCIRCT:
         else:
             print(f'TopLevelParser exists: {TOP_LEVEL_PARSER}')
             print('If you want to re-generate, please delete the existing file.')
-
-        self._kprint = KPrint(definition_dir=self.definition_dir)
 
     @dataclass
     class Result:
@@ -158,6 +160,11 @@ class KCIRCT:
             # print(f.read())
             return KoreParser(f.read()).pattern()
 
+    def compile_fast(self, file: Path, output_file: Path) -> None:
+        result = KCIRCT.run([str(TOP_LEVEL_PARSER), str(file)])
+        with open(output_file, 'w') as f:
+            f.write(result.stdout)
+
     def compile(self, file: Path, output_file: Path | None = None) -> Pattern:
         """Step 1: Translate Generic MLIR to Kore."""
         result = KCIRCT.run([str(TOP_LEVEL_PARSER), str(file)])
@@ -217,20 +224,24 @@ class KCIRCT:
 
     def write_pretty(self, kore_path: Path, pretty_path: Path) -> None:
         """Write the pretty print of Kore to a file."""
-        KCIRCT.run(
-            [
-                'kast',
-                str(kore_path),
-                '-i',
-                'kore',
-                '-o',
-                'pretty',
-                '-d',
-                str(self.definition_dir),
-                '--output_file',
-                str(pretty_path),
-            ]
-        )
+        kore = KCIRCT.read_kore(kore_path)
+        with open(pretty_path, 'w') as file:
+            file.write(self.pretty(kore))
+        # wrong command
+        # KCIRCT.run(
+        #     [
+        #         'kast',
+        #         str(kore_path),
+        #         '-i',
+        #         'kore',
+        #         '-o',
+        #         'program',
+        #         '-d',
+        #         str(self.definition_dir),
+        #         '--output-file',
+        #         str(pretty_path),
+        #     ]
+        # )
         return
 
     def run_first_simulate(self, pgm: Pattern, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
@@ -334,6 +345,150 @@ class KCIRCT:
 
         return ports
 
+    def run_preprocess_fast(self, pgm: Path, output_file: Path) -> None:
+        """Run the preprocess step on Kore.
+
+        This is the first step in the CIRCT Semantics pipeline.
+        Use the MLIR static semantics in `circt-semantics/mlir`.
+        phase = "preprocess" | "canonicalized"
+        """
+
+        def _print_correct_pattern(_pgm: Path, _output_file: Path) -> None:
+            """When failed, print the correct pattern to the output file. Then update the template."""
+            with open(_output_file, 'w') as file:
+                pgm_pattern = KCIRCT.read_kore(_pgm)
+                init_pattern = top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm_pattern)})
+                init_pattern.write(file)
+
+        _print_correct_pattern(pgm, output_file)
+
+        template = """LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
+        temp_file = output_file.parent / (output_file.name + '.prestate')
+        with open(pgm, 'r') as file:
+            pgm_pattern = file.read()
+            init_pattern = template.replace('{pgm}', pgm_pattern)
+            with open(temp_file, 'w') as file:
+                file.write(init_pattern)
+        self.krun_fast(input_file=temp_file, output_file=output_file)
+        return
+
+    def _kore_replace(self, input_file: Path, match_str: str, replace_str: str) -> str:
+        """Replace the match string with the replace string in the input file."""
+        with open(input_file, 'r') as file:
+            input_str = file.read()
+        if match_str in input_str:
+            return input_str.replace(match_str, replace_str, 1)
+        else:
+            raise ValueError(f"Input file: {input_file} does not finished preprocess. \n\
+                        Please check the pretty print of the input file: {input_file.parent / (input_file.name + '.pretty')}"
+            )
+
+    def _kore_str_replace(self, input_str: str, match_str: str, replace_str: str) -> str:
+        """Replace the match string with the replace string in the input string."""
+        if match_str in input_str:
+            return input_str.replace(match_str, replace_str, 1)
+        else:
+            raise ValueError(f"Input string does not finished preprocess. \n\
+                        Please check the pretty print of the input string.")
+
+    def run_setup_fast(self, input_file: Path, output_file: Path, top_module: str) -> None:
+        """Run the setup step on Kore.
+
+        This is the second step in the CIRCT Semantics pipeline.
+        phase = "toStimulate" | "build"
+        """
+
+        match = """(kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'phaseStop'Unds'MLIR-CONF'Unds'PhaseControl{}()),kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'toStimulate'Unds'MLIR-CONF'Unds'PhaseControl{}()),dotk{}())))"""
+        rewrite = """(kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'toStimulate'Unds'MLIR-CONF'Unds'PhaseControl{}()),dotk{}()))"""
+        
+        match_entry = """Lbl'-LT-'entry'-GT-'{}(\dv{SortString{}}("")"""
+        rewrite_entry = """Lbl'-LT-'entry'-GT-'{}(\dv{SortString{}}("{top_module}")"""
+        rewrite_entry = rewrite_entry.replace("{top_module}", top_module)
+
+        rewritten_file = output_file.parent / (output_file.name + '.prestate')
+        rewritten_pattern = self._kore_replace(input_file, match, rewrite)
+        rewritten_pattern = self._kore_str_replace(rewritten_pattern, match_entry, rewrite_entry)
+        with open(rewritten_file, 'w') as file:
+            file.write(rewritten_pattern)
+        self.krun_fast(input_file=rewritten_file, output_file=output_file)
+        return
+
+    def run_initialize_fast(self, input_file: Path, output_file: Path) -> None:
+        """Run the initialize step on Kore.
+
+        This is the third step in the CIRCT Semantics pipeline.
+        phase = "initialize"
+        """
+        match_1 = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortCmdCIRCT{}, SortKItem{}}(Lbl'Hash'end'Unds'COMMON-SYNTAX'Unds'CmdCIRCT{}()),"""
+        rewrite_1 = """Lbl'-LT-'cmd'-GT-'{}("""
+        match_2 = """,dotk{}())))),Lbl'-LT-'entry'-GT-'"""
+        rewrite_2 = """,dotk{}()))),Lbl'-LT-'entry'-GT-'"""
+        
+        rewritten_file = output_file.parent / (output_file.name + '.prestate')
+        rewritten_pattern = self._kore_replace(input_file, match_1, rewrite_1)
+        rewritten_pattern = self._kore_str_replace(rewritten_pattern, match_2, rewrite_2)
+        with open(rewritten_file, 'w') as file:
+            file.write(rewritten_pattern)
+        self.krun_fast(input_file=rewritten_file, output_file=output_file)
+        return
+    
+    def _rewrite_cell(self, input_str: str, start_cell: str, end_cell: str, rewrite_str: str) -> str:
+        """Rewrite the cell in the input string."""
+        # 定义要删除的标签
+        start_label = f"Lbl'-LT-'{start_cell}'-GT-'"
+        end_label = f"Lbl'-LT-'{end_cell}'-GT-'"
+
+        # 找到开始和结束标签的位置
+        start_index = input_str.find(start_label)
+        end_index = input_str.find(end_label)
+
+        # 检查标签是否存在
+        if start_index != -1 and end_index != -1:
+            # 计算结束标签的结束位置
+            end_index += len(end_label)
+
+            # 构建新的字符串
+            modified_string = (
+                input_str[:start_index + len(start_label)] +  # 保留开始标签
+                rewrite_str +  # 插入新的字符串
+                input_str[end_index - len(end_label):]  # 保留结束标签后的内容
+            )
+            return modified_string
+        else:
+            return input_str  # 如果标签不存在，返回原始字符串
+        
+    
+    def run_simulate_fast(self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]]) -> None:
+        """Run the simulate step on Kore.
+
+        This is the fourth step in the CIRCT Semantics pipeline.
+        phase = "simulate"
+        """
+        
+        
+        rewrite = """{}(kseq{}(inj{SortCmdCIRCT{}, SortKItem{}}(Lbl'Hash'always'Unds'COMMON-SYNTAX'Unds'CmdCIRCT{}()),dotk{}())),"""
+        
+        with open(input_file, 'r') as file:
+            input_str = file.read()
+        rewritten_pattern = self._rewrite_cell(input_str, 'cmd', 'entry', rewrite)
+        
+        input_pattern = self.kore_input(inputs)
+        input_pattern_file = output_file.parent / (output_file.name + '.input_pattern')
+        with open(input_pattern_file, 'w') as file:
+            input_pattern.write(file)
+        with open(input_pattern_file, 'r') as file:
+            input_pattern_str = file.read()
+        
+        rewritten_pattern = self._rewrite_cell(rewritten_pattern, 'input', 'clock', "{}(" + input_pattern_str + "),")
+        rewritten_file = output_file.parent / (output_file.name + '.prestate')
+        with open(rewritten_file, 'w') as file:
+            file.write(rewritten_pattern)
+            
+        self.krun_fast(input_file=rewritten_file, output_file=output_file)
+        return
+
+    
+    
     # -------------------------------------------------------------------------------------------------
     # Backup APIs
     # -------------------------------------------------------------------------------------------------

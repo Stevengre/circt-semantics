@@ -1,0 +1,112 @@
+<circt>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <phase>
+      #build ~> .K
+    </phase>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      #loc1 |-> loc ( "circt-semantics/src/tests/resources/modules/adder/adder.mlir" : 1 : 67 )
+      #loc |-> loc ( "circt-semantics/src/tests/resources/modules/adder/adder.mlir" : 1 : 50 )
+    </attrs>
+    <table>
+      "Adder" |-> "hw.module" ( .ValueIdList ) ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "comb.add" ( %arg0 , %arg1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "comb.sub" ( %arg0 , %arg1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( %0 , %1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { "module_type" |-> !hw.modty < input io_a : i8 , input io_b : i8 , output res_add : i8 , output res_sub : i8 , .ModulePortList >
+      "parameters" |-> [ ]
+      "result_locs" |-> [ #loc , #loc1 , .AttributeValueList ]
+      "sym_name" |-> "Adder" } : ( .Types ) -> ( .Types )
+    </table>
+  </mlir>
+  <cmd>
+    ListItem ( "Adder" ) ~> .List ~> #always ~> .K
+  </cmd>
+  <entry>
+    "Adder"
+  </entry>
+  <input>
+    .List
+  </input>
+  <clock>
+    0
+  </clock>
+  <running>
+    .List
+  </running>
+  <boot>
+    ListItem ( "Adder" )
+  </boot>
+  <ckts>
+    <ckt>
+      <cid>
+        "Adder"
+      </cid>
+      <always>
+        .List
+      </always>
+      <initial>
+        .List
+      </initial>
+      <k>
+        .K
+      </k>
+      <parent>
+        ""
+      </parent>
+      <last>
+        .Map
+      </last>
+      <last-vars>
+        .Set
+      </last-vars>
+      <locals>
+        %0 |-> "comb.add" ( %arg0 , %arg1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+        %1 |-> "comb.sub" ( %arg0 , %arg1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+        %arg0 |-> #ArgRef ( 0 )
+        %arg1 |-> #ArgRef ( 1 )
+      </locals>
+      <module>
+        "Adder"
+      </module>
+      <in-names>
+        ListItem ( io_a )
+        ListItem ( io_b )
+      </in-names>
+      <in-ports>
+        .Map
+      </in-ports>
+      <in-vars>
+        .ValueIdAndTypeList
+      </in-vars>
+      <out-names>
+        ListItem ( res_add )
+        ListItem ( res_sub )
+      </out-names>
+      <out-ports>
+        .List
+      </out-ports>
+      <out-vars>
+        %0 , %1 , .ValueIdList
+      </out-vars>
+      <args>
+        .List
+      </args>
+      <regs>
+        .Map
+      </regs>
+      <wires>
+        .Map
+      </wires>
+    </ckt>
+  </ckts>
+  <exit>
+    <exit-code>
+      0
+    </exit-code>
+    <exit-info>
+      "Success"
+    </exit-info>
+  </exit>
+</circt>

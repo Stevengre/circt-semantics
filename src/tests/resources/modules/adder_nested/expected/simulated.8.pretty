@@ -1,0 +1,371 @@
+<circt>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <phase>
+      #build ~> .K
+    </phase>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      #loc1 |-> loc ( "adder.mlir" : 7 : 48 )
+      #loc2 |-> loc ( "adder.mlir" : 12 : 39 )
+      #loc3 |-> loc ( "adder.mlir" : 12 : 58 )
+      #loc |-> loc ( "adder.mlir" : 2 : 48 )
+    </attrs>
+    <table>
+      "AddOne" |-> "hw.module" ( .ValueIdList ) ( { .OperationList ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "hw.constant" ( .ValueIdList ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )  %1 , .OpResults = "comb.add" ( %arg0 , %0 , .ValueIdList ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( %1 , .ValueIdList ) : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { "module_type" |-> !hw.modty < input io_a : i8 , output res : i8 , .ModulePortList >
+      "parameters" |-> [ ]
+      "result_locs" |-> [ #loc , .AttributeValueList ]
+      "sym_name" |-> "AddOne"
+      "sym_visibility" |-> "private" } : ( .Types ) -> ( .Types )
+      "AddTwo" |-> "hw.module" ( .ValueIdList ) ( { .OperationList ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .ValueIdList ) { "argNames" |-> [ "io_a" , .AttributeValueList ]
+      "instanceName" |-> "i3"
+      "moduleName" |-> @AddOne :: .SymbolRefIdList
+      "parameters" |-> [ ]
+      "resultNames" |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "hw.instance" ( %0 , .ValueIdList ) { "argNames" |-> [ "io_a" , .AttributeValueList ]
+      "instanceName" |-> "i1"
+      "moduleName" |-> @AddOne :: .SymbolRefIdList
+      "parameters" |-> [ ]
+      "resultNames" |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( %1 , .ValueIdList ) : ( i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { "module_type" |-> !hw.modty < input io_a : i8 , output res2 : i8 , .ModulePortList >
+      "parameters" |-> [ ]
+      "result_locs" |-> [ #loc1 , .AttributeValueList ]
+      "sym_name" |-> "AddTwo"
+      "sym_visibility" |-> "private" } : ( .Types ) -> ( .Types )
+      "Adder" |-> "hw.module" ( .ValueIdList ) ( { .OperationList ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "hw.instance" ( %arg0 , .ValueIdList ) { "argNames" |-> [ "io_a" , .AttributeValueList ]
+      "instanceName" |-> "i0"
+      "moduleName" |-> @AddTwo :: .SymbolRefIdList
+      "parameters" |-> [ ]
+      "resultNames" |-> [ "res2" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "hw.instance" ( %0 , .ValueIdList ) { "argNames" |-> [ "io_a" , .AttributeValueList ]
+      "instanceName" |-> "i2"
+      "moduleName" |-> @AddOne :: .SymbolRefIdList
+      "parameters" |-> [ ]
+      "resultNames" |-> [ "res" , .AttributeValueList ] } : ( i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( %0 , %1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { "module_type" |-> !hw.modty < input io_a : i8 , output res_out2 : i8 , output res_out1 : i8 , .ModulePortList >
+      "parameters" |-> [ ]
+      "result_locs" |-> [ #loc2 , #loc3 , .AttributeValueList ]
+      "sym_name" |-> "Adder" } : ( .Types ) -> ( .Types )
+    </table>
+  </mlir>
+  <cmd>
+    #end ~> .K
+  </cmd>
+  <entry>
+    "Adder"
+  </entry>
+  <input>
+    .List
+  </input>
+  <clock>
+    0
+  </clock>
+  <running>
+    .List
+  </running>
+  <boot>
+    ListItem ( "Adder" )
+    ListItem ( "Adder/i0" )
+    ListItem ( "Adder/i2" )
+    ListItem ( "Adder/i0/i3" )
+    ListItem ( "Adder/i0/i1" )
+  </boot>
+  <ckts>
+    <ckt>
+      <cid>
+        "Adder"
+      </cid>
+      <always>
+        .List
+      </always>
+      <initial>
+        .List
+      </initial>
+      <k>
+        .K
+      </k>
+      <parent>
+        ""
+      </parent>
+      <last>
+        .Map
+      </last>
+      <last-vars>
+        .Set
+      </last-vars>
+      <locals>
+        %0 |-> #OutPortRef ( "Adder/i0" , 0 )
+        %1 |-> #OutPortRef ( "Adder/i2" , 0 )
+        %arg0 |-> #ArgRef ( 0 )
+      </locals>
+      <module>
+        "Adder"
+      </module>
+      <in-names>
+        ListItem ( io_a )
+      </in-names>
+      <in-ports>
+        io_a |-> bits ( 82 , 8 ) : i8
+      </in-ports>
+      <in-vars>
+        .ValueIdAndTypeList
+      </in-vars>
+      <out-names>
+        ListItem ( res_out2 )
+        ListItem ( res_out1 )
+      </out-names>
+      <out-ports>
+        ListItem ( bits ( 84 , 8 ) : i8 )
+        ListItem ( bits ( 85 , 8 ) : i8 )
+      </out-ports>
+      <out-vars>
+        %0 , %1 , .ValueIdList
+      </out-vars>
+      <args>
+        ListItem ( bits ( 82 , 8 ) : i8 )
+      </args>
+      <regs>
+        .Map
+      </regs>
+      <wires>
+        .Map
+      </wires>
+    </ckt> <ckt>
+      <cid>
+        "Adder/i0"
+      </cid>
+      <always>
+        .List
+      </always>
+      <initial>
+        .List
+      </initial>
+      <k>
+        .K
+      </k>
+      <parent>
+        ""
+      </parent>
+      <last>
+        .Map
+      </last>
+      <last-vars>
+        .Set
+      </last-vars>
+      <locals>
+        %0 |-> #OutPortRef ( "Adder/i0/i3" , 0 )
+        %1 |-> #OutPortRef ( "Adder/i0/i1" , 0 )
+        %arg0 |-> #ArgRef ( 0 )
+      </locals>
+      <module>
+        "AddTwo"
+      </module>
+      <in-names>
+        ListItem ( io_a )
+      </in-names>
+      <in-ports>
+        io_a |-> bits ( 82 , 8 ) : i8
+      </in-ports>
+      <in-vars>
+        .ValueIdAndTypeList
+      </in-vars>
+      <out-names>
+        ListItem ( res2 )
+      </out-names>
+      <out-ports>
+        ListItem ( bits ( 84 , 8 ) : i8 )
+      </out-ports>
+      <out-vars>
+        %1 , .ValueIdList
+      </out-vars>
+      <args>
+        ListItem ( #ValueRef ( "Adder" , %arg0 ) )
+      </args>
+      <regs>
+        .Map
+      </regs>
+      <wires>
+        .Map
+      </wires>
+    </ckt> <ckt>
+      <cid>
+        "Adder/i0/i1"
+      </cid>
+      <always>
+        .List
+      </always>
+      <initial>
+        .List
+      </initial>
+      <k>
+        .K
+      </k>
+      <parent>
+        ""
+      </parent>
+      <last>
+        .Map
+      </last>
+      <last-vars>
+        .Set
+      </last-vars>
+      <locals>
+        %0 |-> bits ( 1 , 8 ) : i8
+        %1 |-> "comb.add" ( %arg0 , %0 , .ValueIdList ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+        %arg0 |-> #ArgRef ( 0 )
+      </locals>
+      <module>
+        "AddOne"
+      </module>
+      <in-names>
+        ListItem ( io_a )
+      </in-names>
+      <in-ports>
+        io_a |-> bits ( 83 , 8 ) : i8
+      </in-ports>
+      <in-vars>
+        .ValueIdAndTypeList
+      </in-vars>
+      <out-names>
+        ListItem ( res )
+      </out-names>
+      <out-ports>
+        ListItem ( bits ( 84 , 8 ) : i8 )
+      </out-ports>
+      <out-vars>
+        %1 , .ValueIdList
+      </out-vars>
+      <args>
+        ListItem ( #ValueRef ( "Adder/i0" , %0 ) )
+      </args>
+      <regs>
+        .Map
+      </regs>
+      <wires>
+        .Map
+      </wires>
+    </ckt> <ckt>
+      <cid>
+        "Adder/i0/i3"
+      </cid>
+      <always>
+        .List
+      </always>
+      <initial>
+        .List
+      </initial>
+      <k>
+        .K
+      </k>
+      <parent>
+        ""
+      </parent>
+      <last>
+        .Map
+      </last>
+      <last-vars>
+        .Set
+      </last-vars>
+      <locals>
+        %0 |-> bits ( 1 , 8 ) : i8
+        %1 |-> "comb.add" ( %arg0 , %0 , .ValueIdList ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+        %arg0 |-> #ArgRef ( 0 )
+      </locals>
+      <module>
+        "AddOne"
+      </module>
+      <in-names>
+        ListItem ( io_a )
+      </in-names>
+      <in-ports>
+        io_a |-> bits ( 82 , 8 ) : i8
+      </in-ports>
+      <in-vars>
+        .ValueIdAndTypeList
+      </in-vars>
+      <out-names>
+        ListItem ( res )
+      </out-names>
+      <out-ports>
+        ListItem ( bits ( 83 , 8 ) : i8 )
+      </out-ports>
+      <out-vars>
+        %1 , .ValueIdList
+      </out-vars>
+      <args>
+        ListItem ( #ValueRef ( "Adder/i0" , %arg0 ) )
+      </args>
+      <regs>
+        .Map
+      </regs>
+      <wires>
+        .Map
+      </wires>
+    </ckt> <ckt>
+      <cid>
+        "Adder/i2"
+      </cid>
+      <always>
+        .List
+      </always>
+      <initial>
+        .List
+      </initial>
+      <k>
+        .K
+      </k>
+      <parent>
+        ""
+      </parent>
+      <last>
+        .Map
+      </last>
+      <last-vars>
+        .Set
+      </last-vars>
+      <locals>
+        %0 |-> bits ( 1 , 8 ) : i8
+        %1 |-> "comb.add" ( %arg0 , %0 , .ValueIdList ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+        %arg0 |-> #ArgRef ( 0 )
+      </locals>
+      <module>
+        "AddOne"
+      </module>
+      <in-names>
+        ListItem ( io_a )
+      </in-names>
+      <in-ports>
+        io_a |-> bits ( 84 , 8 ) : i8
+      </in-ports>
+      <in-vars>
+        .ValueIdAndTypeList
+      </in-vars>
+      <out-names>
+        ListItem ( res )
+      </out-names>
+      <out-ports>
+        ListItem ( bits ( 85 , 8 ) : i8 )
+      </out-ports>
+      <out-vars>
+        %1 , .ValueIdList
+      </out-vars>
+      <args>
+        ListItem ( #ValueRef ( "Adder" , %0 ) )
+      </args>
+      <regs>
+        .Map
+      </regs>
+      <wires>
+        .Map
+      </wires>
+    </ckt>
+  </ckts>
+  <exit>
+    <exit-code>
+      0
+    </exit-code>
+    <exit-info>
+      "Success"
+    </exit-info>
+  </exit>
+</circt>

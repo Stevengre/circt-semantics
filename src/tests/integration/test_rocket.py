@@ -111,7 +111,7 @@ def test_rocket_small() -> None:
         }
         with open(output.parent / f'depth_{depth}.json', 'w') as json_file:
             json.dump(data, json_file, indent=4)
-    
+
     max_threads = 100
     thread_count = 0
     lock = Lock()
