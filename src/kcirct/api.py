@@ -32,7 +32,7 @@ SEMANTICS_PATH = API_DIR / 'kdist' / 'circt_semantics' / 'main.k'
 PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'TopLevelParser'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'
-OPT_KOMPILE_DIR = WORKING_DIR / 'kompiled-opt'
+OPT_KOMPILE_DIR = WORKING_DIR / 'opt-kompiled'
 
 sys.setrecursionlimit(200000)
 
