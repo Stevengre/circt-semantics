@@ -7,11 +7,12 @@ module MLIR-CONF
                           | "#build"
                           | "#toStimulate"
                           | "#stimulating"
+                          | "#phaseStop"
 
     configuration
     <mlir>
         <prog> $PGM:TopLevel ~> .K </prog>
-        <phase> #preprocess </phase>
+        <phase> #preprocess ~> .K </phase>
         <types> .Map </types>
         <attrs> .Map </attrs>
         <table> .Map </table>

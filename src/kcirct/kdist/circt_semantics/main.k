@@ -30,7 +30,7 @@ module MAIN
 
     // stop at #preprocess, and changed to #toStimulate to start hardware setup
     rule 
-    <phase> #preprocess => #end ~> #toStimulate </phase>
+    <phase> #preprocess => #phaseStop ~> #toStimulate </phase>
     <prog> .K </prog>
 
     // bootstrap end

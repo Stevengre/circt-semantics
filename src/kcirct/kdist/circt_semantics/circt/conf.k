@@ -11,9 +11,11 @@ module CONF
     <circt> 
         <mlir/> 
         <cmd> .K </cmd>
-        <entry> $Entry:String </entry>
         // <input> ListItem(ListItem(bits (1 , 8) : i8) ListItem(bits (2 , 8) : i8)) </input>
-        <input> $Input:List </input>
+        // <entry> $Entry:String </entry>
+        // <input> $Input:List </input>
+        <entry> "":String </entry>
+        <input> .List:List </input>
         <clock> 0 </clock>
         <running> .List </running>
         <boot> .List </boot>
