@@ -37,6 +37,7 @@ module CONF
                 <args> .List </args>
                 <regs> .Map </regs>
                 <wires> .Map </wires>
+                <firmem> .Map </firmem>
                 // <lock> false </lock>
             </ckt>
         </ckts>
