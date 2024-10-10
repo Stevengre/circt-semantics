@@ -30,7 +30,7 @@ WORKING_DIR = API_DIR / 'workingdir'
 DATA_DIR = API_DIR / 'tmp'
 SEMANTICS_PATH = API_DIR / 'kdist' / 'circt_semantics' / 'main.k'
 PARSER_DIR = WORKING_DIR / 'parsers'
-TOP_LEVEL_PARSER = PARSER_DIR / 'TopLevelParser'
+TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'
 OPT_KOMPILE_DIR = WORKING_DIR / 'opt-kompiled'
 
