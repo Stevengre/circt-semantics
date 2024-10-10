@@ -25,4 +25,18 @@ module MAIN
     imports COMB
     imports HW
     imports SEQ
+
+    // --- here, we change the phase control rules for partial evaluation ---
+
+    // stop at #preprocess, and changed to #toStimulate to start hardware setup
+    rule 
+    <phase> #preprocess => #end ~> #toStimulate </phase>
+    <prog> .K </prog>
+
+    // bootstrap end
+    rule 
+    <cmd> #bootstrap => #end ~> Boot ~> #initial ... </cmd>
+    <running> .List </running>
+    <boot> Boot:List </boot>
+
 endmodule
