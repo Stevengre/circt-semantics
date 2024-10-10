@@ -12,7 +12,7 @@ module SV-REG
 
     rule <k> X:ValueId = "sv.reg" (.ValueIdList) {Attr:Map} : (.Types) -> (!hw.inout < T:Type >) => .K ... </k>
         <regs> Regs:Map => Regs [ X <- hw.inout({Attr["name"]}:>String , T , #x) ] </regs>
-        <locals> Locals:Map => Locals [ X <- "sv.reg" (.ValueIdList) {Attr} : (.Types) -> (!hw.inout < T >) ] </locals>
+        // <locals> Locals:Map => Locals [ X <- "sv.reg" (.ValueIdList) {Attr} : (.Types) -> (!hw.inout < T >) ] </locals>
         <cmd> #bootstrap ... </cmd>
 
 
