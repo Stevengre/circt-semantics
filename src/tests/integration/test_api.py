@@ -42,8 +42,8 @@ def test_apis(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int
     vcd.close()
 
     # Then: compare with expected output
-    
-    
+
+
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs',
     zip(MODULES_EXPECTED_GENERIC_MLIR_FILES, MODULES_EXPECTED_TOP_MODULES, MODULES_INPUTS, strict=True),
