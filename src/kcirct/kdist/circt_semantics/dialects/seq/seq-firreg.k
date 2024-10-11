@@ -28,7 +28,7 @@ module SEQ-FIRREG
         <cmd> #always ... </cmd>
     
     // edge check failed
-    rule <k> #EdgeCheck ~> _:ValueIdList ~> #SeqFirreg ~> _:ValueId => .K ... </k>
+    rule <k> false ~> #EdgeCheck ~> _:ValueIdList ~> #SeqFirreg ~> _:ValueId => .K ... </k>
 
     // edge check success
     rule <k> (true ~> #EdgeCheck => .K) ~> _:ValueIdList ~> #SeqFirreg ~> _:ValueId ... </k>
