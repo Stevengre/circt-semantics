@@ -203,6 +203,6 @@ module SV-ALWAYS
             ... 
         </k>
 
-    rule <k> (false => .K) ~> #EdgeCheck ... </k>
+    rule <k> (false => .K) ~> #EdgeCheck ~> _:ValueIdList ~> [_:AttributeValueList] ~> _:Region  ... </k>
     rule <k> true ~> #EdgeCheck ~> _:ValueIdList ~> [_:AttributeValueList] ~> R:Region => R ... </k>
 endmodule

@@ -23,6 +23,8 @@ module SEQ-SYNTAX
 
     syntax KmdCIRCT ::= "#SeqFirreg"
                       | "#SeqFirmemRead"
+                      | "#SeqFirmemWrite"
+                      | "#SeqFirmemReadWrite"
 
 endmodule
 
