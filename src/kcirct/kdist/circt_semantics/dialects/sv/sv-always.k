@@ -179,12 +179,12 @@ module SV-ALWAYS
 
 
     rule <k> "sv.always" ( VL:ValueIdList ) ( R:Region ) { Attr:Map } : ( _:Types ) -> ( .Types ) 
-            => #EdgeCheck ~> VL ~> Attr["events"] orDefault "???" ~> R 
+            => #EdgeCheck ~> VL ~> Attr["events"] orDefault "??? no `events` attr" ~> R 
             ... 
         </k>
         <cmd> #always ... </cmd>
     
-    rule <k> (.K => V ~> M[V] orDefault "???" ~> Event) ~> #EdgeCheck 
+    rule <k> (.K => V ~> M[V] orDefault "??? " +String str(V) ~> Event) ~> #EdgeCheck 
             ~> (V:ValueId, VL:ValueIdList => VL) 
             ~> [Event:Int : _:IntegerType, AL:AttributeValueList => AL]
             ... 
