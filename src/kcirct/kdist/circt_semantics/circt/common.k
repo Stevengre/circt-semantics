@@ -143,10 +143,6 @@ module COMMON
     imports COMB-SYNTAX
 
 
-    rule <phase> #preprocess => #toStimulate </phase>
-        <prog> .K </prog>
-        // <cmd> .K => Set2List(keys(M))  ... </cmd>
-        // <table> M:Map </table>
 
 
     // bootstrap, entry module
@@ -174,13 +170,6 @@ module COMMON
         </ckt>
         <cmd> #bootstrap ... </cmd>
         <running> L:List ListItem(Inst) => L </running>
-    
-
-    // bootstrap end
-    rule <cmd> #bootstrap => Boot ~> #initial ... </cmd>
-        <running> .List </running>
-        <boot> Boot:List </boot>
-        
 
     // rule <k>
     //         "hw.module" ( .ValueIdList ) ( { .OperationList B:Block } ) { _:Map } : ( .Types ) -> ( .Types )
