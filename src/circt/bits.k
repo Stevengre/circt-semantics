@@ -185,8 +185,8 @@ module BITS
     
 
     // bits binary and
-    rule bits(_, W1:Int)        &Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(50)]
-    rule B1:Bits                &Bits bits(_, W2:Int)       => B1 requires W2 ==Int 0 [priority(51)]
+    rule bits(_, W1:Int)        &Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(40)]
+    rule B1:Bits                &Bits bits(_, W2:Int)       => B1 requires W2 ==Int 0 [priority(41)]
     rule bits(X1:Int, W1:Int)   &Bits bits(X2:Int, W2:Int)  => bits(X1 &Int X2, maxInt(W1, W2))
     
     rule bits(X:ConstX, W1:Int) &Bits bits(Y:Int, W2:Int)    => bits(X, maxInt(W1, W2)) requires Y =/=Int 0
@@ -203,23 +203,27 @@ module BITS
 
 
     // bits binary or
-    rule bits(_X1:Int, W1:Int)  |Bits B2:Bits                => B2 requires W1 ==Int 0 [priority(50)]
-    rule B1:Bits                |Bits bits(_X2:Int, W2:Int)  => B1 requires W2 ==Int 0 [priority(51)]
+    rule bits(_X1:Int, W1:Int)  |Bits B2:Bits                => B2 requires W1 ==Int 0 [priority(40)]
+    rule B1:Bits                |Bits bits(_X2:Int, W2:Int)  => B1 requires W2 ==Int 0 [priority(41)]
     rule bits(X1:Int, W1:Int)   |Bits bits(X2:Int, W2:Int)   => bits(X1 |Int X2, maxInt(W1, W2))
 
     rule bits(_:ConstX, W1:Int) |Bits bits(Y:Int, W2:Int)    => bits(Y, maxInt(W1, W2)) requires Y ==Int 2 ^Int (maxInt(W1, W2))
     rule bits(Y:Int, W2:Int)    |Bits bits(_:ConstX, W1:Int) => bits(Y, maxInt(W1, W2)) requires Y ==Int 2 ^Int (maxInt(W1, W2))
-    rule bits(X:ConstX, W1:Int) |Bits bits(0, W2:Int)        => bits(X, maxInt(W1, W2))        [owise]
+    rule bits(X:ConstX, W1:Int) |Bits bits(0, W2:Int)        => bits(X, maxInt(W1, W2)) [owise]
     rule bits(0, W2:Int)        |Bits bits(X:ConstX, W1:Int) => bits(X, maxInt(W1, W2)) [owise]
 
     // bits binary xor
-    rule bits(_X1:Int, W1:Int)  ^Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(50)]
-    rule B1:Bits                ^Bits bits(_X2:Int, W2:Int) => B1 requires W2 ==Int 0 [priority(51)]
+    rule bits(_X1:Int, W1:Int)  ^Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(40)]
+    rule B1:Bits                ^Bits bits(_X2:Int, W2:Int) => B1 requires W2 ==Int 0 [priority(41)]
     rule bits(X1:Int, W1:Int)   ^Bits bits(X2:Int, W2:Int)  => bits(X1 xorInt X2, maxInt(W1, W2))
+    rule bits(#x, W1:Int)       ^Bits bits(_, W2:Int)       => bits(#x, maxInt(W1, W2))
+    rule bits(#z, W1:Int)       ^Bits bits(_, W2:Int)       => bits(#z, maxInt(W1, W2))
+    rule bits(_, W1:Int)        ^Bits bits(#x, W2:Int)      => bits(#x, maxInt(W1, W2))
+    rule bits(_, W1:Int)        ^Bits bits(#z, W2:Int)      => bits(#z, maxInt(W1, W2))
 
     // bits binary add
-    rule bits(_X1:Int, W1:Int)  +Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(50)]
-    rule B1:Bits                +Bits bits(_X2:Int, W2:Int) => B1 requires W2 ==Int 0 [priority(51)]
+    rule bits(_X1:Int, W1:Int)  +Bits B2:Bits               => B2 requires W1 ==Int 0 [priority(40)]
+    rule B1:Bits                +Bits bits(_X2:Int, W2:Int) => B1 requires W2 ==Int 0 [priority(41)]
     rule bits(X1:Int, W1:Int)   +Bits bits(X2:Int, W2:Int)  => bits((X1 +Int X2) &Int (2 ^Int maxInt(W1, W2) -Int 1), maxInt(W1, W2))
 
     rule bits(X:ConstX, W1:Int) +Bits bits(_:Int, W2:Int)       => bits(X, maxInt(W1, W2))

@@ -9,7 +9,10 @@ module SEQ-FIRREM
     
 
 
-    // seq.firmem.read_port
+    /* seq.firmem.read_port
+        - bootstrap
+        - always
+     */
     rule <k> X:ValueId = "seq.firmem.read_port" (Mem:ValueId, Addr:ValueId, Clk:ValueId) : ( Ts:Types ) -> ( T:Type ) => .K ... </k>
         <always> L:List => L ListItem(X = "seq.firmem.read_port" (Mem, Addr, Clk) : (Ts) -> (T)) </always>
         <locals> M:Map => M [ X <- bits(#x, getWidth(T)) : T ] </locals>
@@ -24,26 +27,21 @@ module SEQ-FIRREM
         <last> M:Map </last>
         <cmd> #always ... </cmd>
     
-    // rule <k> (_:StdValue ~> "???" ~> _:Int ~> #EdgeCheck => .K) ~> _:ValueId ~> #SeqFirmemRead ... </k>
-    // rule <k> (false ~> #EdgeCheck => .K) ~> _:ValueId ~> #SeqFirmemRead ... </k>
-    // rule <k> (true  ~> #EdgeCheck => .K) ~> _:ValueId ~> #SeqFirmemRead ... </k>
-
     rule <k> false ~> #EdgeCheck ~> _:ValueId ~> #SeqFirmemRead ~> _:ValueId ~> _:ValueId => .K ... </k>
     rule <k> (true ~> #EdgeCheck => .K) ~> _:ValueId ~> #SeqFirmemRead ~> _:ValueId ~> _:ValueId ... </k>
 
-    // update firmem ref
-    rule <k> bits(Addr:Int, _) : _:IntegerType 
-            ~> #SeqFirmemRead ~> Mem:ValueId ~> X:ValueId
-            => .K
-            ... 
-        </k>
+    // update firmem read port
+    rule <k> bits(Addr:Int, _) : _:IntegerType ~> #SeqFirmemRead ~> Mem:ValueId ~> X:ValueId => .K ... </k>
         <locals> Locals:Map => Locals [ X <- M [Addr] ] </locals>
         <firmem>... Mem |-> M:Map ...</firmem>
         requires Addr in_keys(M)
 
     
 
-    // seq.firmem.write_port
+    /* seq.firmem.write_port
+        - bootstrap
+        - always
+    */ 
     rule <k> "seq.firmem.write_port" (Mem, Addr, Clk, Enable, Data) {Attr:Map} : (Ts:Types) -> (.Types) 
             => .K 
             ... 
@@ -82,7 +80,10 @@ module SEQ-FIRREM
 
 
 
-    // seq.firmem.read_write_port
+    /* seq.firmem.read_write_port
+        - bootstrap
+        - always
+    */
     rule <k> X:ValueId = "seq.firmem.read_write_port" (Mem, Addr, Clk, Enable, Data, Mode) {Attr:Map} : (Ts:Types) -> (T:Type) 
             => .K
             ... 
