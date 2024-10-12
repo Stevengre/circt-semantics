@@ -20,7 +20,7 @@ module SEQ-FIRREM
         <cmd> #bootstrap ... </cmd>
 
     rule <k> X:ValueId = "seq.firmem.read_port" (Mem:ValueId, Addr:ValueId, Clk:ValueId) : ( _:Types ) -> ( _:Type )
-            => Clk ~> M[Clk] orDefault "???" ~> 0 ~> #EdgeCheck 
+            => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
             ~> Addr ~> #SeqFirmemRead ~> Mem ~> X
             ... 
         </k>
@@ -55,7 +55,7 @@ module SEQ-FIRREM
         <cmd> #bootstrap ... </cmd>
 
     rule <k> "seq.firmem.write_port" (Mem, Addr, Clk, Enable, Data) {_:Map} : (_:Types) -> (.Types)
-            => Clk ~> M[Clk] orDefault "???" ~> 0 ~> #EdgeCheck 
+            => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
             ~> (Addr, Data, Enable):ValueIdList ~> #SeqFirmemWrite ~> Mem
             ... 
         </k>
@@ -98,7 +98,7 @@ module SEQ-FIRREM
         <cmd> #bootstrap ... </cmd>
 
     rule <k> X:ValueId = "seq.firmem.read_write_port" (Mem, Addr, Clk, Enable, Data, Mode) {_:Map} : (_:Types) -> (_:Type)
-            => Clk ~> M[Clk] orDefault "???" ~> 0 ~> #EdgeCheck 
+            => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
             ~> (Addr, Data, Enable, Mode):ValueIdList ~> #SeqFirmemReadWrite ~> Mem ~> X
             ...
         </k>

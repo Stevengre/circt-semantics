@@ -20,7 +20,7 @@ module SEQ-FIRREG
     rule <k> seq.firreg ( _:String , _:Type , V:StdValue ) => V ... </k>
     
     rule <k> X:ValueId = "seq.firreg" (Next, Clk, Rst, RstValue) {_:Map} : (_:Types) -> (_:Type) 
-            => Clk ~> M[Clk] orDefault "???" ~> 0 ~> #EdgeCheck 
+            => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
             ~> (Next, Rst, RstValue):ValueIdList ~>#SeqFirreg ~> X
             ... 
         </k>
