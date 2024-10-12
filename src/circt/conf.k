@@ -17,6 +17,7 @@ module CONF
         <clock> 0 </clock>
         <running> .List </running>
         <boot> .List </boot>
+        <macro> .Map </macro>
         <ckts>
             <ckt multiplicity="*" type="Map">
                 <cid> "" </cid>

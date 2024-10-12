@@ -45,7 +45,10 @@ module MLIR-HELPER
     // ## SymbolRefId <-> String
     syntax String ::= "SymbolRefId2StringHelper" "(" SymbolRefId ")" [function, total,hook(STRING.token2string)]
     syntax String ::= "SymbolRefId2String" "(" SymbolRefId ")" [function, total]
-    rule SymbolRefId2String(ID) => substrString ( SymbolRefId2StringHelper(ID) , 1 , lengthString(SymbolRefId2StringHelper(ID)) ) // TODO: 没有临时变量感觉写起来确实很麻烦。
+    rule SymbolRefId2String(ID) => substrString ( SymbolRefId2StringHelper(ID) , 1 , lengthString(SymbolRefId2StringHelper(ID)) )
+
+    syntax String ::= str(SymbolRefId) [function]
+    rule str(S:SymbolRefId) => SymbolRefId2String(S)
 
     syntax SymbolRefId ::= "String2SymbolRefIdHelper" "(" String ")" [function, total, hook(STRING.string2token)]
     syntax SymbolRefId ::= "String2SymbolRefId" "(" String ")" [function, total]
@@ -75,6 +78,9 @@ module MLIR-HELPER
     // ## ValueId <-> String
     syntax String  ::= "ValueId2String" "(" ValueId ")" [function, total, hook(STRING.token2string)]
     syntax ValueId ::= "String2ValueId" "(" String ")" [function, total, hook(STRING.string2token)]
+
+    syntax String ::= str(ValueId) [function]
+    rule str(V:ValueId) => ValueId2String(V)
 
     // # Syntax Canicalization Helper
     // - it can be hexa-decimal, so this can be failed.

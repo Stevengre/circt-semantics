@@ -2,6 +2,7 @@ requires "../../circt/circt.k"
 requires "./sv-always.k"
 requires "./sv-for.k"
 requires "./sv-reg.k"
+requires "./sv-macro.k"
 
 
 module SV-SYNTAX
@@ -94,7 +95,7 @@ module SV-ASSERT
 
     // sv.assert
     rule <k> "sv.assert" ( Cond:ValueId ) { Attr:Map } : ( i1 ) -> ( .Types ) 
-            => Cond ~> #SvAssert ~> Attr["defer"] orDefault "???"
+            => Cond ~> #SvAssert ~> Attr["defer"] orDefault "??? no `defer` attr"
             ... 
         </k>
     
@@ -110,6 +111,7 @@ module SV
     imports SV-FOR
     imports SV-REG
     imports SV-ASSERT
+    imports SV-MACRO
 
 
     rule <k> "sv.if" ( X:ValueId ) ( R1:Region , R2:Region ) { .Map } : ( #token("i1", "SignlessIntegerType") ) -> ( .Types ) 

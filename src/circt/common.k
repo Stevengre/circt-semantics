@@ -158,7 +158,7 @@ module COMMON
             (.Bag =>
             <ckt>
                 <cid> ID </cid>
-                <k> M [ID] orDefault "no such module" </k> 
+                <k> M [ID] orDefault "no such module: " +String ID </k> 
                 <module> ID </module>
                 // <args> toList(Vs) </args>
                 ...
@@ -225,13 +225,15 @@ module COMMON
     rule <k> BL:BlockLabel OL:OperationList => 0 ~> BL ~> OL ... </k>
         <cmd> #bootstrap ... </cmd>
 
-    rule <k> (Index:Int => Index +Int 1) ~> #token("^bb0", "CaretId") ( X:ValueId : _:Type , VTs:ValueIdAndTypeList => VTs ) : ... </k>
+    rule <k> (Index:Int => Index +Int 1) ~> ^bb0 ( X:ValueId : _:Type , VTs:ValueIdAndTypeList => VTs ) : ... </k>
         <locals> Locals:Map => Locals [X <- #ArgRef(Index)] </locals>
         <cmd> #bootstrap ... </cmd>
     
-    rule <k> _:Int ~> #token("^bb0", "CaretId") ( .ValueIdAndTypeList ) : => .K ... </k>
+    rule <k> _:Int ~> ^bb0 ( .ValueIdAndTypeList ) : => .K ... </k>
         <cmd> #bootstrap ... </cmd>
 
+    rule <k> 0 ~> ^bb0 : => .K ... </k>
+        <cmd> #bootstrap ... </cmd>
 
     // SSA statements
     rule <k> X:ValueId = Op:GenericOperation => .K ... </k>
@@ -373,7 +375,10 @@ module COMMON
         <ckt>
             <cid> Inst </cid>
             <locals> M:Map </locals>
-            <k> .K => M[V] orDefault "???" ~> Caller ~> #ValueRefLookup ... </k>
+            <k> .K => M[V] orDefault "??? ValueId not found: " +String str(V) 
+                ~> Caller ~> #ValueRefLookup 
+                ... 
+            </k>
             ...
         </ckt>
         [priority(200)]
