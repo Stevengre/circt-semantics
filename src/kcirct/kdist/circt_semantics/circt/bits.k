@@ -138,6 +138,8 @@ module BITS
     rule bitsCast(X:Int, W:Int) => bits(X &Int (2 ^Int W -Int 1), W) requires X >=Int 0 andBool W >=Int 0
     rule bitsCast(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
 
+    rule bitsCast(bits(_:XZ, _:Int), W:Int) => bits(#x, W)
+
 
     // bits concat
     rule BitsConcat(B:Bits, BV:BitsVec) => B concatBits BitsConcat(BV)
