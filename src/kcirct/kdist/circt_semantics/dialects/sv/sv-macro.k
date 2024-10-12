@@ -1,18 +1,7 @@
 requires "./sv.k"
 
-
-module SV-MACRO-SYNTAX
-    imports SV-SYNTAX
-
-    syntax SvMacroIdent ::= "#sv" "<" "macro.ident" SymbolRefId ">"
-    syntax AttributeValue ::= SvMacroIdent
-
-    syntax KmdCIRCT ::= "#SvIfDef"
-endmodule
-
-
 module SV-MACRO
-    imports SV-MACRO-SYNTAX
+    imports SV-SYNTAX
 
     rule <phase> #preprocess </phase>
         <prog> "sv.macro.decl"(.ValueIdList) {Attr:Map} : (.Types) -> (.Types) => .K ... </prog>

@@ -20,6 +20,11 @@ module SV-SYNTAX
                       | "#SvInitial"
                       | "#SvAlways"
                       | "#SvAssert"
+                      
+    syntax SvMacroIdent ::= "#sv" "<" "macro.ident" SymbolRefId ">"
+    syntax AttributeValue ::= SvMacroIdent
+
+    syntax KmdCIRCT ::= "#SvIfDef"
 endmodule
 
 
