@@ -31,7 +31,10 @@ module COMB-HELPER
     syntax Bool ::= icmp(Int, Int, Int) [function]
                   | icmp(Int, Bits, Bits) [function]
 
-    rule icmp(Pred:Int, bits(X1:Int, _:Int):Bits, bits(X2:Int, _:Int):Bits) => icmp(Pred, X1:Int, X2:Int)
+    rule icmp(Pred:Int, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => icmp(Pred, X1:Int, X2:Int)
+    rule icmp(Pred:Int, bits(_:XZ, _:Int),   bits(_, _:Int))    => false
+    rule icmp(Pred:Int, bits(X1:Int, _:Int), bits(_:XZ, _:Int)) => false
+
     rule icmp(Pred:Int, A:Int, B:Int) => A >=Int B  requires Pred ==Int 9
     rule icmp(Pred:Int, A:Int, B:Int) => A >Int B   requires Pred ==Int 8
     rule icmp(Pred:Int, A:Int, B:Int) => A <=Int B  requires Pred ==Int 7
@@ -110,6 +113,12 @@ module COMB
 
     rule <k> ListItem(V1:StdValue) ListItem(V2:StdValue) ~> Pred:Int ~> #CombIcmp 
             => bits(Bool2Int(icmp(Pred, StdValues2Bits(V1), StdValues2Bits(V2))), 1) : i1
+            ...
+        </k>
+
+    rule <k> ListItem(B1:Bits : _:Type) ListItem(B2:Bits : _:Type) 
+            ~> Pred:Int : _:IntegerType ~> #CombIcmp 
+            => bits(Bool2Int(icmp(Pred, B1, B2)), 1) : i1
             ...
         </k>
 
