@@ -374,11 +374,8 @@ module COMMON
         <cid> Caller:String </cid>
         <ckt>
             <cid> Inst </cid>
-            <locals> M:Map </locals>
-            <k> .K => M[V] orDefault "??? ValueId not found: " +String str(V) 
-                ~> Caller ~> #ValueRefLookup 
-                ... 
-            </k>
+            <k> .K => V ~> Caller ~> #ValueRefLookup ... </k>
+            // <locals> M:Map </locals>
             ...
         </ckt>
         [priority(200)]
