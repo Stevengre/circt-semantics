@@ -12,6 +12,14 @@ module SEQ-FIRREG
         <last-vars> S:Set => S SetItem(Clk) </last-vars>
         <cmd> #bootstrap ... </cmd>
 
+    // firreg without reset
+    rule <k> X:ValueId = "seq.firreg" (Next:ValueId, Clk:ValueId) {Attr:Map} : (Ts:Types) -> (T:Type) => .K ... </k>
+        <locals> Locals:Map => Locals [ X <- seq.firreg({Attr["name"]}:>String, T, bits(#x, getWidth(T)) : T) ] </locals>
+        // <regs> Regs:Map => Regs [ X <- seq.firreg({Attr["name"]}:>String, false, #x) ] </regs>
+        <always> L:List => L ListItem(X = "seq.firreg" (Next, Clk) {Attr} : (Ts) -> (T)) </always>
+        <last-vars> S:Set => S SetItem(Clk) </last-vars>
+        <cmd> #bootstrap ... </cmd>
+
 
 
     // ----------------- clock phase ------------------
@@ -19,6 +27,7 @@ module SEQ-FIRREG
     // firreg lookup
     rule <k> seq.firreg ( _:String , _:Type , V:StdValue ) => V ... </k>
     
+    // firreg emit
     rule <k> X:ValueId = "seq.firreg" (Next, Clk, Rst, RstValue) {_:Map} : (_:Types) -> (_:Type) 
             => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
             ~> (Next, Rst, RstValue):ValueIdList ~>#SeqFirreg ~> X
@@ -26,12 +35,23 @@ module SEQ-FIRREG
         </k>
         <last> M:Map </last>
         <cmd> #always ... </cmd>
+
+    // firreg emit without reset
+    rule <k> X:ValueId = "seq.firreg" (Next, Clk) {_:Map} : (_:Types) -> (_:Type) 
+            => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
+            ~> Next ~>#SeqFirreg ~> X
+            ... 
+        </k>
+        <last> M:Map </last>
+        <cmd> #always ... </cmd>
     
     // edge check failed
     rule <k> false ~> #EdgeCheck ~> _:ValueIdList ~> #SeqFirreg ~> _:ValueId => .K ... </k>
+    rule <k> false ~> #EdgeCheck ~> _:ValueId ~> #SeqFirreg ~> _:ValueId => .K ... </k>
 
     // edge check success
     rule <k> (true ~> #EdgeCheck => .K) ~> _:ValueIdList ~> #SeqFirreg ~> _:ValueId ... </k>
+    rule <k> (true ~> #EdgeCheck => .K) ~> _:ValueId ~> #SeqFirreg ~> _:ValueId ... </k>
 
     rule <k> 
             (
