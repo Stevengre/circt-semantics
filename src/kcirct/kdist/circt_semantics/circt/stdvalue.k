@@ -57,4 +57,5 @@ module STDVALUE
     rule ListStdValue2Bits(.List) => .List
 
     rule isZero(bits(X:Int, _:Int) : _:Type) => X ==Int 0
+    rule isZero(bits(X:XZ, _:Int) : _:Type) => false
 endmodule
