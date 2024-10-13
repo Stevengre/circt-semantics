@@ -79,6 +79,8 @@ module BITS
 
     rule Bits2Bool(bits(1, 1)) => true
     rule Bits2Bool(bits(0, 1)) => false
+    rule Bits2Bool(bits(_:XZ, _:Int)) => false
+    rule Bits2Bool(bits(_:Int, _:Int)) => true [owise]
 
     syntax BitsValue ::= Bits2Int(Bits)           [function]
                        | Bits2UInt(Bits)          [function]
@@ -89,11 +91,13 @@ module BITS
     syntax List ::= BitsSplit(Bits, List) [function]
     rule BitsSplit(B:Bits, ListItem(S:Int) L:List) => ListItem(BitsSlice(B, 0, S)) BitsSplit(BitsSlice(B, S, #none), L)
     rule BitsSplit(bits(_, 0), .List) => .List
+    rule BitsSplit(bits(_:XZ, _:Int), _:List) => .List [owise]
     
     syntax List ::= Bits2BitList(Bits) [function]
 
     rule Bits2BitList(bits(_:Int, 0)) => .List
     rule Bits2BitList(bits(X:Int, W:Int)) => Bits2BitList(bits(X >>Int 1, W -Int 1)) ListItem(X &Int 1)
+    rule Bits2BitList(bits(_:XZ, _:Int)) => .List [owise]
 
     syntax Int ::= IntsXor(List) [function]
     rule IntsXor(ListItem(X:Int) L:List) => X xorInt IntsXor(L)
@@ -110,26 +114,30 @@ module BITS
     // is negative
     rule isNeg(bits(X:Int, W:Int):Bits) => X >>Int (W -Int 1) >Int 0
     rule isPos(bits(X:Int, W:Int):Bits) => X >>Int (W -Int 1) ==Int 0
+    rule isNeg(bits(_:XZ, _:Int)) => false
+    rule isPos(bits(_:XZ, _:Int)) => false
     rule isNeg(X:Int, W:Int) => X >>Int (W -Int 1) >Int 0
     rule isPos(X:Int, W:Int) => X >>Int (W -Int 1) ==Int 0
 
     // bits complementation
     rule ~Bits bits(X:Int, W:Int) => bitsCast(((2 ^Int W -Int 1) xorInt X) +Int 1, W)
+    rule ~Bits bits(_:XZ, W:Int) => bits(#x, W)
 
     // bits not
     rule !Bits bits(X:Int, W:Int) => bitsCast(X xorInt (2 ^Int W -Int 1), W)
+    rule !Bits bits(_:XZ, W:Int) => bits(#x, W)
 
     // bits to int
     rule Bits2Int(bits(X:Int, W:Int)) => X requires isPos(X, W)
     rule Bits2Int(bits(X:Int, W:Int)) => -1 -Int (X xorInt (2 ^Int W -Int 1)) [owise]
-    rule Bits2Int(bits(X:ConstX, _:Int)) => X
+    rule Bits2Int(bits(_:XZ, _:Int)) => 0 [owise] // TODO: non deterministic
 
     rule Int2Bits(X:Int, W:Int) => bitsCast(X, W) requires X >=Int 0
     rule Int2Bits(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
 
     // bits to unsigned int
     rule Bits2UInt(bits(X:Int, W:Int)) => X &Int (2 ^Int W -Int 1)
-    rule Bits2UInt(bits(X:ConstX, _:Int)) => X 
+    rule Bits2UInt(bits(_:XZ, _:Int)) => 0  // TODO: non deterministic
 
     // rule Int2Bits(X:Int, W:Int) => bitsCast(X, W) requires W >=Int 0 andBool X >=Int 0
     // rule Int2Bits(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
@@ -137,8 +145,7 @@ module BITS
     rule bitsCast(bits(X:Int, _:Int), W:Int) => bits(X &Int (2 ^Int W -Int 1), W)
     rule bitsCast(X:Int, W:Int) => bits(X &Int (2 ^Int W -Int 1), W) requires X >=Int 0 andBool W >=Int 0
     rule bitsCast(X:Int, W:Int) => bitsCast(2 ^Int W +Int X, W) [owise]
-
-    rule bitsCast(bits(_:XZ, _:Int), W:Int) => bits(#x, W)
+    rule bitsCast(bits(X:XZ, _:Int), W:Int) => bits(X, W)
 
 
     // bits concat
