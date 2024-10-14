@@ -48,22 +48,22 @@ module HW-ARRAY
     // rule ValuesFromList(.List) => .Values
 
     rule <k> 
-            "hw.array_get" ( Vs:ValueIdList ) { .Map } : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) 
+            "hw.array_get" ( Vs:ValueIdList ) { _:Map } : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) 
             => Vs ~> #HwArrayGet
             ... 
         </k>
 
-    rule <k> "hw.array_create" ( Vs:ValueIdList ) { .Map } : ( _:Types ) -> ( T:HwArrayType )
+    rule <k> "hw.array_create" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:HwArrayType )
             => Vs ~> #HwArrayCreate ~> T
             ...
         </k>
 
-    rule <k> "hw.array_slice" ( Vs:ValueIdList ) { .Map } : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T:Type > ) 
+    rule <k> "hw.array_slice" ( Vs:ValueIdList ) { _:Map } : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T:Type > ) 
             => Vs ~> #HwArraySlice ~> !hw.array < S T >
             ...
         </k>
 
-    rule <k> "hw.array_concat" ( Vs:ValueIdList ) { .Map } : ( _:Types ) -> ( T:HwArrayType )
+    rule <k> "hw.array_concat" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:HwArrayType )
             => Vs ~> #HwArrayConcat ~> T
             ...
         </k>

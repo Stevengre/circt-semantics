@@ -79,6 +79,8 @@ module BITS
 
     rule Bits2Bool(bits(1, 1)) => true
     rule Bits2Bool(bits(0, 1)) => false
+    rule Bits2Bool(bits(_:XZ, _:Int)) => false
+    rule Bits2Bool(bits(_:Int, _:Int)) => true [owise]
 
     syntax BitsValue ::= Bits2Int(Bits)           [function]
                        | Bits2UInt(Bits)          [function]
@@ -93,7 +95,8 @@ module BITS
     syntax List ::= Bits2BitList(Bits) [function]
 
     rule Bits2BitList(bits(_:Int, 0)) => .List
-    rule Bits2BitList(bits(X:Int, W:Int)) => Bits2BitList(bits(X >>Int 1, W -Int 1)) ListItem(X &Int 1)
+    rule Bits2BitList(bits(X:Int, W:Int)) => Bits2BitList(bits(X >>Int 1, W -Int 1)) ListItem(X &Int 1) requires W >Int 0
+    rule Bits2BitList(bits(_:XZ, W:Int)) => Bits2BitList(bits(#x, W -Int 1)) ListItem(0)
 
     syntax Int ::= IntsXor(List) [function]
     rule IntsXor(ListItem(X:Int) L:List) => X xorInt IntsXor(L)
