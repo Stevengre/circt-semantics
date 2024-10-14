@@ -101,10 +101,21 @@ module HW-ARRAY
             => BitsSlice(Arr, Idx *Int getWidth(T), (Idx +Int 1) *Int getWidth(T)) : T
             ... 
         </k>
+    
+    rule <k> ListItem(_:Bits : !hw.array < _:SizeX T:Type >) ListItem(bits(_:XZ, _:Int) : _:IntegerType) ~> #HwArrayGet 
+            => bits(#x, getWidth(T)) : T
+            ... 
+        </k>
+    
 
     // hw.array_slice
     rule <k> ListItem(Arr:Bits : !hw.array < _:SizeX T:Type >) ListItem(bits(Idx:Int, _:Int) : _:IntegerType) ~> #HwArraySlice ~> !hw.array < S:SizeX T:Type > 
             => BitsSlice(Arr, Idx *Int getWidth(T), (Idx +Int SizeX2Size(S)) *Int getWidth(T)) : !hw.array < S T > 
+            ...
+        </k>
+    
+    rule <k> ListItem(_:Bits : !hw.array < _:SizeX T:Type >) ListItem(bits(_:Int, _:Int) : _:IntegerType) ~> #HwArraySlice ~> !hw.array < S:SizeX T:Type > 
+            => bits(#x, SizeX2Size(S) *Int getWidth(T)) : !hw.array < S T > 
             ...
         </k>
 
