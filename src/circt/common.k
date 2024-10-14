@@ -158,7 +158,13 @@ module COMMON
             (.Bag =>
             <ckt>
                 <cid> ID </cid>
-                <k> M [ID] orDefault "no such module: " +String ID </k> 
+                // <k> M [ID] orDefault "no such module: " +String ID </k> 
+                <ks>
+                    <k-entry>
+                        <k-id> 0 </k-id>
+                        <k> M [ID] orDefault "no such module" </k> 
+                    </k-entry>
+                </ks>
                 <module> ID </module>
                 // <args> toList(Vs) </args>
                 ...
@@ -169,7 +175,14 @@ module COMMON
     
     rule <ckt>
             <cid> Inst </cid>
-            <k> .K </k> 
+            <ks> 
+                ...
+                <k-entry>
+                    <k-id> 0 </k-id>
+                    <k> .K </k>
+                </k-entry>
+                ...
+            </ks>
             ...
         </ckt>
         <cmd> #bootstrap ... </cmd>
@@ -283,13 +296,23 @@ module COMMON
             ...
             <ckt>
                 <cid> Parent:String </cid>
-                <k> Inst:String ~> Mod:SymbolRefId :: .SymbolRefIdList ~> VL:ValueIdList ~> #HwInstance => .K ... </k>
+                <ks>
+                    <k-entry>
+                        <k-id> 0 </k-id>
+                        <k> Inst:String ~> Mod:SymbolRefId :: .SymbolRefIdList ~> VL:ValueIdList ~> #HwInstance => .K ... </k>
+                    </k-entry>
+                </ks>
                 ...
             </ckt>
             (.Bag =>
             <ckt>
                 <cid> Parent +String "/" +String Inst </cid>
-                <k> Op </k>
+                <ks>
+                    <k-entry>
+                        <k-id> 0 </k-id>
+                        <k> Op </k>
+                    </k-entry>
+                </ks>
                 <module> SymbolRefId2String(Mod) </module>
                 <args> ValueRefListWrapper(VL, Parent) </args>
                 ...
@@ -364,7 +387,13 @@ module COMMON
     rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
         <ckt>
             <cid> Inst </cid>
-            <k> .K </k>
+            <ks>
+                <k-entry>
+                    <k-id> 0 </k-id>
+                    <k> .K </k>
+                </k-entry>
+                ...
+            </ks>
             <out-ports> L:List </out-ports>
             ...
         </ckt>
@@ -374,7 +403,14 @@ module COMMON
         <cid> Caller:String </cid>
         <ckt>
             <cid> Inst </cid>
-            <k> .K => V ~> Caller ~> #ValueRefLookup ... </k>
+            <ks>
+                ...
+                (.Bag => 
+                <k-entry>
+                    <k-id> !_:Int </k-id>
+                    <k> V ~> Caller ~> #ValueRefLookup </k>
+                </k-entry>)    
+            </ks>
             // <locals> M:Map </locals>
             ...
         </ckt>
@@ -384,7 +420,14 @@ module COMMON
         <cid> Caller:String </cid>
         <ckt>
             <cid> Callee </cid>
-            <k> V:StdValue ~> Caller ~> #ValueRefLookup => .K ... </k>
+            <ks>
+                ...
+                (<k-entry>
+                    <k-id> _ </k-id>
+                    <k> V:StdValue ~> Caller ~> #ValueRefLookup </k>
+                </k-entry> => .Bag)
+                ...
+            </ks>
             ...
         </ckt>
         [priority(1)]
