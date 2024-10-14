@@ -10,7 +10,7 @@ module CONF
     configuration
     <circt> 
         <mlir/> 
-        <cmd> .K </cmd> 
+        <cmd> .K </cmd>
         <entry> "":String </entry>
         <input> .List </input>
         // <entry> $Entry:String </entry>
@@ -25,7 +25,13 @@ module CONF
                 <cid> "" </cid>
                 <always> .List </always>
                 <initial> .List </initial>
-                <k> .K </k>
+                // <k> .K </k>
+                <ks>
+                    <k-entry multiplicity="*" type="Map">
+                        <k-id> 0 </k-id>
+                        <k> .K </k>
+                    </k-entry>
+                </ks>
                 <parent> "" </parent>
                 <last> .Map </last>
                 <last-vars> .Set </last-vars>
