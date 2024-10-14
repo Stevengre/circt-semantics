@@ -53,7 +53,18 @@ module HW-ARRAY
             ... 
         </k>
 
+    rule <k> 
+            "hw.array_get" ( Vs:ValueIdList ) : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) 
+            => Vs ~> #HwArrayGet
+            ... 
+        </k>
+
     rule <k> "hw.array_create" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:HwArrayType )
+            => Vs ~> #HwArrayCreate ~> T
+            ...
+        </k>
+    
+    rule <k> "hw.array_create" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:HwArrayType )
             => Vs ~> #HwArrayCreate ~> T
             ...
         </k>
@@ -62,8 +73,18 @@ module HW-ARRAY
             => Vs ~> #HwArraySlice ~> !hw.array < S T >
             ...
         </k>
+    
+    rule <k> "hw.array_slice" ( Vs:ValueIdList ) : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T:Type > ) 
+            => Vs ~> #HwArraySlice ~> !hw.array < S T >
+            ...
+        </k>
 
     rule <k> "hw.array_concat" ( Vs:ValueIdList ) { _:Map } : ( _:Types ) -> ( T:HwArrayType )
+            => Vs ~> #HwArrayConcat ~> T
+            ...
+        </k>
+    
+    rule <k> "hw.array_concat" ( Vs:ValueIdList ) : ( _:Types ) -> ( T:HwArrayType )
             => Vs ~> #HwArrayConcat ~> T
             ...
         </k>
