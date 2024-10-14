@@ -3,6 +3,7 @@ requires "./hw-array.k"
 requires "./hw-struct.k"
 requires "./hw-union.k"
 requires "./hw-enum.k"
+requires "./hw-instance.k"
 
 
 module HW-SYNTAX
@@ -11,6 +12,7 @@ module HW-SYNTAX
      imports HW-UNION-SYNTAX
      imports HW-ENUM-SYNTAX
      imports HW-MODTY-SYNTAX
+     imports HW-INSTANCE-SYNTAX
 endmodule
 
 
@@ -20,6 +22,7 @@ module HW
     imports HW-UNION
     imports HW-ENUM
     imports HW-MODTY
+    imports HW-INSTANCE
 
     rule <k> X:ValueId = "hw.constant" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type ) => .K ... </k>
         <locals> Locals:Map => Locals [X <- AV2StdValue({Attr["value"]}:>AttributeValue, T)] </locals>
@@ -34,3 +37,4 @@ module HW
         <out-names> _ => getModuleOutNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </out-names>
         <cmd> #bootstrap ... </cmd>
 endmodule
+
