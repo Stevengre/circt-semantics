@@ -39,4 +39,8 @@ module MAIN
     <running> .List </running>
     <boot> Boot:List </boot>
 
+    rule <cmd> #bootstrap ... </cmd>
+         <k> _:Operation => .K ... </k>
+    [owise]
+
 endmodule
