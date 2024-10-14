@@ -46,6 +46,8 @@ module COMMON-SYNTAX
                       | "#HwOutput"
                       | "#ValueIdIndexLookup"
                       | "#ValueRefLookup"
+                      | "#ValueRefReq" "(" String "," ValueId ")"
+                      | "#ValueRefRes" "(" String "," ValueId ")"
                       | "#Last"
                       | "#EdgeCheck"
 
@@ -143,8 +145,6 @@ module COMMON
     imports COMB-SYNTAX
 
 
-
-
     // bootstrap, entry module
     rule <phase> #toStimulate => #build </phase>
         <entry> ID:String </entry>
@@ -183,6 +183,7 @@ module COMMON
         </ckt>
         <cmd> #bootstrap ... </cmd>
         <running> L:List ListItem(Inst) => L </running>
+    
 
     // rule <k>
     //         "hw.module" ( .ValueIdList ) ( { .OperationList B:Block } ) { _:Map } : ( .Types ) -> ( .Types )
@@ -388,7 +389,7 @@ module COMMON
         </ckt>
 
     // use new context, race risk?
-    rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>
+    rule <k> #ValueRef(Inst:String, V:ValueId) => #ValueRefReq(Inst, V) ... </k>
         <cid> Caller:String </cid>
         <ckt>
             <cid> Inst </cid>
@@ -397,7 +398,7 @@ module COMMON
                 (.Bag => 
                 <k-entry>
                     <k-id> !_:Int </k-id>
-                    <k> V ~> Caller ~> #ValueRefLookup </k>
+                    <k> V ~> #ValueRefRes(Caller, V) </k>
                 </k-entry>)    
             </ks>
             // <locals> M:Map </locals>
@@ -405,7 +406,7 @@ module COMMON
         </ckt>
         [priority(200)]
 
-    rule <k> #ValueRefLookup ~> Callee:String => V ... </k>
+    rule <k> #ValueRefReq(Callee, V:ValueId) => X ... </k>
         <cid> Caller:String </cid>
         <ckt>
             <cid> Callee </cid>
@@ -413,7 +414,7 @@ module COMMON
                 ...
                 (<k-entry>
                     <k-id> _ </k-id>
-                    <k> V:StdValue ~> Caller ~> #ValueRefLookup </k>
+                    <k> X:StdValue ~> #ValueRefRes(Caller, V) </k>
                 </k-entry> => .Bag)
                 ...
             </ks>
