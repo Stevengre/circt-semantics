@@ -19,6 +19,14 @@ module CIRCT-SYNTAX
     syntax Set ::= toSet(ValueIdList) [function]
     rule toSet(V:ValueId, VL:ValueIdList) => SetItem(V) toSet(VL)
     rule toSet(.ValueIdList) => .Set
+
+    syntax List ::= toList(AttributeValueList) [function]
+    rule toList(V:AttributeValue, VL:AttributeValueList) => ListItem(V) toList(VL)
+    rule toList(.AttributeValueList) => .List
+
+    syntax List ::= toList(ValueIdList) [function]
+    rule toList(V:ValueId, VL:ValueIdList) => ListItem(V) toList(VL)
+    rule toList(.ValueIdList) => .List
 endmodule
 
 

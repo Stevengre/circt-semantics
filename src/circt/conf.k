@@ -21,21 +21,22 @@ module CONF
         <ckts>
             <ckt multiplicity="*" type="Map">
                 <cid> "" </cid>
+                <k> .K </k>
                 <always> .List </always>
                 <initial> .List </initial>
-                <k> .K </k>
-                <parent> "" </parent>
+                // <parent> "" </parent>
                 <last> .Map </last>
                 <last-vars> .Set </last-vars>
                 <locals> .Map </locals>
                 <module> "" </module>
                 <in-names> .List </in-names>
-                <in-ports> .Map  </in-ports>
+                <in-ports> .List  </in-ports>
                 <in-vars> .ValueIdAndTypeList </in-vars>
                 <out-names> .List </out-names>
                 <out-ports> .List </out-ports>
                 <out-vars> .ValueIdList </out-vars>
                 <args> .List </args>
+                <arg-vars> .ValueIdList </arg-vars>
                 <regs> .Map </regs>
                 <wires> .Map </wires>
                 <firmem> .Map </firmem>

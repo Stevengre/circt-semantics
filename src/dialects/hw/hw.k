@@ -3,6 +3,7 @@ requires "./hw-array.k"
 requires "./hw-struct.k"
 requires "./hw-union.k"
 requires "./hw-enum.k"
+requires "./hw-instance.k"
 
 
 module HW
@@ -11,6 +12,7 @@ module HW
     imports HW-UNION
     imports HW-ENUM
     imports HW-MODTY
+    imports HW-INSTANCE
 
     rule <k> X:ValueId = "hw.constant" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type ) => .K ... </k>
         <locals> Locals:Map => Locals [X <- AV2StdValue({Attr["value"]}:>AttributeValue, T)] </locals>

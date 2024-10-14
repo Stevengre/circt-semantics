@@ -41,8 +41,7 @@ module COMMON-SYNTAX
                  | "#ArgRef" "(" Int ")"
 
     
-    syntax KmdCIRCT ::= "#HwInstance"
-                      | "#SvPassign"
+    syntax KmdCIRCT ::= "#SvPassign"
                       | "#HwOutput"
                       | "#ValueIdIndexLookup"
                       | "#ValueRefLookup"
@@ -126,9 +125,6 @@ module COMMON-HELPER
     // syntax Block ::= CIRCTrefineBlock( Block ) [function]
     // rule CIRCTrefineBlock( BL:BlockLabel OPs:OperationList ) => BL CIRCTrefineOps(OPs) 
 
-    syntax List ::= toList(AttributeValueList) [function]
-    rule toList(V:AttributeValue, VL:AttributeValueList) => ListItem(V) toList(VL)
-    rule toList(.AttributeValueList) => .List
 
     syntax List ::= ValueRefListWrapper(ValueIdList, String) [function]
     rule ValueRefListWrapper(V:ValueId, VL:ValueIdList, Inst:String) => ListItem(#ValueRef(Inst, V)) ValueRefListWrapper(VL, Inst)
@@ -247,60 +243,6 @@ module COMMON
         [owise]
 
 
-    // hw.instance
-    rule <k> 
-            (.K => 0 ~> M["instanceName"]) ~>
-            (
-                Res:OpResults = "hw.instance" ( Vs:ValueIdList ) { M:Map } : ( T1:Types ) -> ( T2:Types )
-                => Res ~> "hw.instance" ( Vs ) { M } : ( T1 ) -> ( T2 )
-            )
-            ... 
-        </k>
-        <cmd> #bootstrap ... </cmd>
-
-    
-    rule <k> (Index:Int => Index +Int 1) ~> Inst:String ~> (X:ValueId, Xs:OpResults => Xs) ... </k>
-        <cid> Base:String </cid>
-        <locals> Locals:Map => Locals [X <- #OutPortRef(Base +String "/" +String Inst, Index) ] </locals>
-        <cmd> #bootstrap ... </cmd>
-    
-    rule <k> (Index:Int => Index +Int Size) ~> Inst:String ~> (X:ValueId : Size:IntegerLiteral, Xs:OpResults => Xs) ... </k>
-        <cid> Base:String </cid>
-        <locals> Locals:Map => Locals [X <- #OutPortRef(Base +String "/" +String Inst, Index, Index +Int Size) ] </locals>
-        <cmd> #bootstrap ... </cmd>
-    
-    rule <k> _:Int ~> _:String ~> .OpResults => .K ... </k>
-        <cmd> #bootstrap ... </cmd>
-
-    rule <k> "hw.instance" ( VL:ValueIdList ) { Attr:Map } : ( _:Types ) -> ( _:Types )
-            => Attr["instanceName"] ~> Attr ["moduleName"] ~> VL ~> #HwInstance
-            ...
-        </k>
-        <cmd> #bootstrap ... </cmd>
-
-
-    rule <ckts>
-            ...
-            <ckt>
-                <cid> Parent:String </cid>
-                <k> Inst:String ~> Mod:SymbolRefId :: .SymbolRefIdList ~> VL:ValueIdList ~> #HwInstance => .K ... </k>
-                ...
-            </ckt>
-            (.Bag =>
-            <ckt>
-                <cid> Parent +String "/" +String Inst </cid>
-                <k> Op </k>
-                <module> SymbolRefId2String(Mod) </module>
-                <args> ValueRefListWrapper(VL, Parent) </args>
-                ...
-            </ckt>)
-            ...
-        </ckts>
-        <running> L:List => L ListItem(Parent +String "/" +String Inst) </running>
-        <boot> Boot:List => Boot ListItem(Parent +String "/" +String Inst) </boot>
-        <table> ... SymbolRefId2String(Mod) |-> Op ... </table>
-        <cmd> #bootstrap ... </cmd>
-    
     
     // lookup ValueId
     rule <k> X:ValueId => M [X] ... </k>
@@ -346,12 +288,42 @@ module COMMON
 
 
     // ---------- value ref -----------
-    rule <k> #ArgRef ( Index:Int ) => Args[Index] ~> #ArgRef ( Index ) ... </k>
-        <args> Args:List </args>
+    // rule <k> #ArgRef ( Index:Int ) => Args[Index] ~> #ArgRef ( Index ) ... </k>
+    //     <args> Args:List </args>
 
-    rule <k> V:StdValue ~> #ArgRef ( Index:Int ) => V ... </k>
-        <in-ports> M:Map => M [ L[Index] <- V ] </in-ports>
-        <in-names> L:List </in-names>
+    rule <k> #ArgRef ( Index:Int ) => Args[Index] ... </k>
+        <args> Args:List </args>
+        requires Index <Int size(Args)
+
+    // rule <k> V:StdValue ~> #ArgRef ( Index:Int ) => V ... </k>
+    //     <in-ports> M:Map => M [ L[Index] <- V ] </in-ports>
+    //     <in-names> L:List </in-names>
+
+    // lookup args
+    rule <ckt>
+            <k> #OutPortRef (Inst:String, Index:Int) => Vs ~> #OutPortRef(Inst, Index) ... </k>
+            ...
+        </ckt> 
+        <ckt>
+            <cid> Inst </cid>
+            <args> .List </args>
+            <arg-vars> Vs:ValueIdList </arg-vars>
+            ...
+        </ckt>
+        requires size(toList(Vs)) >Int 0
+
+    // set args
+    rule <ckt>
+            <k> (L:List => .K) ~> #OutPortRef(Inst:String, _Index:Int) ... </k>
+            ...
+        </ckt> 
+        <ckt>
+            <cid> Inst </cid>
+            <args> .List => L </args>
+            <arg-vars> _:ValueIdList </arg-vars>
+            ...
+        </ckt>
+
 
     rule <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
         <ckt>
@@ -361,33 +333,33 @@ module COMMON
             ...
         </ckt>
 
-    rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
-        <ckt>
-            <cid> Inst </cid>
-            <k> .K </k>
-            <out-ports> L:List </out-ports>
-            ...
-        </ckt>
+    // rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
+    //     <ckt>
+    //         <cid> Inst </cid>
+    //         <k> .K </k>
+    //         <out-ports> L:List </out-ports>
+    //         ...
+    //     </ckt>
 
     // use new context, race risk?
-    rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>
-        <cid> Caller:String </cid>
-        <ckt>
-            <cid> Inst </cid>
-            <k> .K => V ~> Caller ~> #ValueRefLookup ... </k>
-            // <locals> M:Map </locals>
-            ...
-        </ckt>
-        [priority(200)]
+    // rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>
+    //     <cid> Caller:String </cid>
+    //     <ckt>
+    //         <cid> Inst </cid>
+    //         <k> .K => V ~> Caller ~> #ValueRefLookup ... </k>
+    //         // <locals> M:Map </locals>
+    //         ...
+    //     </ckt>
+    //     [priority(200)]
 
-    rule <k> #ValueRefLookup ~> Callee:String => V ... </k>
-        <cid> Caller:String </cid>
-        <ckt>
-            <cid> Callee </cid>
-            <k> V:StdValue ~> Caller ~> #ValueRefLookup => .K ... </k>
-            ...
-        </ckt>
-        [priority(1)]
+    // rule <k> #ValueRefLookup ~> Callee:String => V ... </k>
+    //     <cid> Caller:String </cid>
+    //     <ckt>
+    //         <cid> Callee </cid>
+    //         <k> V:StdValue ~> Caller ~> #ValueRefLookup => .K ... </k>
+    //         ...
+    //     </ckt>
+    //     [priority(1)]
 
 
 endmodule
