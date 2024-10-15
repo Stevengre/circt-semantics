@@ -47,6 +47,7 @@ module COMMON-SYNTAX
                       | "#ValueRefLookup"
                       | "#Last"
                       | "#EdgeCheck"
+                      | "#Cache"
 
     syntax KmdCIRCT ::= "#done"
     
@@ -231,8 +232,19 @@ module COMMON
     
     // lookup ValueId
     rule <k> X:ValueId => M [X] ... </k>
-        <locals> M:Map </locals>
+        <cache> M:Map </cache>
         requires X in_keys(M)
+        [priority(41)]
+
+
+    rule <k> X:ValueId => M [X] ~> #Cache ~> X ... </k>
+        <cache> M':Map </cache>
+        <locals> M:Map </locals>
+        requires (notBool X in_keys(M')) andBool X in_keys(M)
+        [priority(42)]
+    
+    rule <k> V:StdValue ~> #Cache ~> X:ValueId => V ... </k>
+        <cache> M:Map => M [X <- V] </cache>
 
 
     // lookup ValueId with index: %foo#0, %foo#1
@@ -394,4 +406,3 @@ module COMMON
 
 
 endmodule
-
