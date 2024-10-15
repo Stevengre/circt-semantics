@@ -34,6 +34,13 @@ module SEQ-FIRREM
         <last> M:Map </last>
         <cmd> #always ... </cmd>
     
+    // tmp, for test
+    rule <k> "seq.firmem.read_port" (_:ValueIdList) {_:Map} : ( _:Types ) -> ( T:Type )
+            => bits(0, getWidth(T)) : T
+            ...
+        </k>
+        <cmd> #always ... </cmd>
+
     rule <k> false ~> #EdgeCheck ~> _:ValueId ~> #SeqFirmemRead ~> _:ValueId ~> _:ValueId => .K ... </k>
     rule <k> (true ~> #EdgeCheck => .K) ~> _:ValueId ~> #SeqFirmemRead ~> _:ValueId ~> _:ValueId ... </k>
 
