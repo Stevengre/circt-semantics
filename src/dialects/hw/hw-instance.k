@@ -68,6 +68,7 @@ module HW-INSTANCE
     //     <table> ... SymbolRefId2String(Mod) |-> Op ... </table>
     //     <cmd> #bootstrap ... </cmd>
 
+    rule <k> "hw.instance" (_:ValueIdList) {_:Map} : (_:Types) -> (_:Types) => .K ... </k>
 
     rule <k> Res:OpResults = "hw.instance" ( Vs:ValueIdList ) { Attr:Map } : ( _:Types ) -> ( _:Types ) 
             => 0 ~> Res ~> #HwInstance ~> Attr["instanceName"] ~> Attr["moduleName"] ~> Vs

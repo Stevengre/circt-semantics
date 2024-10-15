@@ -72,60 +72,6 @@ module COMMON-HELPER
     syntax Int ::= Type2BitSize ( Type ) [function]
     rule Type2BitSize( T:IntegerType ) => getIntegerTypeSize(T)
 
-    // refine operation
-    // syntax Operation ::= CIRCTrefineOp ( Operation ) [function]
-    
-    // // - if generate values, but no id to consume them. just throw it away.
-    // rule CIRCTrefineOp(Rs = Op:GenericOperation) => CIRCTrefineGop(Op) requires Rs ==K .OpResults
-    // rule CIRCTrefineOp(Rs = Op:GenericOperation) => Rs = CIRCTrefineGop(Op) [owise]
-
-    // // ## refine generic operation
-    // syntax GenericOperation ::= CIRCTrefineGop ( GenericOperation ) [function]
-    
-    // // -- 11
-    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-    //     => N (Vs) <{AL}> (CIRCTrefineRegions(R)) {AL2} : FT
-    //     requires AL =/=K .Map andBool R =/=K .Regions
-    // // -- 01
-    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-    //     => N (Vs) (CIRCTrefineRegions(R)) {AL2} : FT
-    //     requires AL ==K .Map andBool R =/=K .Regions
-    // // -- 10
-    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-    //     => N (Vs) <{AL}> {AL2} : FT
-    //     requires AL =/=K .Map andBool R ==K .Regions
-    // // -- 00
-    // rule CIRCTrefineGop( N (Vs) [.Successors] <{AL:Map}> (R:Regions) {AL2:Map} : FT )
-    //     => N (Vs) {AL2} : FT
-    //     requires AL ==K .Map andBool R ==K .Regions
-    
-    // // -- unexpected
-    // rule CIRCTrefineGop(Op:GenericOperation) => Op [owise]
-    
-    // // refine regions
-    // syntax Regions ::= CIRCTrefineRegions (Regions) [function]
-    // rule CIRCTrefineRegions(.Regions) => .Regions 
-    // rule CIRCTrefineRegions( R:Region, Rs:Regions ) => CIRCTrefine(R) , CIRCTrefineRegions(Rs) [owise]
-    
-    // // refine region
-    // syntax Region ::= CIRCTrefine( Region ) [function]
-    // rule CIRCTrefine( {OPs:OperationList BL:BlockList} ) => {CIRCTrefineOps(OPs) CIRCTrefineBlocks(BL)}
-    
-    // // refine OperationList
-    // syntax OperationList ::= CIRCTrefineOps( OperationList ) [function]
-    // rule CIRCTrefineOps( .OperationList ) => .OperationList
-    // rule CIRCTrefineOps( OP:Operation OPs:OperationList ) => CIRCTrefineOp(OP) CIRCTrefineOps(OPs) [owise]
-    
-    // // refine BlockList
-    // syntax BlockList ::= CIRCTrefineBlocks( BlockList ) [function]
-    // rule CIRCTrefineBlocks( .BlockList ) => .BlockList
-    // rule CIRCTrefineBlocks( B:Block BL:BlockList ) => CIRCTrefineBlock(B) CIRCTrefineBlocks(BL) [owise]
-    
-    // // refine Block
-    // syntax Block ::= CIRCTrefineBlock( Block ) [function]
-    // rule CIRCTrefineBlock( BL:BlockLabel OPs:OperationList ) => BL CIRCTrefineOps(OPs) 
-
-
     syntax List ::= ValueRefListWrapper(ValueIdList, String) [function]
     rule ValueRefListWrapper(V:ValueId, VL:ValueIdList, Inst:String) => ListItem(#ValueRef(Inst, V)) ValueRefListWrapper(VL, Inst)
     rule ValueRefListWrapper(.ValueIdList, _:String) => .List
@@ -138,12 +84,8 @@ module COMMON
     imports HW-INOUT-SYNTAX
     imports COMB-SYNTAX
 
-
     rule <phase> #preprocess => #toStimulate </phase>
         <prog> .K </prog>
-        // <cmd> .K => Set2List(keys(M))  ... </cmd>
-        // <table> M:Map </table>
-
 
     // bootstrap, entry module
     rule <phase> #toStimulate => #build </phase>
@@ -273,19 +215,6 @@ module COMMON
     rule <k> (V:StdValue => .K) ~> (L:List => L ListItem(V)) ... </k>
     rule <k> L:List ~> .ValueIdList => L ... </k>
 
-    // rule <k> (.K => X) ~> (X:ValueId, Xs:ValueIdList => Xs) ... </k>
-    // rule <k> (V:StdValue => .K) ~> _:ValueIdList ~> (L:List => L ListItem(V)) ... </k>
-    // rule <k> .ValueIdList => .K ... </k>
-
-
-
-    // hw.output
-    rule <k> (.K => VL) ~> #HwOutput ... </k>
-        <out-vars> VL:ValueIdList </out-vars>
-    
-    rule <k> L:List ~> #HwOutput => .K ... </k>
-        <out-ports> _ => L </out-ports>
-
 
     // ---------- value ref -----------
     // rule <k> #ArgRef ( Index:Int ) => Args[Index] ~> #ArgRef ( Index ) ... </k>
@@ -312,9 +241,32 @@ module COMMON
         </ckt>
         requires size(toList(Vs)) >Int 0
 
+    rule <ckt>
+            <k> #OutPortRef (Inst:String, Index:Int, End:Int) => Vs ~> #OutPortRef(Inst, Index, End) ... </k>
+            ...
+        </ckt> 
+        <ckt>
+            <cid> Inst </cid>
+            <args> .List </args>
+            <arg-vars> Vs:ValueIdList </arg-vars>
+            ...
+        </ckt>
+        requires size(toList(Vs)) >Int 0
+
     // set args
     rule <ckt>
-            <k> (L:List => .K) ~> #OutPortRef(Inst:String, _Index:Int) ... </k>
+            <k> (L:List => .K) ~> #OutPortRef(Inst:String, _:Int) ... </k>
+            ...
+        </ckt> 
+        <ckt>
+            <cid> Inst </cid>
+            <args> .List => L </args>
+            <arg-vars> _:ValueIdList </arg-vars>
+            ...
+        </ckt>
+    
+    rule <ckt>
+            <k> (L:List => .K) ~> #OutPortRef(Inst:String, _:Int, _:Int) ... </k>
             ...
         </ckt> 
         <ckt>
@@ -325,6 +277,7 @@ module COMMON
         </ckt>
 
 
+    // lookup outport
     rule <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
         <ckt>
             <cid> Inst </cid>
@@ -333,13 +286,13 @@ module COMMON
             ...
         </ckt>
 
-    // rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
-    //     <ckt>
-    //         <cid> Inst </cid>
-    //         <k> .K </k>
-    //         <out-ports> L:List </out-ports>
-    //         ...
-    //     </ckt>
+    rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
+        <ckt>
+            <cid> Inst </cid>
+            <k> .K </k>
+            <out-ports> L:List </out-ports>
+            ...
+        </ckt>
 
     // use new context, race risk?
     // rule <k> #ValueRef ( Inst:String , V:ValueId ) => #ValueRefLookup ~> Inst ... </k>
