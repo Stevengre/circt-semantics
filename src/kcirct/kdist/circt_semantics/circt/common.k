@@ -278,7 +278,10 @@ module COMMON
 
 
     // lookup outport
-    rule <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
+    rule <ckt>
+            <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
+            ...
+        </ckt> 
         <ckt>
             <cid> Inst </cid>
             <k> .K </k>
@@ -286,7 +289,10 @@ module COMMON
             ...
         </ckt>
 
-    rule <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
+    rule <ckt>
+            <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
+            ...
+        </ckt>
         <ckt>
             <cid> Inst </cid>
             <k> .K </k>
