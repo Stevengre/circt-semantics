@@ -37,6 +37,12 @@ module HW
         <out-names> _ => getModuleOutNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </out-names>
         <cmd> #bootstrap ... </cmd>
 
+    // todo, use Attr["field"]
+    rule <k> "hw.aggregate_constant" (.ValueIdList) {_Attr:Map} : (.Types) -> (T:HwArrayType)
+            => bits(0, getWidth(T)) : T
+            ...
+        </k>
+
     // hw.output
     rule <k> (.K => VL) ~> #HwOutput ... </k>
         <out-vars> VL:ValueIdList </out-vars>

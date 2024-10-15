@@ -12,13 +12,14 @@ module HW-ARRAY-SYNTAX
                       | "#HwArrayConcat"
 
     syntax Int ::= SizeX2Size(SizeX) [function]
-
     rule SizeX2Size(S:SizeX) => String2Int(substrString(SizeX2String(S), 0, lengthString(SizeX2String(S)) -Int 1))
 
     syntax String ::= "SizeX2String" "(" SizeX ")" [function, hook(STRING.token2string)]
     syntax Int ::= HwArraySize(HwArrayType) [function]
     rule HwArraySize(!hw.array < S:SizeX _:Type >)
         => String2Int(substrString(SizeX2String(S), 0, lengthString(SizeX2String(S)) -Int 1))
+
+    rule getWidth(!hw.array < S:SizeX T:Type >) => SizeX2Size(S) *Int getWidth(T)
 endmodule
 
 

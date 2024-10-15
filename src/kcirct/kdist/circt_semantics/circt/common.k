@@ -246,6 +246,9 @@ module COMMON
     rule <k> V:StdValue ~> #Cache ~> X:ValueId => V ... </k>
         <cache> M:Map => M [X <- V] </cache>
 
+    rule <k> L:List ~> #Cache ~> X:ValueId => L ... </k>
+        <cache> M:Map => M [X <- L] </cache>
+
 
     // lookup ValueId with index: %foo#0, %foo#1
     rule <k> X:ValueId => #ValueIdIndexLookup ~> ValueId2String(X) ~> findChar(ValueId2String(X), "#", 0) ... </k>
