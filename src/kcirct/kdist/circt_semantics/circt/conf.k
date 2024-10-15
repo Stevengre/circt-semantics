@@ -27,6 +27,7 @@ module CONF
                 <last> .Map </last>
                 <last-vars> .Set </last-vars>
                 <locals> .Map </locals>
+                <cache> .Map </cache>
                 <module> "" </module>
                 <in-names> .List </in-names>
                 <in-ports> .List  </in-ports>
