@@ -7,12 +7,12 @@ requires "./hw-instance.k"
 
 
 module HW-SYNTAX
-     imports HW-ARRAY-SYNTAX
-     imports HW-STRUCT-SYNTAX
-     imports HW-UNION-SYNTAX
-     imports HW-ENUM-SYNTAX
-     imports HW-MODTY-SYNTAX
-     imports HW-INSTANCE-SYNTAX
+    imports HW-ARRAY-SYNTAX
+    imports HW-STRUCT-SYNTAX
+    imports HW-UNION-SYNTAX
+    imports HW-ENUM-SYNTAX
+    imports HW-MODTY-SYNTAX
+    imports HW-INSTANCE-SYNTAX
 endmodule
 
 
@@ -36,5 +36,11 @@ module HW
         <in-names> _ => getModuleInNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </in-names>
         <out-names> _ => getModuleOutNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </out-names>
         <cmd> #bootstrap ... </cmd>
-endmodule
 
+    // hw.output
+    rule <k> (.K => VL) ~> #HwOutput ... </k>
+        <out-vars> VL:ValueIdList </out-vars>
+    
+    rule <k> L:List ~> #HwOutput => .K ... </k>
+        <out-ports> _ => L </out-ports>
+endmodule
