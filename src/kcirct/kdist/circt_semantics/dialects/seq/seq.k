@@ -12,6 +12,8 @@ module SEQ-SYNTAX
 
     syntax SeqClockType ::= "!seq.clock"
 
+    rule getWidth(_:SeqClockType) => 1
+
     syntax Type ::= SeqClockType
                   | SeqFirmemType
 
