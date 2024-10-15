@@ -19,6 +19,13 @@ module SEQ-FIRREM
         <last-vars> S:Set => S SetItem(Clk) </last-vars>
         <cmd> #bootstrap ... </cmd>
 
+    rule <k> X:ValueId = "seq.firmem.read_port" (Mem:ValueId, Addr:ValueId, Clk:ValueId) {_:Map} : (Ts:Types) -> (T:Type) => .K ... </k>
+        <always> L:List => L ListItem(X = "seq.firmem.read_port" (Mem, Addr, Clk) : (Ts) -> (T)) </always>
+        <locals> M:Map => M [ X <- bits(#x, getWidth(T)) : T ] </locals>
+        <last-vars> S:Set => S SetItem(Clk) </last-vars>
+        <cmd> #bootstrap ... </cmd>
+
+
     rule <k> X:ValueId = "seq.firmem.read_port" (Mem:ValueId, Addr:ValueId, Clk:ValueId) : ( _:Types ) -> ( _:Type )
             => Clk ~> M[Clk] orDefault "??? " +String str(Clk) ~> 0 ~> #EdgeCheck 
             ~> Addr ~> #SeqFirmemRead ~> Mem ~> X
