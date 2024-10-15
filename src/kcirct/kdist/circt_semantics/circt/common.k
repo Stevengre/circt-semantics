@@ -59,6 +59,7 @@ endmodule
 
 module COMMON-HELPER
     imports COMMON-SYNTAX
+    imports HW-MODTY-SYNTAX
 
     // Execute a CIRCT Command
     syntax CmdCIRCT ::= "#CIRCTpreprocess" // Do nothing, but just preprocess
@@ -75,6 +76,48 @@ module COMMON-HELPER
     syntax List ::= ValueRefListWrapper(ValueIdList, String) [function]
     rule ValueRefListWrapper(V:ValueId, VL:ValueIdList, Inst:String) => ListItem(#ValueRef(Inst, V)) ValueRefListWrapper(VL, Inst)
     rule ValueRefListWrapper(.ValueIdList, _:String) => .List
+
+    syntax StdValue ::= defaultOut(HwModty, Int) [function]
+    rule defaultOut(!hw.modty < output _Name:BareId : _T:Type , L:ModulePortList >, Idx:Int) => defaultOut(!hw.modty < L >, Idx -Int 1)requires Idx >Int 0
+    rule defaultOut(!hw.modty < output _Name:BareId : T:Type , _L:ModulePortList >, 0) => bits(0, getWidth(T)) : T
+    rule defaultOut(!hw.modty < input _:BareId : _:Type , L:ModulePortList >, Idx:Int) => defaultOut(!hw.modty < L >, Idx)
+
+    syntax StdValue ::= defaultIn(HwModty, Int) [function]
+    rule defaultIn(!hw.modty < input _Name:BareId : _T:Type , L:ModulePortList >, Idx:Int) => defaultIn(!hw.modty < L >, Idx -Int 1)requires Idx >Int 0
+    rule defaultIn(!hw.modty < input _Name:BareId : T:Type , _L:ModulePortList >, 0) => bits(0, getWidth(T)) : T
+    rule defaultIn(!hw.modty < output _:BareId : _:Type , L:ModulePortList >, Idx:Int) => defaultIn(!hw.modty < L >, Idx)
+
+
+    
+    syntax List ::= defaultOut(HwModty, Int, Int) [function]
+    rule defaultOut(!hw.modty < output _Name:BareId : _T:Type , L:ModulePortList >, Begin:Int, End:Int)
+        => defaultOut(!hw.modty < L >, Begin -Int 1, End -Int 1)
+        requires Begin >Int 0 andBool End >Int 0
+
+    rule defaultOut(!hw.modty < output _Name:BareId : T:Type , L:ModulePortList >, 0, End:Int) 
+        => ListItem(bits(0, getWidth(T)) : T) defaultOut(!hw.modty < L >, 0, End -Int 1)
+        requires End >Int 0
+    
+    rule defaultOut(_:HwModty, 0, 0) => .List
+    
+    rule defaultOut(!hw.modty < input _:BareId : _:Type , L:ModulePortList >, Begin:Int, End:Int) => defaultOut(!hw.modty < L >, Begin, End)
+
+
+    syntax List ::= defaultIn(HwModty, Int, Int) [function]
+    rule defaultIn(!hw.modty < input _Name:BareId : _T:Type , L:ModulePortList >, Begin:Int, End:Int)
+        => defaultIn(!hw.modty < L >, Begin -Int 1, End -Int 1)
+        requires Begin >Int 0 andBool End >Int 0
+
+    rule defaultIn(!hw.modty < input _Name:BareId : T:Type , L:ModulePortList >, 0, End:Int) 
+        => ListItem(bits(0, getWidth(T)) : T) defaultIn(!hw.modty < L >, 0, End -Int 1)
+        requires End >Int 0
+    
+    rule defaultIn(_:HwModty, 0, 0) => .List
+    rule defaultIn(!hw.modty < output _:BareId : _:Type , L:ModulePortList >, Begin:Int, End:Int) => defaultIn(!hw.modty < L >, Begin, End)
+    
+
+    syntax HwModty ::= getOpModty(Operation) [function]
+    rule getOpModty("hw.module" (_:ValueIdList) (_:Region) {Attr:Map} : (.Types) -> (.Types)) => {Attr["module_type"]}:>HwModty requires "module_type" in_keys(Attr)
 endmodule
 
 
@@ -193,10 +236,7 @@ module COMMON
 
 
     // lookup ValueId with index: %foo#0, %foo#1
-    rule <k> 
-            X:ValueId => #ValueIdIndexLookup ~> ValueId2String(X) ~> findChar(ValueId2String(X), "#", 0)
-            ... 
-        </k>
+    rule <k> X:ValueId => #ValueIdIndexLookup ~> ValueId2String(X) ~> findChar(ValueId2String(X), "#", 0) ... </k>
         requires findChar(ValueId2String(X), "#", 0) >Int -1
 
     rule <k> #ValueIdIndexLookup ~> S:String ~> Idx:Int
@@ -217,6 +257,12 @@ module COMMON
 
 
     // ---------- value ref -----------
+
+    rule <k> #ArgRef ( Idx:Int ) => defaultIn(getOpModty(Op), Idx) ... </k>
+        <module> Mod:String </module>
+        <table> ... Mod |-> Op:Operation ... </table>
+        [owise]
+
     // rule <k> #ArgRef ( Index:Int ) => Args[Index] ~> #ArgRef ( Index ) ... </k>
     //     <args> Args:List </args>
 
@@ -229,59 +275,84 @@ module COMMON
     //     <in-names> L:List </in-names>
 
     // lookup args
-    rule <ckt>
-            <k> #OutPortRef (Inst:String, Index:Int) => Vs ~> #OutPortRef(Inst, Index) ... </k>
-            ...
-        </ckt> 
-        <ckt>
-            <cid> Inst </cid>
-            <args> .List </args>
-            <arg-vars> Vs:ValueIdList </arg-vars>
-            ...
-        </ckt>
-        requires size(toList(Vs)) >Int 0
-
-    rule <ckt>
-            <k> #OutPortRef (Inst:String, Index:Int, End:Int) => Vs ~> #OutPortRef(Inst, Index, End) ... </k>
-            ...
-        </ckt> 
-        <ckt>
-            <cid> Inst </cid>
-            <args> .List </args>
-            <arg-vars> Vs:ValueIdList </arg-vars>
-            ...
-        </ckt>
-        requires size(toList(Vs)) >Int 0
-
-    // set args
-    rule <ckt>
-            <k> (L:List => .K) ~> #OutPortRef(Inst:String, _:Int) ... </k>
-            ...
-        </ckt> 
-        <ckt>
-            <cid> Inst </cid>
-            <args> .List => L </args>
-            <arg-vars> _:ValueIdList </arg-vars>
-            ...
-        </ckt>
+    // rule <ckt>
+    //         <k> #OutPortRef (Inst:String, Index:Int) => Vs ~> #OutPortRef(Inst, Index) ... </k>
+    //         ...
+    //     </ckt> 
+    //     <ckt>
+    //         <cid> Inst </cid>
+    //         <args> .List </args>
+    //         <arg-vars> Vs:ValueIdList </arg-vars>
+    //         ...
+    //     </ckt>
+    //     requires size(toList(Vs)) >Int 0
     
     rule <ckt>
-            <k> (L:List => .K) ~> #OutPortRef(Inst:String, _:Int, _:Int) ... </k>
+            <k> #OutPortRef (Inst:String, Idx:Int) => defaultOut(getOpModty(Op), Idx)  ... </k>
             ...
         </ckt> 
         <ckt>
             <cid> Inst </cid>
-            <args> .List => L </args>
-            <arg-vars> _:ValueIdList </arg-vars>
+            <module> Mod:String </module>
             ...
         </ckt>
+        <table> ... Mod |-> Op:Operation ... </table>
+        [owise]
 
 
-    // lookup outport
+    // rule <ckt>
+    //         <k> #OutPortRef (Inst:String, Index:Int, End:Int) => Vs ~> #OutPortRef(Inst, Index, End) ... </k>
+    //         ...
+    //     </ckt> 
+    //     <ckt>
+    //         <cid> Inst </cid>
+    //         <args> .List </args>
+    //         <arg-vars> Vs:ValueIdList </arg-vars>
+    //         ...
+    //     </ckt>
+    //     requires size(toList(Vs)) >Int 0
+
+    rule <ckt>
+            <k> #OutPortRef (Inst:String, Begin:Int, End:Int) => defaultOut(getOpModty(Op), Begin, End) ... </k>
+            ...
+        </ckt> 
+        <ckt>
+            <cid> Inst </cid>
+            <module> Mod:String </module>
+            ...
+        </ckt>
+        <table> ... Mod |-> Op:Operation ... </table>
+        [owise]
+
+    // set args
+    // rule <ckt>
+    //         <k> (L:List => .K) ~> #OutPortRef(Inst:String, _:Int) ... </k>
+    //         ...
+    //     </ckt> 
+    //     <ckt>
+    //         <cid> Inst </cid>
+    //         <args> .List => L </args>
+    //         <arg-vars> _:ValueIdList </arg-vars>
+    //         ...
+    //     </ckt>
+    
+    // rule <ckt>
+    //         <k> (L:List => .K) ~> #OutPortRef(Inst:String, _:Int, _:Int) ... </k>
+    //         ...
+    //     </ckt> 
+    //     <ckt>
+    //         <cid> Inst </cid>
+    //         <args> .List => L </args>
+    //         <arg-vars> _:ValueIdList </arg-vars>
+    //         ...
+    //     </ckt>
+
+
+    // lookup outport, by index
     rule <ckt>
             <k> #OutPortRef ( Inst:String , Index:Int ) => L[Index] ... </k>
             ...
-        </ckt> 
+        </ckt>
         <ckt>
             <cid> Inst </cid>
             <k> .K </k>
@@ -289,6 +360,7 @@ module COMMON
             ...
         </ckt>
 
+    // lookup outport, by range
     rule <ckt>
             <k> #OutPortRef ( Inst:String , Begin:Int, End:Int) => range(L, Begin, size(L) -Int End) ... </k>
             ...
@@ -322,3 +394,4 @@ module COMMON
 
 
 endmodule
+
