@@ -6,6 +6,7 @@ It does not include:
 
 from __future__ import annotations
 
+import resource
 import subprocess
 import sys
 import time
@@ -34,8 +35,10 @@ TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'
 OPT_KOMPILE_DIR = WORKING_DIR / 'opt-kompiled'
 
-sys.setrecursionlimit(200000)
+sys.setrecursionlimit(2000000000)
 
+soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
 
 class KCIRCT:
     working_dir: Path
@@ -59,7 +62,7 @@ class KCIRCT:
         self._use_opt = use_opt
         self.definition_dir = OPT_KOMPILE_DIR if use_opt else KOMPILE_DIR
         self._kprint = KPrint(definition_dir=self.definition_dir)
-        
+
     def ensure_env(self):
         if self.definition_dir.exists():
             print('Kompiled directory exists.')
@@ -379,7 +382,8 @@ class KCIRCT:
         if match_str in input_str:
             return input_str.replace(match_str, replace_str, 1)
         else:
-            raise ValueError(f"Input file: {input_file} does not finished preprocess. \n\
+            raise ValueError(
+                f"Input file: {input_file} does not finished preprocess. \n\
                         Please check the pretty print of the input file: {input_file.parent / (input_file.name + '.pretty')}"
             )
 
@@ -388,8 +392,10 @@ class KCIRCT:
         if match_str in input_str:
             return input_str.replace(match_str, replace_str, 1)
         else:
-            raise ValueError(f"Input string does not finished preprocess. \n\
-                        Please check the pretty print of the input string.")
+            raise ValueError(
+                f"Input string does not finished preprocess. \n\
+                        Please check the pretty print of the input string."
+            )
 
     def run_setup_fast(self, input_file: Path, output_file: Path, top_module: str) -> None:
         """Run the setup step on Kore.
@@ -400,7 +406,7 @@ class KCIRCT:
 
         match = """(kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'phaseStop'Unds'MLIR-CONF'Unds'PhaseControl{}()),kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'toStimulate'Unds'MLIR-CONF'Unds'PhaseControl{}()),dotk{}())))"""
         rewrite = """(kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'toStimulate'Unds'MLIR-CONF'Unds'PhaseControl{}()),dotk{}()))"""
-        
+
         match_entry = """Lbl'-LT-'entry'-GT-'{}(\dv{SortString{}}("")"""
         rewrite_entry = """Lbl'-LT-'entry'-GT-'{}(\dv{SortString{}}("{top_module}")"""
         rewrite_entry = rewrite_entry.replace("{top_module}", top_module)
@@ -423,7 +429,7 @@ class KCIRCT:
         rewrite_1 = """Lbl'-LT-'cmd'-GT-'{}("""
         match_2 = """,dotk{}())))),Lbl'-LT-'entry'-GT-'"""
         rewrite_2 = """,dotk{}()))),Lbl'-LT-'entry'-GT-'"""
-        
+
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
         rewritten_pattern = self._kore_replace(input_file, match_1, rewrite_1)
         rewritten_pattern = self._kore_str_replace(rewritten_pattern, match_2, rewrite_2)
@@ -431,7 +437,7 @@ class KCIRCT:
             file.write(rewritten_pattern)
         self.krun_fast(input_file=rewritten_file, output_file=output_file)
         return
-    
+
     def _rewrite_cell(self, input_str: str, start_cell: str, end_cell: str, rewrite_str: str) -> str:
         """Rewrite the cell in the input string."""
         # 定义要删除的标签
@@ -449,46 +455,42 @@ class KCIRCT:
 
             # 构建新的字符串
             modified_string = (
-                input_str[:start_index + len(start_label)] +  # 保留开始标签
-                rewrite_str +  # 插入新的字符串
-                input_str[end_index - len(end_label):]  # 保留结束标签后的内容
+                input_str[: start_index + len(start_label)]  # 保留开始标签
+                + rewrite_str  # 插入新的字符串
+                + input_str[end_index - len(end_label) :]  # 保留结束标签后的内容
             )
             return modified_string
         else:
             return input_str  # 如果标签不存在，返回原始字符串
-        
-    
-    def run_simulate_fast(self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]]) -> None:
+
+    def run_simulate_fast(self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]], depth: int | None = None) -> None:
         """Run the simulate step on Kore.
 
         This is the fourth step in the CIRCT Semantics pipeline.
         phase = "simulate"
         """
-        
-        
+
         rewrite = """{}(kseq{}(inj{SortCmdCIRCT{}, SortKItem{}}(Lbl'Hash'always'Unds'COMMON-SYNTAX'Unds'CmdCIRCT{}()),dotk{}())),"""
-        
+
         with open(input_file, 'r') as file:
             input_str = file.read()
         rewritten_pattern = self._rewrite_cell(input_str, 'cmd', 'entry', rewrite)
-        
+
         input_pattern = self.kore_input(inputs)
         input_pattern_file = output_file.parent / (output_file.name + '.input_pattern')
         with open(input_pattern_file, 'w') as file:
             input_pattern.write(file)
         with open(input_pattern_file, 'r') as file:
             input_pattern_str = file.read()
-        
+
         rewritten_pattern = self._rewrite_cell(rewritten_pattern, 'input', 'clock', "{}(" + input_pattern_str + "),")
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
         with open(rewritten_file, 'w') as file:
             file.write(rewritten_pattern)
-            
-        self.krun_fast(input_file=rewritten_file, output_file=output_file)
+
+        self.krun_fast(input_file=rewritten_file, output_file=output_file, depth=depth)
         return
 
-    
-    
     # -------------------------------------------------------------------------------------------------
     # Backup APIs
     # -------------------------------------------------------------------------------------------------

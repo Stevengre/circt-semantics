@@ -50,7 +50,9 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     kcirct.write_pretty(mlir_file.parent / f'simulated.{time}.kore', mlir_file.parent / f'simulated.{time}.pretty')
     for input in inputs[1:]:
         time += 1
-        kcirct.run_simulate_fast(mlir_file.parent / f'simulated.{time-1}.kore', mlir_file.parent / f'simulated.{time}.kore', input)
+        kcirct.run_simulate_fast(
+            mlir_file.parent / f'simulated.{time-1}.kore', mlir_file.parent / f'simulated.{time}.kore', input
+        )
         kcirct.write_pretty(mlir_file.parent / f'simulated.{time}.kore', mlir_file.parent / f'simulated.{time}.pretty')
     print()
 

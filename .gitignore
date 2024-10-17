@@ -17,3 +17,5 @@ dist/
 src/kcirct/kdist/circt_semantics/*.mlir
 src/kcirct/workingdir/kompiled
 nohup.out
+*.log
+tmp.*
