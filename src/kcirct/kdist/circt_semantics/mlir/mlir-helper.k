@@ -1,4 +1,4 @@
-requires "./mlir-syntax.k"
+requires "./mlir-syntax.md"
 
 module MLIR-HELPER-SYNTAX
 endmodule

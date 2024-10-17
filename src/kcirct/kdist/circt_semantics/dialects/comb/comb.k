@@ -1,8 +1,7 @@
 requires "../../circt/circt.k"
 
-module COMB-SYNTAX
-    imports CIRCT-SYNTAX
-
+module COMB-HELPER
+    imports COMB-SYNTAX
     syntax KmdCIRCT ::= "#CombAdd"
                       | "#CombAnd"
                       | "#CombOr"
@@ -22,11 +21,6 @@ module COMB-SYNTAX
                       | "#CombParity"
                       | "#CombMux"
                       | "#CombIcmp"
-endmodule
-
-
-module COMB-HELPER
-    imports COMB-SYNTAX
 
     syntax Bool ::= icmp(Int, Int, Int) [function]
                   | icmp(Int, Bits, Bits) [function]

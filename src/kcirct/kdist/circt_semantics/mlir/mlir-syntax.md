@@ -1,10 +1,12 @@
 # MLIR Syntax
 
 ```k
+requires "builtin.md"
+
 module MLIR-SYNTAX
 imports STRING-SYNTAX
 imports INT-SYNTAX
-imports MAP-SYNTAX
+imports BUILTIN-SYNTAX
 ```
 
 ## Top Level Productions  
@@ -34,22 +36,22 @@ syntax OpResult ::= ValueId | ValueId ":" Int
 SuccessorList, DictionaryProperties, RegionList, DictionaryAttribute are optional.
 ```k    
 syntax GenericOperation ::= 
-  StringLiteral "(" ValueIdList ")" ":" FunctionType // 0000
-| StringLiteral "(" ValueIdList ")" DictionaryAttribute ":" FunctionType // 0001
-| StringLiteral "(" ValueIdList ")" RegionList ":" FunctionType // 0010
-| StringLiteral "(" ValueIdList ")" DictionaryProperties ":" FunctionType // 0100
-| StringLiteral "(" ValueIdList ")" SuccessorList ":" FunctionType // 1000
-| StringLiteral "(" ValueIdList ")" RegionList DictionaryAttribute ":" FunctionType // 0011
-| StringLiteral "(" ValueIdList ")" DictionaryProperties DictionaryAttribute ":" FunctionType // 0101
-| StringLiteral "(" ValueIdList ")" SuccessorList DictionaryAttribute ":" FunctionType // 1001
-| StringLiteral "(" ValueIdList ")" DictionaryProperties RegionList ":" FunctionType // 0110
-| StringLiteral "(" ValueIdList ")" SuccessorList RegionList ":" FunctionType // 1010
-| StringLiteral "(" ValueIdList ")" SuccessorList DictionaryProperties ":" FunctionType // 1100
-| StringLiteral "(" ValueIdList ")" DictionaryProperties RegionList DictionaryAttribute ":" FunctionType // 0111
-| StringLiteral "(" ValueIdList ")" SuccessorList RegionList DictionaryAttribute ":" FunctionType // 1011
-| StringLiteral "(" ValueIdList ")" SuccessorList DictionaryProperties DictionaryAttribute ":" FunctionType // 1101
-| StringLiteral "(" ValueIdList ")" SuccessorList DictionaryProperties RegionList ":" FunctionType // 1110
-| StringLiteral "(" ValueIdList ")" SuccessorList DictionaryProperties RegionList DictionaryAttribute ":" FunctionType // 1111
+  String "(" ValueIdList ")" ":" FunctionType // 0000
+| String "(" ValueIdList ")" DictionaryAttribute ":" FunctionType // 0001
+| String "(" ValueIdList ")" RegionList ":" FunctionType // 0010
+| String "(" ValueIdList ")" DictionaryProperties ":" FunctionType // 0100
+| String "(" ValueIdList ")" SuccessorList ":" FunctionType // 1000
+| String "(" ValueIdList ")" RegionList DictionaryAttribute ":" FunctionType // 0011
+| String "(" ValueIdList ")" DictionaryProperties DictionaryAttribute ":" FunctionType // 0101
+| String "(" ValueIdList ")" SuccessorList DictionaryAttribute ":" FunctionType // 1001
+| String "(" ValueIdList ")" DictionaryProperties RegionList ":" FunctionType // 0110
+| String "(" ValueIdList ")" SuccessorList RegionList ":" FunctionType // 1010
+| String "(" ValueIdList ")" SuccessorList DictionaryProperties ":" FunctionType // 1100
+| String "(" ValueIdList ")" DictionaryProperties RegionList DictionaryAttribute ":" FunctionType // 0111
+| String "(" ValueIdList ")" SuccessorList RegionList DictionaryAttribute ":" FunctionType // 1011
+| String "(" ValueIdList ")" SuccessorList DictionaryProperties DictionaryAttribute ":" FunctionType // 1101
+| String "(" ValueIdList ")" SuccessorList DictionaryProperties RegionList ":" FunctionType // 1110
+| String "(" ValueIdList ")" SuccessorList DictionaryProperties RegionList DictionaryAttribute ":" FunctionType // 1111
 ```
 
 #### SuccessorList
@@ -57,7 +59,7 @@ syntax GenericOperation ::=
 ```k
 syntax SuccessorList ::= "[" Successors "]"
 syntax Successors ::= List{Successor, ","}
-syntax Successor ::= CaretId ":" BlockArgList
+syntax Successor ::= CaretId ":" "(" ValueIdAndTypeList ")"
 ```
 
 #### DictionaryProperties
@@ -84,7 +86,7 @@ syntax BlockLabel ::= CaretId ":" | CaretId "(" ValueIdAndTypeList ")" ":"
 syntax DictionaryAttribute ::= "{" AttributeEntryList "}"
 syntax AttributeEntryList ::= List{AttributeEntry, ","}
 syntax AttributeEntry ::= BareId "=" AttributeValue
-                        | StringLiteral "=" AttributeValue
+                        | String "=" AttributeValue
                         | BareId
 ```
 
@@ -102,18 +104,15 @@ syntax TypeAliasDef ::= TypeAlias "=" Type
 syntax Type ::= TypeAlias
 syntax Types ::= List{Type, ","}
 syntax FunctionType ::= "(" Types ")" "->" "(" Types ")" // [prefer]
-                        | Type "->" "(" Types ")"
-                        | "(" Types ")" "->" Type
-                        | Type "->" Type
+                      | Type "->" "(" Types ")"
+                      | "(" Types ")" "->" Type
+                      | Type "->" Type
 syntax Type ::= FunctionType
 ```
 
 ## Tokens
 
 ```k
-syntax IntegerLiteral       ::= DecimalLiteral
-syntax DecimalLiteral       ::= Int
-syntax StringLiteral        ::= String
 syntax BareId           ::= r"[a-zA-Z_][a-zA-Z0-9_$\\.]*" [token]
 syntax BareIdList       ::= List{BareId, ","}
 syntax ValueId          ::= r"%[a-zA-Z0-9$\\._\\-]+(#[0-9]+)?" [token] // indeed, value-use
@@ -127,6 +126,7 @@ syntax BareIdAndTypeList ::= List{BareIdAndType, ","}
 syntax BareIdAndType ::= BareId ":" Type
 syntax ValueIdAndTypeList ::= List{ValueIdAndType, ","}
 syntax ValueIdAndType ::= ValueId ":" Type
+syntax AttributeValue ::= SymbolRefId 
 ```
 
 ```k

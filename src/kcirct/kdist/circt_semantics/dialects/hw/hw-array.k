@@ -1,10 +1,5 @@
-requires "../../circt/circt.k"
-
-module HW-ARRAY-SYNTAX
-    imports CIRCT-SYNTAX
-
-    syntax HwArrayType ::= "!hw.array" "<" SizeX Type ">"
-    syntax Type ::= HwArrayType
+module HW-ARRAY
+    imports HW-ARRAY-SYNTAX
 
     syntax KmdCIRCT ::= "#HwArrayGet"
                       | "#HwArrayCreate"
@@ -19,12 +14,6 @@ module HW-ARRAY-SYNTAX
     syntax Int ::= HwArraySize(HwArrayType) [function]
     rule HwArraySize(!hw.array < S:SizeX _:Type >)
         => String2Int(substrString(SizeX2String(S), 0, lengthString(SizeX2String(S)) -Int 1))
-endmodule
-
-
-module HW-ARRAY
-    imports HW-ARRAY-SYNTAX
-
     // syntax HwArray ::= "[" Values "]"
     // syntax Value ::= HwArray
 

@@ -1,10 +1,14 @@
 module HW-UNION-SYNTAX
-    imports CIRCT-SYNTAX
-    imports HW-STRUCT-SYNTAX
+    imports MLIR-SYNTAX
 
-     
-    syntax HwUnionType ::= "!hw.union" "<" StructFields ">"
+    syntax HwUnionType ::= "!hw.union" "<" BareIdAndTypeList ">"
     syntax Type ::= HwUnionType
+endmodule
+
+
+module HW-UNION
+    imports HW-UNION-SYNTAX
+
 
     // syntax HwUnion ::= "hw.union" "(" Int "," HwUnionType ")"
     // syntax HwUnion ::= Int
@@ -16,11 +20,6 @@ module HW-UNION-SYNTAX
 
     syntax KmdCIRCT ::= "#HwUnionExtract"
                       | "#HwUnionCreate"
-endmodule
-
-
-module HW-UNION
-    imports HW-UNION-SYNTAX
 
     rule <k> 
             "hw.union_extract" ( V:ValueId ) { Attr:Map } : ( _:HwUnionType ) -> ( T:Type )

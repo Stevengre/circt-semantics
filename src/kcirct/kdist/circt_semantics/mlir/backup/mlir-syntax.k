@@ -4,7 +4,7 @@ module MLIR-SYNTAX
     imports MAP-SYNTAX
     
     // -- Common Syntax --
-    syntax IntegerLiteral       ::= DecimalLiteral | sHexaDecimalLiteral
+    syntax IntegerLiteral       ::= DecimalLiteral | HexaDecimalLiteral
     syntax HexaDecimalLiteral ::= r"0x[0-9a-fA-F]+" [prefer,token,prec(2)]
     syntax FloatLiteral ::= r"[\\+\\-]?[0-9]+\\.[0-9]*([eE][\\+\\-]?[0-9]+)?" [token,prec(1)]
     syntax DecimalLiteral       ::= Int
