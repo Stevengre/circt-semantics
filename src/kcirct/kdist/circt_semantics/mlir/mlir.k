@@ -1,7 +1,7 @@
-requires "./builtin.k"
+requires "./builtin.md"
 requires "./mlir-helper.k"
 requires "./mlir-conf.k"
-requires "./mlir-syntax.k"
+requires "./mlir-syntax.md"
 
 
 module MLIR-PREPROCESS

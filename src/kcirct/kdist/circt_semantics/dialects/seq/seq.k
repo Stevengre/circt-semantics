@@ -4,7 +4,7 @@ requires "./seq-firmem.k"
 
 
 module SEQ-SYNTAX
-    imports CIRCT-SYNTAX
+    imports MLIR-SYNTAX
 
     // syntax DialectType ::= SEQFirmemType | SEQClockType
     syntax SeqFirmemType ::= "!seq.firmem" "<" Int "x" Int ">"
@@ -20,12 +20,6 @@ module SEQ-SYNTAX
                        | "seq.firreg" "(" ValueId ")"
     
     syntax Value ::= SeqFirreg
-
-    syntax KmdCIRCT ::= "#SeqFirreg"
-                      | "#SeqFirmemRead"
-                      | "#SeqFirmemWrite"
-                      | "#SeqFirmemReadWrite"
-
 endmodule
 
 
@@ -34,6 +28,11 @@ module SEQ
     imports SEQ-FIRREG
     imports SEQ-FIRREM
     
+    syntax KmdCIRCT ::= "#SeqFirreg"
+                      | "#SeqFirmemRead"
+                      | "#SeqFirmemWrite"
+                      | "#SeqFirmemReadWrite"
+
     // seq.from_clock
     rule <k> "seq.from_clock" ( X:ValueId ) : ( !seq.clock ) -> ( i1 ) => X ... </k>
 endmodule

@@ -1,7 +1,5 @@
-requires "../../circt/circt.k"
-
 module HW-MODTY-SYNTAX
-    imports CIRCT-SYNTAX
+    imports MLIR-SYNTAX
 
     syntax HwModty ::= "!hw.modty" "<" ModulePortList ">"
     
@@ -9,7 +7,7 @@ module HW-MODTY-SYNTAX
     syntax ModulePort ::= "input" BareIdAndType
                         | "output" BareIdAndType
 
-    syntax DialectType ::= HwModty
+    syntax Type ::= HwModty
 endmodule
 
 

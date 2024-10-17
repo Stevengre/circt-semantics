@@ -1,12 +1,14 @@
 module HW-STRUCT-SYNTAX
-    imports CIRCT-SYNTAX
-    // imports BITS
+    imports MLIR-SYNTAX
 
-    syntax HwStructType ::= "!hw.struct" "<" StructFields ">"
-    syntax StructFields ::= List{StructField, ","}
-    syntax StructField ::= BareId ":" Type
-
+    syntax HwStructType ::= "!hw.struct" "<" BareIdAndTypeList ">"
     syntax Type ::= HwStructType
+
+endmodule
+
+module HW-STRUCT
+    imports HW-STRUCT-SYNTAX
+
 
     // syntax HwStruct ::= Map
     // syntax Value ::= HwStruct
@@ -52,10 +54,6 @@ module HW-STRUCT-SYNTAX
     syntax List ::= ListBits2StdValue(List, Types) [function]
     rule ListBits2StdValue(ListItem(B:Bits) L:List, T:Type, Ts:Types) => ListItem(B : T) ListBits2StdValue(L, Ts)
     rule ListBits2StdValue(.List, .Types) => .List
-endmodule
-
-module HW-STRUCT
-    imports HW-STRUCT-SYNTAX
 
 
     rule <k> 

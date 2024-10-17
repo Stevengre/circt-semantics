@@ -1,8 +1,8 @@
-requires "./hw-modty.k"
-requires "./hw-array.k"
-requires "./hw-struct.k"
-requires "./hw-union.k"
-requires "./hw-enum.k"
+requires "hw-modty.k"
+requires "hw-array.k"
+requires "hw-struct.k"
+requires "hw-union.k"
+requires "hw-enum.k"
 
 
 module HW-SYNTAX
@@ -20,6 +20,9 @@ module HW
     imports HW-UNION
     imports HW-ENUM
     imports HW-MODTY
+    
+    syntax HwInOut ::= "hw.inout" "(" String "," Type "," AttributeValue ")"
+    syntax AttributeValue ::= HwInOut
 
     rule <k> X:ValueId = "hw.constant" ( .ValueIdList ) { Attr:Map } : ( .Types ) -> ( T:Type ) => .K ... </k>
         <locals> Locals:Map => Locals [X <- AV2StdValue({Attr["value"]}:>AttributeValue, T)] </locals>

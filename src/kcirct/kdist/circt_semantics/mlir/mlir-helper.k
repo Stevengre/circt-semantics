@@ -1,11 +1,19 @@
-requires "./mlir-syntax.k"
+requires "./mlir-syntax.md"
+
+module MLIR-HELPER-SYNTAX
+endmodule
 
 module MLIR-HELPER
     imports MLIR-SYNTAX
     imports MAP
     imports LIST
     imports K-EQUAL
-    
+    syntax AttrMap ::= "{" Map "}"
+    syntax GenericOperation ::= 
+          StringLiteral "(" ValueIdList ")" AttrMap ":" FunctionType
+        | StringLiteral "(" ValueIdList ")" RegionList AttrMap ":" FunctionType
+        | StringLiteral "(" ValueIdList ")" SuccessorList AttrMap ":" FunctionType
+        | StringLiteral "(" ValueIdList ")" SuccessorList RegionList AttrMap ":" FunctionType
     // Get Attribute Value
     // syntax AttributeValue ::= getAttr(Operation, String) [function]
     // rule getAttr(_ = _ (_) [_:Successors] <{_:Map}> (_:Regions) {AL2:Map} : _, BID) => {AL2[BID] orDefault #undefined}:>AttributeValue
@@ -217,7 +225,11 @@ module MLIR-HELPER
     rule attrEntryList2Map(N:BareId = V:AttributeValue, AEs:AttributeEntryList) => attrEntryList2Map(AEs) [ BareId2String(N) <- V ]
     rule attrEntryList2Map(N:String = V:AttributeValue, AEs:AttributeEntryList) => attrEntryList2Map(AEs) [ N <- V ]
     rule attrEntryList2Map(N:BareId, AEs:AttributeEntryList) => attrEntryList2Map(AEs) [N <- ""]
+    syntax AttributeValue ::= AttributeValueHelper
+    syntax AttributeValueHelper ::= "#undefined" | StringLiteral
 
+    syntax None ::= "#None" [token]
+    
     // ------------ standardize ------------
     
     syntax Operation ::= stdizeOp(Operation) [function]

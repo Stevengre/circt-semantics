@@ -1,5 +1,5 @@
 module HW-ENUM-SYNTAX
-    imports CIRCT-SYNTAX
+    imports MLIR-SYNTAX
 
     syntax HwEnumType ::= "!hw.enum" "<" HwEnumItems ">"
                         | "enum" "<" HwEnumItems ">"
@@ -12,7 +12,12 @@ module HW-ENUM-SYNTAX
     syntax HwEnumField ::= "#hw.enum.field" "<" HwEnumItem "," HwEnumType ">"
     syntax AttributeValue ::= HwEnumField
 
-    
+endmodule
+
+
+module HW-ENUM
+    imports HW-ENUM-SYNTAX
+        
     // syntax HwEnum ::= "hw.enum" "(" HwEnumItem "," HwEnumType ")"
     // syntax Value ::= HwEnum
 
@@ -31,11 +36,8 @@ module HW-ENUM-SYNTAX
 
     rule getEnumSize(!hw.enum < _:HwEnumItem, Xs:HwEnumItems >) => 1 +Int getEnumSize(!hw.enum < Xs >)
     rule getEnumSize(!hw.enum < .HwEnumItems >) => 0
-endmodule
 
 
-module HW-ENUM
-    imports HW-ENUM-SYNTAX
 
     rule <k> "hw.enum.cmp" ( Vs:ValueIdList ) : ( ET:HwEnumType, ET:HwEnumType ) -> ( #token("i1", "SignlessIntegerType") )
             => Vs ~> #HwEnumCmp ~> ET

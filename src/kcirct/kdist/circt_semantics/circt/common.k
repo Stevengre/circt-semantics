@@ -1,5 +1,5 @@
 requires "../mlir/mlir.k"
-requires "../mlir/builtin.k"
+requires "../mlir/builtin.md"
 requires "./bits.k"
 requires "./stdvalue.k"
 requires "./conf.k"
