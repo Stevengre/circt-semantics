@@ -6,6 +6,7 @@ It does not include:
 
 from __future__ import annotations
 
+import resource
 import subprocess
 import sys
 import time
@@ -34,8 +35,10 @@ TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'
 OPT_KOMPILE_DIR = WORKING_DIR / 'opt-kompiled'
 
-sys.setrecursionlimit(200000)
+sys.setrecursionlimit(2000000000)
 
+soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
 
 class KCIRCT:
     working_dir: Path
@@ -460,7 +463,7 @@ class KCIRCT:
         else:
             return input_str  # 如果标签不存在，返回原始字符串
 
-    def run_simulate_fast(self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]]) -> None:
+    def run_simulate_fast(self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]], depth: int | None = None) -> None:
         """Run the simulate step on Kore.
 
         This is the fourth step in the CIRCT Semantics pipeline.
@@ -485,7 +488,7 @@ class KCIRCT:
         with open(rewritten_file, 'w') as file:
             file.write(rewritten_pattern)
 
-        self.krun_fast(input_file=rewritten_file, output_file=output_file)
+        self.krun_fast(input_file=rewritten_file, output_file=output_file, depth=depth)
         return
 
     # -------------------------------------------------------------------------------------------------
