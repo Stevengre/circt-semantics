@@ -94,14 +94,14 @@ module BUILTIN
 
 ## IntegerType Helpers
 
-```
+```k
 syntax Int ::= getWidth (IntegerType) [function]
 rule getWidth (T:SignedIntegerType) => String2Int(substrString(IntegerType2String(T), 2, lengthString(IntegerType2String(T))))
 rule getWidth (T:UnsignedIntegerType) => String2Int(substrString(IntegerType2String(T), 2, lengthString(IntegerType2String(T))))
 rule getWidth (T:SignlessIntegerType) => String2Int(substrString(IntegerType2String(T), 1, lengthString(IntegerType2String(T))))
 ```
 
-```
+```k
 syntax String ::= SignedIntegerType2String (SignedIntegerType) [function, total,hook(STRING.token2string)]
 syntax String ::= UnsignedType2String (UnsignedIntegerType) [function, total,hook(STRING.token2string)]
 syntax String ::= SignlessIntegerType2String (SignlessIntegerType) [function, total,hook(STRING.token2string)]

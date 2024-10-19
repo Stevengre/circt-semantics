@@ -27,3 +27,7 @@ debug-run-rocket:
 build-test-syntax:
 	rm -rf test-syntax-kompiled
 	kompile test-syntax.k --gen-bison-parser --bison-stack-max-depth 1000000000 -o test-syntax-kompiled/
+
+build-test-preprocess:
+	rm -rf test-preprocess-kompiled
+	kompile test-preprocess.k --gen-bison-parser --bison-stack-max-depth 1000000000 -o test-preprocess-kompiled/
