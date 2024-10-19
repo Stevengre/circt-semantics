@@ -77,7 +77,8 @@ syntax Region ::= "{" Operations Blocks "}"
 syntax Operations ::= List{Operation, ""}
 syntax Blocks ::= List{Block, ""}
 syntax Block ::= BlockLabel Operations
-syntax BlockLabel ::= CaretId ":" | CaretId "(" ValueIdAndTypeList ")" ":"
+syntax BlockLabel ::= CaretId ":" | StdBlockLabel
+syntax StdBlockLabel ::= CaretId "(" ValueIdAndTypeList ")" ":"
 ```
 
 #### DictionaryAttribute
@@ -103,10 +104,11 @@ syntax AttributeValue ::= AttributeAlias
 syntax TypeAliasDef ::= TypeAlias "=" Type
 syntax Type ::= TypeAlias
 syntax Types ::= List{Type, ","}
-syntax FunctionType ::= "(" Types ")" "->" "(" Types ")" // [prefer]
+syntax FunctionType ::= StdFT // [prefer]
                       | Type "->" "(" Types ")"
                       | "(" Types ")" "->" Type
                       | Type "->" Type
+syntax StdFT ::= "(" Types ")" "->" "(" Types ")"
 syntax Type ::= FunctionType
 ```
 
