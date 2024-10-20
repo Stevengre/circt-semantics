@@ -3,10 +3,10 @@
 # MLIR Semantic Rules
 
 ```k
-requires "mlir-conf.md"
+requires "mlir-config.md"
 requires "mlir-helper.md"
 module MLIR
-imports MLIR-CONF
+imports MLIR-CONFIG
 imports MLIR-HELPER
 imports LIST
 imports BOOL

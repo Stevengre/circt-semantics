@@ -1,4 +1,4 @@
-HW Dialect extends the MLIR syntax for its types and attribute values.
+HW Dialect extends the MLIR syntaxs for its types and attribute values.
 
 ```k
 requires "../../mlir/mlir-syntax.md"

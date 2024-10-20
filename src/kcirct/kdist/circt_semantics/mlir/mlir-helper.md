@@ -19,11 +19,12 @@ imports LIST
 - StdOp: 
     - Standardized Operation only has two formats. with or without region.
     - It integrates `DictionaryProperties` and `DictionaryAttribute` into the one accessible `Map`, assuming no duplicate keys.
+- List: List of Strings
 
 ```k
-syntax StdOpL ::= ValueIdList "=" StdOp | StdOp
-syntax StdOp ::= String "(" ValueIdList ")" "{" Map "}" ":" StdFT
-               | String "(" ValueIdList ")" "{" Map "}" SuccessorList "(" StdRegions ")" ":" StdFT
+syntax StdOpL ::= List "=" StdOp | StdOp
+syntax StdOp ::= String "(" List ")" "{" Map "}" ":" StdFT
+               | String "(" List ")" "{" Map "}" SuccessorList "(" StdRegions ")" ":" StdFT
 syntax StdRegions ::= List{StdRegion, ","}
 syntax StdRegion ::= "{" StdBlocks "}"
 syntax StdBlocks ::= List{StdBlock, ""}
@@ -56,23 +57,15 @@ rule stdizeOp(Op:GenericOperation) => stdizeGenericOp(Op)
 ### Standardize OpResults
 
 ```k
-syntax ValueIdList ::= stdizeORs(OpResults) [function]
-syntax ValueIdList ::= stdizeORs ( OpResults ) [function]
-rule stdizeORs( Rs:OpResults) => List2ValueIdList(OpResults2List(Rs))
-
-syntax ValueIdList ::= List2ValueIdList ( List ) [function]
-rule List2ValueIdList( ListItem(V:ValueId) L:List ) => V, List2ValueIdList(L)
-rule List2ValueIdList(.List) => .ValueIdList
-
-syntax List ::= OpResults2List ( OpResults ) [function]
-rule OpResults2List( VID:ValueId, Rs:OpResults ) => ListItem(VID) OpResults2List(Rs)
-rule OpResults2List( VID:ValueId : I, Rs:OpResults ) 
-    => OpResults2List(VID : I -Int 1, .OpResults) 
-        ListItem(String2ValueId(ValueId2String(VID) +String "#" +String Int2String(I -Int 1))) 
-        OpResults2List(Rs)
-        requires I >Int 0
-rule OpResults2List( _:ValueId : 0, .OpResults ) => .List
-rule OpResults2List( .OpResults ) => .List
+syntax List ::= stdizeORs ( OpResults ) [function]
+rule stdizeORs( VID:ValueId, Rs:OpResults ) => ListItem(ValueId2String(VID)) stdizeORs(Rs)
+rule stdizeORs( VID:ValueId : I, Rs:OpResults ) 
+    => stdizeORs(VID : I -Int 1, .OpResults) 
+       ListItem(ValueId2String(VID) +String "#" +String Int2String(I -Int 1))
+       stdizeORs(Rs)
+       requires I >Int 0
+rule stdizeORs( _:ValueId : 0, .OpResults ) => .List
+rule stdizeORs( .OpResults ) => .List
 ```
 
 ### Standardize Generic Operation
@@ -81,52 +74,60 @@ rule OpResults2List( .OpResults ) => .List
 syntax StdOp ::= stdizeGenericOp(GenericOperation) [function]
 // 0000
 rule stdizeGenericOp(Op:String (VL:ValueIdList) : FT:FunctionType) 
-=> Op (VL) {.Map} : stdize(FT)
+=> Op (stdizeVIDs(VL)) {.Map} : stdize(FT)
 // 0001
 rule stdizeGenericOp(Op:String (VL:ValueIdList) {AL:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL)} : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL)} : stdize(FT)
 // 0010
 rule stdizeGenericOp(Op:String (VL:ValueIdList) (Rs:Regions) : FT:FunctionType) 
-=> Op (VL) {.Map} [.Successors] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {.Map} [.Successors] (stdize(Rs)) : stdize(FT)
 // 0100
 rule stdizeGenericOp(Op:String (VL:ValueIdList) <{AL:AttributeEntryList}> : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL)} : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL)} : stdize(FT)
 // 1000
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] : FT:FunctionType) 
-=> Op (VL) {.Map} [SL] (.StdRegions) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {.Map} [SL] (.StdRegions) : stdize(FT)
 // 0011
 rule stdizeGenericOp(Op:String (VL:ValueIdList) (Rs:Regions) {AL:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL)} [.Successors] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL)} [.Successors] (stdize(Rs)) : stdize(FT)
 // 0101
 rule stdizeGenericOp(Op:String (VL:ValueIdList) <{AL:AttributeEntryList}> {AL1:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {updateMap(attrEntryList2Map(AL), attrEntryList2Map(AL1))} : stdize(FT)
+=> Op (stdizeVIDs(VL)) {updateMap(attrEntryList2Map(AL), attrEntryList2Map(AL1))} : stdize(FT)
 // 1001
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] {AL:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL)} [SL] (.StdRegions) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL)} [SL] (.StdRegions) : stdize(FT)
 // 0110
 rule stdizeGenericOp(Op:String (VL:ValueIdList) <{AL:AttributeEntryList}> (Rs:Regions) : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL)} [.Successors] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL)} [.Successors] (stdize(Rs)) : stdize(FT)
 // 1010
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] (Rs:Regions) : FT:FunctionType) 
-=> Op (VL) {.Map} [SL] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {.Map} [SL] (stdize(Rs)) : stdize(FT)
 // 1100
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] <{AL1:AttributeEntryList}> : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL1)} [SL] (.StdRegions) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL1)} [SL] (.StdRegions) : stdize(FT)
 // 0111
 rule stdizeGenericOp(Op:String (VL:ValueIdList) <{AL:AttributeEntryList}> (Rs:Regions) {AL1:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {updateMap(attrEntryList2Map(AL), attrEntryList2Map(AL1))} [.Successors] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {updateMap(attrEntryList2Map(AL), attrEntryList2Map(AL1))} [.Successors] (stdize(Rs)) : stdize(FT)
 // 1011
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] (Rs:Regions) {AL:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL)} [SL] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL)} [SL] (stdize(Rs)) : stdize(FT)
 // 1101
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] <{AL1:AttributeEntryList}> {AL2:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} [SL] (.StdRegions) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} [SL] (.StdRegions) : stdize(FT)
 // 1110
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] <{AL1:AttributeEntryList}> (Rs:Regions) : FT:FunctionType) 
-=> Op (VL) {attrEntryList2Map(AL1)} [SL] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {attrEntryList2Map(AL1)} [SL] (stdize(Rs)) : stdize(FT)
 // 1111
 rule stdizeGenericOp(Op:String (VL:ValueIdList) [SL:Successors] <{AL1:AttributeEntryList}> (Rs:Regions) {AL2:AttributeEntryList} : FT:FunctionType) 
-=> Op (VL) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} [SL] (stdize(Rs)) : stdize(FT)
+=> Op (stdizeVIDs(VL)) {updateMap(attrEntryList2Map(AL1), attrEntryList2Map(AL2))} [SL] (stdize(Rs)) : stdize(FT)
+```
+
+### Standardize ValueIdList
+
+```k
+syntax List ::= stdizeVIDs(ValueIdList) [function]
+rule stdizeVIDs(V, VTs:ValueIdList) => ListItem(ValueId2String(V)) stdizeVIDs(VTs)
+rule stdizeVIDs(.ValueIdList) => .List
 ```
 
 ### Standardize FunctionType
@@ -209,6 +210,38 @@ syntax String ::= AbsSymbolName(List) [function]
 rule AbsSymbolName(ListItem(S:String) L:List) => S +String "/" +String AbsSymbolName(L)
 rule AbsSymbolName(ListItem(S:String)) => S
 rule AbsSymbolName(.List) => ""
+```
+
+### Connect AbsPath and StringList
+
+```k
+syntax List ::= Abs(String, List) [function]
+rule Abs(S, ListItem(S1:String) L:List) => ListItem(S +String "/" +String S1) Abs(S, L)
+rule Abs(_, .List) => .List
+``` 
+
+### Cast ValueIdAndTypes to StringList
+
+```k
+syntax List ::= StringList(ValueIdAndTypeList) [function]
+rule StringList(V : _, VTs:ValueIdAndTypeList) => ListItem(ValueId2String(V)) StringList(VTs)
+rule StringList(.ValueIdAndTypeList) => .List
+```
+
+### Cast ValueIdList to StringList
+
+```k
+syntax List ::= StringList(ValueIdList) [function]
+rule StringList(V, VTs:ValueIdList) => ListItem(ValueId2String(V)) StringList(VTs)
+rule StringList(.ValueIdList) => .List
+```
+
+### SymbolRefId <-> String
+
+```k
+syntax String ::= "SymbolRefId2StringHelper" "(" SymbolRefId ")" [function, total,hook(STRING.token2string)]
+syntax String ::= "SymbolRefId2String" "(" SymbolRefId ")" [function, total]
+rule SymbolRefId2String(ID) => substrString ( SymbolRefId2StringHelper(ID) , 1 , lengthString(SymbolRefId2StringHelper(ID)) )
 ```
 
 ### Std
