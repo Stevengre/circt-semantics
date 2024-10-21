@@ -60,6 +60,9 @@ rule
 
 rule
 <current> .List ~> "HARDWARE#WRITE" ~> .List => .K ... </current>
+
+rule
+<current> "HARDWARE#WRITE" ~> .List => .K ... </current>
 ```
 
 ## New Current
@@ -119,9 +122,10 @@ rule
 
 rule
 <current> 
-   "HARDWARE#EVALUATE" ~> .List 
+   .List 
 => .K ... 
 </current>
+[priority(190)]
 ```
 
 ```k

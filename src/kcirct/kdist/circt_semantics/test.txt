@@ -74,23 +74,41 @@
       "Adder/i2/%arg0" |-> "Adder/%0"
     </connection>
     <procedures>
-      .K
+      .List
     </procedures>
     <signals>
-      .Map
+      "Adder/%0" |-> bits ( 3 , 8 )
+      "Adder/%1" |-> bits ( 4 , 8 )
+      "Adder/%arg0" |-> bits ( 1 , 8 )
+      "Adder/i0/%0" |-> bits ( 2 , 8 )
+      "Adder/i0/%1" |-> bits ( 3 , 8 )
+      "Adder/i0/%arg0" |-> bits ( 1 , 8 )
+      "Adder/i0/i1/%0" |-> bits ( 1 , 8 )
+      "Adder/i0/i1/%1" |-> bits ( 3 , 8 )
+      "Adder/i0/i1/%arg0" |-> bits ( 2 , 8 )
+      "Adder/i0/i3/%0" |-> bits ( 1 , 8 )
+      "Adder/i0/i3/%1" |-> bits ( 2 , 8 )
+      "Adder/i0/i3/%arg0" |-> bits ( 1 , 8 )
+      "Adder/i2/%0" |-> bits ( 1 , 8 )
+      "Adder/i2/%1" |-> bits ( 4 , 8 )
+      "Adder/i2/%arg0" |-> bits ( 3 , 8 )
     </signals>
-    <historys>
-      .HistoryCellList
-    </historys>
+    <history>
+      .Map
+    </history>
     <currents>
-      .CurrentInfoCellMap
+      <current-info>
+        <current-id>
+          0
+        </current-id>
+        <current>
+          .K
+        </current>
+      </current-info>
     </currents>
     <clock>
       0
     </clock>
-    <history-depth>
-      1
-    </history-depth>
   </hardware>
   <circt>
     <cmd>
@@ -99,6 +117,9 @@
     <top-module>
       "Adder"
     </top-module>
+    <top-ins>
+      ListItem ( "Adder/%arg0" )
+    </top-ins>
   </circt>
   <hw>
     <hw-instances>

@@ -5,6 +5,7 @@ requires "hw-syntax.md"
 requires "../../mlir/mlir-config.md"
 requires "../../mlir/mlir-helper.md"
 requires "../../circt/circt-config.md"
+requires "../../circt/circt.md"
 requires "../../hardware/hardware-config.md"
 requires "hw-config.md"
 requires "hw-helper.md"
@@ -18,6 +19,7 @@ module HW
   imports MAP
   imports HW-HELPER
   imports BOOL
+  imports CIRCT
 ```
 
 ## Helper Rules
@@ -51,47 +53,6 @@ rule
 
 ```k
 
-rule
-<cmd> TM:String => Ins ... </cmd>
-<hw-instances>
-<hw-instance>
-    <hw-id> TM </hw-id>
-    <hw-inports> Ins:List => Ins </hw-inports>
-    <hw-outports> Outs:List => Outs </hw-outports>
-    ...
-</hw-instance>
-...
-</hw-instances>
-
-// rule
-// <currents>
-// ...
-// <current-info>
-// <current-id> _ </current-id>
-// <current>
-// (   "HW#SIMULATE" ~> TM:String ~> STIMULI:List 
-// => STIMULI ~> "HARDWARE#WRITE" ~> Ins 
-// ~> Outs)
-// ...
-// </current>
-// </current-info>
-// ...
-// </currents>
-// // <hw-instances>
-// // ...
-// // <hw-instance>
-//     <hw-id> TM </hw-id>
-//     // <hw-module> _ </hw-module>
-//     // <hw-inputs> _ </hw-inputs>
-//     <hw-inports> Ins:List </hw-inports>
-//     // <hw-in-types> _ </hw-in-types>
-//     // <hw-outputs> _ </hw-outputs>
-//     <hw-outports> Outs:List </hw-outports>
-//     // <hw-out-types> _ </hw-out-types>
-// // </hw-instance>
-// // ...
-// // </hw-instances>
-// // requires Inports ==K Ins andBool Outports ==K Outs
 ```
 
 ## hw.module
@@ -101,6 +62,7 @@ Top Module
 rule 
 <setup> "hw.module" (.List) {Attr:Map} _ ({_ (VTs) : Ops:StdOps .StdBlocks}:StdRegion) : (.Types) -> (.Types) => Ops ~> "HW#NEW_INSTANCE" ... </setup>
 <hw-setup-inst> .List => ListItem(Attr["sym_name"]) </hw-setup-inst>
+<top-ins> .List => Abs(AbsSymbolName(ListItem(Attr["sym_name"])), StringList(VTs)) </top-ins>
 (
     .Bag
 =>  <hw-instance>
@@ -200,6 +162,17 @@ rule
   ...
 </hw-instance>
 requires ABS_NAME ==K AbsSymbolName(ListItem(S))
+```
+
+## hw.constant
+
+```k
+rule
+<current>
+   "hw.constant" ( .List ) { "value" |-> V : T _:Map } : ( .Types ) -> ( T:Type )
+=> ListItem(ToBits(V, T))
+...
+</current>
 ```
 
 ```k

@@ -6,6 +6,7 @@ requires "hardware/hardware.md"
 requires "circt/circt-config.md"
 requires "circt/circt.md"
 requires "dialects/comb/comb-syntax.md"
+requires "dialects/comb/comb.md"
 requires "dialects/hw/hw-syntax.md"
 requires "dialects/hw/hw-config.md"
 requires "dialects/hw/hw.md"
@@ -41,7 +42,5 @@ module CIRCT-CORE
     imports HARDWARE
     imports CIRCT
     imports HW
-
-
-
+    imports COMB
 endmodule

@@ -90,6 +90,7 @@ endmodule
 ```k
 module BUILTIN
     imports BUILTIN-SYNTAX
+    imports STRING-COMMON
 ```
 
 ## IntegerType Helpers
