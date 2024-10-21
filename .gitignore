@@ -19,3 +19,5 @@ src/kcirct/workingdir/kompiled
 nohup.out
 *.log
 tmp.*
+src/kcirct/kdist/circt_semantics/test-syntax.kore
+src/kcirct/kdist/circt_semantics/test-syntax-no-drop.kore

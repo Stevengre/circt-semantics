@@ -108,7 +108,32 @@ class KCIRCT:
         else:
             KCIRCT.run(['kompile', str(SEMANTICS_PATH), '-o', str(KOMPILE_DIR)])
         return
-
+    
+    @staticmethod
+    def kompile_manual(k_file: Path, output_file: Path, command: list[str]) -> None:
+        KCIRCT.run(
+            [
+                'kompile',
+                str(k_file),
+                *command,
+                '-o',
+                str(output_file),
+            ]
+        )
+    
+    def set_definition_dir(self, definition_dir: Path) -> None:
+        self.definition_dir = definition_dir
+    
+    def krun_manual(self, input_file: Path, command: list[str]) -> None:
+        KCIRCT.run(
+            [
+                'krun',
+                str(input_file),
+                '--definition',
+                str(self.definition_dir),
+                *command,
+            ]
+        )
     def generate_parser(self, sort: str, parser: Path) -> None:
         KCIRCT.run(
             [
