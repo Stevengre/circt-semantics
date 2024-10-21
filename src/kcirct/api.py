@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 API_DIR = Path(__file__).parent
 WORKING_DIR = API_DIR / 'workingdir'
 DATA_DIR = API_DIR / 'tmp'
-SEMANTICS_PATH = API_DIR / 'kdist' / 'circt_semantics' / 'main.k'
+SEMANTICS_PATH = API_DIR / 'kdist' / 'circt_semantics' / 'circt-core.k'
 PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'

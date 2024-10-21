@@ -25,3 +25,6 @@ def test_syntax(test_k_file: Path, test_mlir: Path) -> None:
                           ['--gen-bison-parser','--bison-stack-max-depth','1000000000'])
     kcirct.set_definition_dir(TEST_PATH / 'test-syntax-kompiled')
     kcirct.krun_manual(test_mlir,['--depth','0','-o','kore','--output-file',str(TEST_PATH / 'test-syntax.kore')])
+
+
+

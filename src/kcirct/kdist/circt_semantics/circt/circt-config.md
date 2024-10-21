@@ -19,6 +19,8 @@ configuration
 ```k
   <cmd> $Cmd:K </cmd>
   <top-module> $TopModule:String </top-module>
+  <top-inputs> .List </top-inputs>
+  <top-outputs> .List </top-outputs>
 ```
 
 ## Auxiliary Cells

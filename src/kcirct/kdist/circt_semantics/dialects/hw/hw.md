@@ -47,6 +47,39 @@ rule
 
 ### Auto Procedure
 
+### Start Hardware Simulation
+
+```k
+rule
+<currents>
+...
+<current-info>
+<current-id> _ </current-id>
+<current>
+   "HW#SIMULATE" ~> TM:String ~> STIMULI:List 
+=> STIMULI ~> "HARDWARE#WRITE" ~> Ins 
+~> Outs
+...
+</current>
+</current-info>
+...
+</currents>
+<hw-instances>
+...
+<hw-instance>
+    <hw-id> TM </hw-id>
+    <hw-module> _ </hw-module>
+    <hw-inputs> _ </hw-inputs>
+    <hw-inports> Ins:List </hw-inports>
+    <hw-in-types> _ </hw-in-types>
+    <hw-outputs> _ </hw-outputs>
+    <hw-outports> Outs:List </hw-outports>
+    <hw-out-types> _ </hw-out-types>
+</hw-instance>
+...
+</hw-instances>
+```
+
 ## hw.module
 
 Top Module

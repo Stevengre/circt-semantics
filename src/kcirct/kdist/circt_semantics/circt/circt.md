@@ -26,6 +26,42 @@ rule
 <setup> .K => M [TM] orDefault "CIRCT#ERROR: no such top module: " +String TM </setup>
 ```
 
+## Start Hardware Simulation
+
+```k
+rule 
+<cmd> "CIRCT#SIMULATE" ~> STIMULI:List => .K </cmd>
+<currents>
+...
+(
+   .Bag
+=> <current-info>
+    <current-id> !_:Int </current-id>
+    // <current> STIMULI ~> Ins ~> PROCS  </current>
+    <current> "HARDWARE#NEW_CURRENT" ~> PROCS 
+    ~> "HW#SIMULATE" ~> TM ~> STIMULI
+    </current>
+    // <current> STIMULI ~> "HARDWARE#WRITE" ~> INS ~> "HARDWARE#NEW_CURRENT" ~> PROCS ~> OUTS </current>
+   </current-info>
+)
+...
+</currents>
+<signals> SIGNALS:Map => .Map </signals>
+<history> _ => SIGNALS </history>
+<top-module> TM:String </top-module>
+<procedures> PROCS:List </procedures>
+// <hw-instances>
+// ...
+// <hw-instance>
+//     <hw-id> TM </hw-id>
+//     <hw-inports> Ins:List </hw-inports>
+//     <hw-outports> Outports:List </hw-outports>
+//     ...
+// </hw-instance>
+// ...
+// </hw-instances>
+```
+
 ## Get Op
 
 ```k

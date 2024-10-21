@@ -18,7 +18,7 @@ configuration
 ```k
   <setup> .K </setup>
   <connection> .Map </connection>
-  <procedures> .K </procedures>
+  <procedures> .List </procedures>
 ```
 
 ## Hardware Activity
@@ -32,7 +32,8 @@ configuration
 
 ```k
   <signals> .Map </signals>
-  <historys> <history multiplicity="*" type="List"> .Map </history> </historys>
+  <history> .Map </history>
+  // <historys> <history multiplicity="*" type="List"> .Map </history> </historys>
   <currents>
     <current-info multiplicity="*" type="Map">
       <current-id> 0:Int  </current-id>
@@ -41,7 +42,7 @@ configuration
   </currents>
   // auxiliary cells
   <clock> 0 </clock>
-  <history-depth> $HDepth:Int </history-depth>
+  // <history-depth> $HDepth:Int </history-depth>
 ```
 
 ```k
