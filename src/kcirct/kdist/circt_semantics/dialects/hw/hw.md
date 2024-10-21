@@ -47,37 +47,51 @@ rule
 
 ### Auto Procedure
 
-### Start Hardware Simulation
+### GET_INS_OUTS
 
 ```k
+
 rule
-<currents>
-...
-<current-info>
-<current-id> _ </current-id>
-<current>
-   "HW#SIMULATE" ~> TM:String ~> STIMULI:List 
-=> STIMULI ~> "HARDWARE#WRITE" ~> Ins 
-~> Outs
-...
-</current>
-</current-info>
-...
-</currents>
+<cmd> TM:String => Ins ... </cmd>
 <hw-instances>
-...
 <hw-instance>
     <hw-id> TM </hw-id>
-    <hw-module> _ </hw-module>
-    <hw-inputs> _ </hw-inputs>
-    <hw-inports> Ins:List </hw-inports>
-    <hw-in-types> _ </hw-in-types>
-    <hw-outputs> _ </hw-outputs>
-    <hw-outports> Outs:List </hw-outports>
-    <hw-out-types> _ </hw-out-types>
+    <hw-inports> Ins:List => Ins </hw-inports>
+    <hw-outports> Outs:List => Outs </hw-outports>
+    ...
 </hw-instance>
 ...
 </hw-instances>
+
+// rule
+// <currents>
+// ...
+// <current-info>
+// <current-id> _ </current-id>
+// <current>
+// (   "HW#SIMULATE" ~> TM:String ~> STIMULI:List 
+// => STIMULI ~> "HARDWARE#WRITE" ~> Ins 
+// ~> Outs)
+// ...
+// </current>
+// </current-info>
+// ...
+// </currents>
+// // <hw-instances>
+// // ...
+// // <hw-instance>
+//     <hw-id> TM </hw-id>
+//     // <hw-module> _ </hw-module>
+//     // <hw-inputs> _ </hw-inputs>
+//     <hw-inports> Ins:List </hw-inports>
+//     // <hw-in-types> _ </hw-in-types>
+//     // <hw-outputs> _ </hw-outputs>
+//     <hw-outports> Outs:List </hw-outports>
+//     // <hw-out-types> _ </hw-out-types>
+// // </hw-instance>
+// // ...
+// // </hw-instances>
+// // requires Inports ==K Ins andBool Outports ==K Outs
 ```
 
 ## hw.module
