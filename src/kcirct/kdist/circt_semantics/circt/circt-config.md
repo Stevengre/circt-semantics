@@ -3,8 +3,11 @@
 - This config is an extension of `<mlir>` and `<hardware>`.
 
 ```k
+requires "../hardware/bits.md"
 module CIRCT-CONFIG
 imports STRING
+imports LIST
+imports BITS-SYNTAX
 ```
 
 ```k
@@ -17,8 +20,10 @@ configuration
 - `<top-module>`: top module name
 
 ```k
-  <cmd> $Cmd:K </cmd>
+  <cmd> "CIRCT#SETUP" ~> "CIRCT#SIMULATE" ~> ListItem(bits(1,8)) </cmd>
+  // <cmd> $Cmd:K </cmd>
   <top-module> $TopModule:String </top-module>
+  <top-ins> .List </top-ins>
 ```
 
 ## Auxiliary Cells
