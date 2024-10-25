@@ -85,6 +85,19 @@ rule
 <current> "HARDWARE#NEW_CURRENT" ~> .List => .K ... </current>
 ```
 
+## Join Currents
+
+```k
+rule
+(
+   <current-info>
+      <current> .K </current>
+      ...
+   </current-info>
+=> .Bag
+)
+```
+
 ## Read Evaluate Ports
 
 - If the port connected to another port, then evaluate the other port.

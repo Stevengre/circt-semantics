@@ -97,14 +97,7 @@
       .Map
     </history>
     <currents>
-      <current-info>
-        <current-id>
-          0
-        </current-id>
-        <current>
-          .K
-        </current>
-      </current-info>
+      .CurrentInfoCellMap
     </currents>
     <clock>
       0
