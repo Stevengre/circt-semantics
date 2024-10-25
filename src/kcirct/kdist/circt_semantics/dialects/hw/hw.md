@@ -5,6 +5,7 @@ requires "hw-syntax.md"
 requires "../../mlir/mlir-config.md"
 requires "../../mlir/mlir-helper.md"
 requires "../../circt/circt-config.md"
+requires "../../circt/circt.md"
 requires "../../hardware/hardware-config.md"
 requires "hw-config.md"
 requires "hw-helper.md"
@@ -18,6 +19,7 @@ module HW
   imports MAP
   imports HW-HELPER
   imports BOOL
+  imports CIRCT
 ```
 
 ## Helper Rules
@@ -47,6 +49,12 @@ rule
 
 ### Auto Procedure
 
+### GET_INS_OUTS
+
+```k
+
+```
+
 ## hw.module
 
 Top Module
@@ -54,6 +62,7 @@ Top Module
 rule 
 <setup> "hw.module" (.List) {Attr:Map} _ ({_ (VTs) : Ops:StdOps .StdBlocks}:StdRegion) : (.Types) -> (.Types) => Ops ~> "HW#NEW_INSTANCE" ... </setup>
 <hw-setup-inst> .List => ListItem(Attr["sym_name"]) </hw-setup-inst>
+<top-ins> .List => Abs(AbsSymbolName(ListItem(Attr["sym_name"])), StringList(VTs)) </top-ins>
 (
     .Bag
 =>  <hw-instance>
@@ -153,6 +162,17 @@ rule
   ...
 </hw-instance>
 requires ABS_NAME ==K AbsSymbolName(ListItem(S))
+```
+
+## hw.constant
+
+```k
+rule
+<current>
+   "hw.constant" ( .List ) { "value" |-> V : T _:Map } : ( .Types ) -> ( T:Type )
+=> ListItem(ToBits(V, T))
+...
+</current>
 ```
 
 ```k

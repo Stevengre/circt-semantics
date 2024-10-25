@@ -1,0 +1,260 @@
+<teq>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      #loc1 |-> loc ( "adder.mlir" : 7 : 48 )
+      #loc2 |-> loc ( "adder.mlir" : 12 : 39 )
+      #loc3 |-> loc ( "adder.mlir" : 12 : 58 )
+      #loc |-> loc ( "adder.mlir" : 2 : 48 )
+    </attrs>
+    <table>
+      "AddOne" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , output res : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc , .AttributeValueList ]
+      "sym_name" |-> "AddOne"
+      ( "sym_visibility" |-> "private" ) } [ .Successors ] ( { ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : ListItem ( "%0" ) = "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "comb.add" ( ListItem ( "%arg0" )
+      ListItem ( "%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%1" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      "AddTwo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , output res2 : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc1 , .AttributeValueList ]
+      "sym_name" |-> "AddTwo"
+      ( "sym_visibility" |-> "private" ) } [ .Successors ] ( { ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : ListItem ( "%0" ) = "hw.instance" ( ListItem ( "%arg0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i3"
+      "moduleName" |-> @AddOne
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "hw.instance" ( ListItem ( "%0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i1"
+      "moduleName" |-> @AddOne
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%1" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      "Adder" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , output res_out2 : i8 , output res_out1 : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc2 , #loc3 , .AttributeValueList ]
+      ( "sym_name" |-> "Adder" ) } [ .Successors ] ( { ^bb0 ( %arg0 : i8 , .ValueIdAndTypeList ) : ListItem ( "%0" ) = "hw.instance" ( ListItem ( "%arg0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i0"
+      "moduleName" |-> @AddTwo
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res2" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "hw.instance" ( ListItem ( "%0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i2"
+      "moduleName" |-> @AddOne
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" )
+      ListItem ( "%1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+    </table>
+    <symbols>
+      .List
+    </symbols>
+  </mlir>
+  <hardware>
+    <setup>
+      .K
+    </setup>
+    <connection>
+      "Adder/%0" |-> "Adder/i0/%1"
+      "Adder/%1" |-> "Adder/i2/%1"
+      "Adder/i0/%0" |-> "Adder/i0/i3/%1"
+      "Adder/i0/%1" |-> "Adder/i0/i1/%1"
+      "Adder/i0/%arg0" |-> "Adder/%arg0"
+      "Adder/i0/i1/%0" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Adder/i0/i1/%1" |-> "comb.add" ( ListItem ( "Adder/i0/i1/%arg0" )
+      ListItem ( "Adder/i0/i1/%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Adder/i0/i1/%arg0" |-> "Adder/i0/%0"
+      "Adder/i0/i3/%0" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Adder/i0/i3/%1" |-> "comb.add" ( ListItem ( "Adder/i0/i3/%arg0" )
+      ListItem ( "Adder/i0/i3/%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Adder/i0/i3/%arg0" |-> "Adder/i0/%arg0"
+      "Adder/i2/%0" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Adder/i2/%1" |-> "comb.add" ( ListItem ( "Adder/i2/%arg0" )
+      ListItem ( "Adder/i2/%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Adder/i2/%arg0" |-> "Adder/%0"
+    </connection>
+    <procedures>
+      .List
+    </procedures>
+    <signals>
+      "Adder/%0" |-> bits ( 3 , 8 )
+      "Adder/%1" |-> bits ( 4 , 8 )
+      "Adder/%arg0" |-> bits ( 1 , 8 )
+      "Adder/i0/%0" |-> bits ( 2 , 8 )
+      "Adder/i0/%1" |-> bits ( 3 , 8 )
+      "Adder/i0/%arg0" |-> bits ( 1 , 8 )
+      "Adder/i0/i1/%0" |-> bits ( 1 , 8 )
+      "Adder/i0/i1/%1" |-> bits ( 3 , 8 )
+      "Adder/i0/i1/%arg0" |-> bits ( 2 , 8 )
+      "Adder/i0/i3/%0" |-> bits ( 1 , 8 )
+      "Adder/i0/i3/%1" |-> bits ( 2 , 8 )
+      "Adder/i0/i3/%arg0" |-> bits ( 1 , 8 )
+      "Adder/i2/%0" |-> bits ( 1 , 8 )
+      "Adder/i2/%1" |-> bits ( 4 , 8 )
+      "Adder/i2/%arg0" |-> bits ( 3 , 8 )
+    </signals>
+    <history>
+      .Map
+    </history>
+    <currents>
+      <current-info>
+        <current-id>
+          0
+        </current-id>
+        <current>
+          .K
+        </current>
+      </current-info>
+    </currents>
+    <clock>
+      0
+    </clock>
+  </hardware>
+  <circt>
+    <cmd>
+      .K
+    </cmd>
+    <top-module>
+      "Adder"
+    </top-module>
+    <top-ins>
+      ListItem ( "Adder/%arg0" )
+    </top-ins>
+  </circt>
+  <hw>
+    <hw-instances>
+      <hw-instance>
+        <hw-id>
+          "Adder"
+        </hw-id>
+        <hw-module>
+          "Adder"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Adder/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res_out2 )
+          ListItem ( res_out1 )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Adder/%0" )
+          ListItem ( "Adder/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Adder/i0"
+        </hw-id>
+        <hw-module>
+          "AddTwo"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Adder/i0/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res2 )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Adder/i0/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Adder/i0/i1"
+        </hw-id>
+        <hw-module>
+          "AddOne"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Adder/i0/i1/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Adder/i0/i1/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Adder/i0/i3"
+        </hw-id>
+        <hw-module>
+          "AddOne"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Adder/i0/i3/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Adder/i0/i3/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Adder/i2"
+        </hw-id>
+        <hw-module>
+          "AddOne"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Adder/i2/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Adder/i2/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance>
+      <hw-setup-inst>
+        .List
+      </hw-setup-inst>
+    </hw-instances>
+  </hw>
+</teq>
