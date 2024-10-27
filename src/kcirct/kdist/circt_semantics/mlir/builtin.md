@@ -91,6 +91,7 @@ endmodule
 module BUILTIN
     imports BUILTIN-SYNTAX
     imports STRING-COMMON
+    imports INT
 ```
 
 ## IntegerType Helpers
@@ -110,6 +111,17 @@ syntax String ::= IntegerType2String (IntegerType) [function, total]
 rule IntegerType2String(SI:SignedIntegerType) => SignedIntegerType2String(SI)
 rule IntegerType2String(II:UnsignedIntegerType) => UnsignedType2String(II)
 rule IntegerType2String(LI:SignlessIntegerType) => SignlessIntegerType2String(LI)
+```
+
+### SizeX Helpers
+
+```k
+syntax Int ::= SizeX2Int (SizeX) [function]
+rule SizeX2Int(S:SizeX) => String2Int(substrString(SizeX2String(S), 0, lengthString(SizeX2String(S)) -Int 1))
+```
+
+```k
+syntax String ::= SizeX2String (SizeX) [function, total,hook(STRING.token2string)]
 ```
 
 ```k

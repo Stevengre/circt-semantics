@@ -7,6 +7,8 @@ requires "../../mlir/mlir-helper.md"
 requires "../../circt/circt-config.md"
 requires "../../circt/circt.md"
 requires "../../hardware/hardware-config.md"
+requires "../../hardware/bits.md"
+requires "../../mlir/builtin.md"
 requires "hw-config.md"
 requires "hw-helper.md"
 module HW
@@ -20,6 +22,8 @@ module HW
   imports HW-HELPER
   imports BOOL
   imports CIRCT
+  imports BITS
+  imports BUILTIN
 ```
 
 ## Helper Rules
@@ -173,6 +177,127 @@ rule
 => ListItem(ToBits(V, T))
 ...
 </current>
+```
+
+## HW Operations for Array
+
+### `hw.array_get`
+
+```k
+rule
+<current> "hw.array_get" ( ListItem(Array:Bits) ListItem(bits(Idx:Int, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) => ListItem(BitsSlice(Array, Idx *Int getWidth(T), (Idx +Int 1) *Int getWidth(T))) ... </current>
+
+rule
+<current> "hw.array_get" ( ListItem(_:Bits) ListItem(bits(_:XZValue, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) => ListItem(bits(#x, getWidth(T))) ... </current>
+```
+
+### `hw.array_create`
+
+```k
+rule
+<current> "hw.array_create" ( ListItem(B:Bits) L:List ) {_:Map} : _FT => ListItem(BitsConcat(ListItem(B) L)) ... </current>
+```
+
+### `hw.array_slice`
+
+```k
+rule
+<current> "hw.array_slice" ( ListItem(Arr:Bits) ListItem(bits(Idx:Int, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) => ListItem(BitsSlice(Arr, Idx *Int getWidth(T), (Idx +Int SizeX2Int(S)) *Int getWidth(T))) ... </current>
+
+rule
+<current> "hw.array_slice" ( ListItem(_:Bits) ListItem(bits(_:XZValue, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) => ListItem(bits(#x, SizeX2Int(S) *Int getWidth(T))) ... </current>
+```
+
+### `hw.array_concat`
+
+```k
+rule
+<current> "hw.array_concat" ( ListItem(Arr:Bits) L:List ) {_:Map} : _FT => ListItem(BitsConcat(ListItem(Arr) L)) ... </current>
+```
+
+## HW Operations for Enum
+
+### `hw.enum.cmp`
+
+```k
+rule
+<current> "hw.enum.cmp" ( ListItem(bits(X1:Int, _:Int)) ListItem(bits(X2:Int, _:Int)) ) {_:Map} : _FT => ListItem(bits(#if X1 ==Int X2 #then 1 #else 0 #fi, 1)) ... </current>
+```
+
+### `hw.enum.constant`
+
+```k
+rule
+<current> "hw.enum.constant" ( .List ) { "field" |-> X:HwEnumField _:Map } : _ => HwEnum2Bits(X) ... </current>
+
+syntax Bits ::= HwEnum2Bits(HwEnumField) [function]
+rule HwEnum2Bits(#hw.enum.field < X:HwEnumItem, T:HwEnumType >) => bits(getEnumIndex(X, T), log2Int(getEnumSize(T) -Int 1) +Int 1)
+
+syntax Int ::= getEnumIndex(HwEnumItem, HwEnumType) [function]
+rule getEnumIndex(X:HwEnumItem, !hw.enum < X:HwEnumItem, _:HwEnumItems >) => 0
+rule getEnumIndex(X:HwEnumItem, !hw.enum < Y:HwEnumItem, Ys:HwEnumItems >) => 1 +Int getEnumIndex(X, !hw.enum < Ys >) requires X =/=K Y
+
+syntax Int ::= getEnumSize(HwEnumType) [function]
+rule getEnumSize(!hw.enum < _:HwEnumItem, Xs:HwEnumItems >) => 1 +Int getEnumSize(!hw.enum < Xs >)
+rule getEnumSize(!hw.enum < .HwEnumItems >) => 0
+```
+
+## HW Operations for Struct
+
+```k
+syntax Int ::= getStructFeildIndex(HwStructType, Int) [function]
+rule getStructFeildIndex(!hw.struct< _:BareId : T:Type, BTS:BareIdAndTypeList >, Idx:Int) 
+  => getStructFeildIndex(!hw.struct< BTS >, Idx -Int 1) +Int getWidth(T)
+  requires Idx >Int 0
+rule getStructFeildIndex(!hw.struct< _ >, 0) => 0
+```
+
+### `hw.struct_extract`
+
+```k
+rule
+<current> "hw.struct_extract" ( ListItem(Struct:Bits) ) { "fieldIndex" |-> Idx:Int _:Map } : ( ST:HwStructType ) -> ( T:Type ) => ListItem(BitsSlice(Struct, getStructFeildIndex(ST, Idx), getStructFeildIndex(ST, Idx) +Int getWidth(T))) ... </current>
+```
+
+### `hw.struct_create`
+
+```k
+rule
+<current> "hw.struct_create" ( ListItem(B:Bits) L:List ) {_:Map} : _FT => ListItem(BitsConcat(ListItem(B) L)) ... </current>
+```
+
+### `hw.struct_explode`
+
+```k
+rule
+<current> "hw.struct_explode" ( ListItem(Struct:Bits) ) {_:Map} : ( _:HwStructType ) -> ( Ts:Types ) => HwStructExplode(Struct, Ts) ... </current>
+
+syntax List ::= HwStructExplode(Bits, Types) [function]
+rule HwStructExplode(bits(V, W), T:Type, Ts:Types) => ListItem(BitsSlice(bits(V, W), 0, getWidth(T))) HwStructExplode(BitsSlice(bits(V, W), getWidth(T), W), Ts)
+rule HwStructExplode(_:Bits, .Types) => .List
+```
+
+### `hw.struct_inject`
+
+```k
+rule
+<current> "hw.struct_inject" ( ListItem(bits(V, W)) ListItem(B:Bits) ) { "fieldIndex" |-> Idx:Int _:Map } : ( ST:HwStructType , T:Type ) -> ( _:HwStructType ) => BitsConcat(ListItem(BitsSlice(bits(V, W), 0, getStructFeildIndex(ST, Idx))) ListItem(B) ListItem(BitsSlice(bits(V, W), getStructFeildIndex(ST, Idx) +Int getWidth(T), W))) ... </current>
+```
+
+## HW Operations for Union
+
+### `hw.union_extract`
+
+```k
+rule
+<current> "hw.union_extract" ( ListItem(B:Bits) ) { "fieldIndex" |-> _Idx:Int _:Map } : _FT => ListItem(B) ... </current>
+```
+
+### `hw.union_create`
+
+```k
+rule
+<current> "hw.union_create" ( ListItem(B:Bits) ) { "fieldIndex" |-> _Idx:Int _:Map } : _FT => ListItem(B) ... </current>
 ```
 
 ```k

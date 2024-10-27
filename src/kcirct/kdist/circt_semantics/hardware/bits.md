@@ -44,6 +44,7 @@ module BITS-SYNTAX
                   | Bits "modsBits" Bits    [function]
                   | BitsModu(List)          [function]
                   | Bits "moduBits" Bits    [function]
+                  | BitsSlice(Bits, Int, Int) [function]
 
     syntax List ::= Bits2BitList(Bits) [function]
 
@@ -213,5 +214,8 @@ module BITS
 
     rule Bits2Bool(bits(X:Int, _:Int)) => X =/=Int 0
     rule Bits2Bool(bits(_:XZValue, _:Int)) => false
+
+    rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int (W -Int End)) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
+    rule BitsSlice(bits(V:XZValue, _:Int), Begin:Int, End:Int) => bits(V, End -Int Begin)
 endmodule
 ```
