@@ -47,6 +47,8 @@ rule
 <signals> ... Port |-> Signal:Bits ... </signals>
 ```
 
+## Read with Last Values
+
 ## Write
 
 ```k
@@ -57,6 +59,13 @@ rule
 ...
 </current>
 <signals> M => M [Port <- Stimuli] </signals>
+
+rule
+<current> 
+   L0:List ListItem("HARDWARE#KEEP") ~> "HARDWARE#WRITE" ~> L1:List ListItem(_:String)  
+=> L0 ~> "HARDWARE#WRITE" ~> L1
+...
+</current>
 
 rule
 <current> .List ~> "HARDWARE#WRITE" ~> .List => .K ... </current>

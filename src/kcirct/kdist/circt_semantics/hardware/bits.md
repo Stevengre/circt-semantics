@@ -6,6 +6,8 @@
 module BITS-SYNTAX
     imports INT-SYNTAX
     imports LIST
+    imports STRING
+
     syntax Bits ::= "bits" "(" BitsValue "," Int ")"
     // TODO: bit-level X and Z
     syntax BitsValue ::= Int | XZValue
@@ -51,6 +53,8 @@ module BITS-SYNTAX
     syntax Int ::= Bool2Int(Bool) [function]
 
     syntax Bool ::= Bits2Bool(Bits) [function]
+
+    syntax Bool ::= checkEdge(String, Bits, Bits) [function]
 endmodule
 ```
 
@@ -217,5 +221,12 @@ module BITS
 
     rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int (W -Int End)) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
     rule BitsSlice(bits(V:XZValue, _:Int), Begin:Int, End:Int) => bits(V, End -Int Begin)
+
+    rule checkEdge("edge", bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => true
+        requires X1 =/=Int X2
+    rule checkEdge("posedge", bits(0, _:Int), bits(1, _:Int)) => true
+    rule checkEdge("negedge", bits(1, _:Int), bits(0, _:Int)) => true
+    rule checkEdge(_, bits(_, _:Int), bits(_, _:Int)) => false
+    [owise]
 endmodule
 ```
