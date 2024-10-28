@@ -54,7 +54,7 @@ module BITS-SYNTAX
 
     syntax Bool ::= Bits2Bool(Bits) [function]
 
-    syntax Bool ::= checkEdge(String, Bits, Bits) [function]
+    syntax Bool ::= checkEdge(String, Bits, KItem) [function]
 endmodule
 ```
 
@@ -226,7 +226,7 @@ module BITS
         requires X1 =/=Int X2
     rule checkEdge("posedge", bits(0, _:Int), bits(1, _:Int)) => true
     rule checkEdge("negedge", bits(1, _:Int), bits(0, _:Int)) => true
-    rule checkEdge(_, bits(_, _:Int), bits(_, _:Int)) => false
+    rule checkEdge(_, bits(_, _:Int), _) => false
     [owise]
 endmodule
 ```
