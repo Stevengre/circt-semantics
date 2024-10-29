@@ -59,7 +59,7 @@ rule
 <current> 
    ListItem(Next:Bits) ListItem(Clk:Bits)
 ~> "seq.firreg" ( ListItem(_:String) ListItem(ClkId:String) ) { _:Map } : _FT
-=> #if checkEdge("posedge", Clk, H[ClkId] orDefault bits(#x, 1)) 
+=> #if checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then ListItem(Next) 
    #else ListItem("HARDWARE#KEEP") #fi
 ... 
@@ -71,7 +71,7 @@ rule
 <current> 
    ListItem(Next:Bits) ListItem(Clk:Bits) ListItem(Rst:Bits) ListItem(RstValue:Bits)
 ~> "seq.firreg" ( ListItem(_:String) ListItem(ClkId:String) _:List ) { _:Map } : _FT
-=> #if checkEdge("posedge", Clk, H[ClkId] orDefault bits(#x, 1)) 
+=> #if checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then ( #if Bits2Bool(Rst) #then ListItem(RstValue) #else ListItem(Next) #fi )
    #else ListItem("HARDWARE#KEEP") #fi
 ... 
@@ -136,7 +136,7 @@ rule
 <current> 
    ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) _:List
 ~> "seq.firmem.read_port" ( ListItem(_) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } : (_) -> (T:IntegerType)
-=> #if checkEdge("posedge", Clk, H[ClkId] orDefault bits(#x, 1)) 
+=> #if checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then Mem[Addr] orDefault bits(#x, getWidth(T))
    #else ListItem("HARDWARE#KEEP") #fi
 ...
@@ -156,7 +156,7 @@ rule
 ...
 </current>
 <signals> S:Map => 
-   #if checkEdge("posedge", Clk, H[ClkId] orDefault bits(#x, 1)) andBool Bits2Bool(Enable) 
+   #if checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) andBool Bits2Bool(Enable) 
    #then S [MemId <- Mem[Addr <- Data]] 
    #else S #fi 
 </signals>
@@ -189,13 +189,13 @@ rule
 <current> 
    ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) ListItem(Enable:Bits) ListItem(Data:Bits) ListItem(Mode:Bits)
 ~> "seq.firmem.read_write_port" ( ListItem(MemId:String) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } : _FT
-=> #if Bits2Bool(Enable) andBool (notBool Bits2Bool(Mode)) andBool checkEdge("posedge", Clk, H[ClkId] orDefault bits(#x, 1)) 
+=> #if Bits2Bool(Enable) andBool (notBool Bits2Bool(Mode)) andBool checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then ListItem(Mem)
    #else ListItem("HARDWARE#KEEP") #fi
 ...
 </current>
 <signals> S:Map => 
-   #if Bits2Bool(Enable) andBool Bits2Bool(Mode) andBool checkEdge("posedge", Clk, H[ClkId] orDefault bits(#x, 1)) 
+   #if Bits2Bool(Enable) andBool Bits2Bool(Mode) andBool checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then S [MemId <- Mem[Addr <- Data]] 
    #else S #fi 
 </signals>

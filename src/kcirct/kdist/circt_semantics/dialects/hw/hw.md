@@ -53,6 +53,12 @@ rule
 
 ### Auto Procedure
 
+```k
+rule <setup> Op:StdOp => "HARDWARE#PROCEDURE" ~> AbsOp(AbsSymbolName(L), Op) ... </setup>
+<hw-setup-inst> L </hw-setup-inst>
+[priority(160)]
+```
+
 ### GET_INS_OUTS
 
 ```k
@@ -66,14 +72,14 @@ Top Module
 rule 
 <setup> "hw.module" (.List) {Attr:Map} _ ({_ (VTs) : Ops:StdOps .StdBlocks}:StdRegion) : (.Types) -> (.Types) => Ops ~> "HW#NEW_INSTANCE" ... </setup>
 <hw-setup-inst> .List => ListItem(Attr["sym_name"]) </hw-setup-inst>
-<top-ins> .List => Abs(AbsSymbolName(ListItem(Attr["sym_name"])), StringList(VTs)) </top-ins>
+<top-ins> .List => Abs(AbsSymbolName(ListItem(Attr["sym_name"])), VTs) </top-ins>
 (
     .Bag
 =>  <hw-instance>
         <hw-id> AbsSymbolName(ListItem(Attr["sym_name"])) </hw-id>
         <hw-module> AbsSymbolName(ListItem(Attr["sym_name"])) </hw-module>
         <hw-inputs> getModuleInNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-inputs>
-        <hw-inports> Abs(AbsSymbolName(ListItem(Attr["sym_name"])), StringList(VTs)) </hw-inports>
+        <hw-inports> Abs(AbsSymbolName(ListItem(Attr["sym_name"])), VTs) </hw-inports>
         <hw-in-types> getModuleInTypes({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-in-types>
         <hw-outputs> getModuleOutNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-outputs>
         <hw-out-types> getModuleOutTypes({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-out-types>
@@ -87,7 +93,7 @@ rule
 <setup>
    "hw.module" (.List) {Attr:Map} _ ({_ (VTs) : Ops:StdOps .StdBlocks}:StdRegion) : (.Types) -> (.Types)
 ~> "HARDWARE#CONNECT" ~> "HARDWARE#OUTS" ~> INS:List
-=> "HARDWARE#CONNECT" ~> Abs(AbsSymbolName(L), StringList(VTs)) ~> INS
+=> "HARDWARE#CONNECT" ~> Abs(AbsSymbolName(L), VTs) ~> INS
 ~> Ops
 ...
 </setup>
@@ -98,7 +104,7 @@ rule
         <hw-id> AbsSymbolName(L) </hw-id>
         <hw-module> AbsSymbolName(ListItem(Attr["sym_name"])) </hw-module>
         <hw-inputs> getModuleInNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-inputs>
-        <hw-inports> Abs(AbsSymbolName(L), StringList(VTs)) </hw-inports>
+        <hw-inports> Abs(AbsSymbolName(L), VTs) </hw-inports>
         <hw-in-types> getModuleInTypes({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-in-types>
         <hw-outputs> getModuleOutNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-outputs>
         <hw-out-types> getModuleOutTypes({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-out-types>

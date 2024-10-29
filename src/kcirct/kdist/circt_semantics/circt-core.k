@@ -13,6 +13,7 @@ requires "dialects/hw/hw.md"
 requires "dialects/seq/seq-syntax.md"
 requires "dialects/sv/sv-syntax.md"
 requires "dialects/seq/seq.md"
+requires "dialects/sv/sv.md"
 
 module CIRCT-CORE-SYNTAX
     imports MLIR-SYNTAX
@@ -45,4 +46,5 @@ module CIRCT-CORE
     imports HW
     imports COMB
     imports SEQ
+    imports SV
 endmodule

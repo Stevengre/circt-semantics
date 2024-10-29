@@ -54,7 +54,7 @@ module BITS-SYNTAX
 
     syntax Bool ::= Bits2Bool(Bits) [function]
 
-    syntax Bool ::= checkEdge(String, Bits, KItem) [function]
+    syntax Bool ::= checkEdge(Int, Bits, Bits) [function]
 endmodule
 ```
 
@@ -222,10 +222,11 @@ module BITS
     rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int (W -Int End)) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
     rule BitsSlice(bits(V:XZValue, _:Int), Begin:Int, End:Int) => bits(V, End -Int Begin)
 
-    rule checkEdge("edge", bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => true
+    // 0: posedge, 1: negedge, 2: edge
+    rule checkEdge(0, bits(0, _:Int), bits(1, _:Int)) => true
+    rule checkEdge(1, bits(1, _:Int), bits(0, _:Int)) => true
+    rule checkEdge(2, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => true
         requires X1 =/=Int X2
-    rule checkEdge("posedge", bits(0, _:Int), bits(1, _:Int)) => true
-    rule checkEdge("negedge", bits(1, _:Int), bits(0, _:Int)) => true
     rule checkEdge(_, bits(_, _:Int), _) => false
     [owise]
 endmodule

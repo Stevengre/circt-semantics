@@ -30,6 +30,7 @@ syntax StdRegion ::= "{" StdBlocks "}"
 syntax StdBlocks ::= List{StdBlock, ""}
 syntax StdBlock ::= StdBlockLabel StdOps
 syntax StdOps ::= List{StdOpL, ""}
+syntax StdBlockLabel ::= CaretId "(" List ")" ":"
 ```
 
 ```k
@@ -147,7 +148,7 @@ syntax StdRegions ::= stdize(Regions) [function]
 rule stdize(.Regions) => .StdRegions
 rule stdize({.Operations Bs:Blocks}, Rs:Regions) => {stdize(Bs)}, stdize(Rs)
 rule stdize({ OL:Operations Bs:Blocks }, Rs:Regions) 
-=> {^kgenbb0 (.ValueIdAndTypeList) : stdizeOps(OL) stdize(Bs)}, stdize(Rs)
+=> {^kgenbb0 (.List) : stdizeOps(OL) stdize(Bs)}, stdize(Rs)
 requires OL =/=K .Operations
 ```
 
@@ -164,8 +165,8 @@ rule stdize(Bid:BlockLabel OL:Operations Bs:Blocks)
 
 ```k
 syntax StdBlockLabel ::= stdize(BlockLabel) [function]
-rule stdize(Bid:CaretId : ) => Bid (.ValueIdAndTypeList) :
-rule stdize(Bid:StdBlockLabel) => Bid
+rule stdize(Bid:CaretId : ) => Bid (.List) :
+rule stdize(Bid (VTs:ValueIdAndTypeList) : ) => Bid (StringList(VTs)) :
 ```
 
 ### Standardize Operations
@@ -219,6 +220,41 @@ syntax List ::= Abs(String, List) [function]
 rule Abs(S, ListItem(S1:String) L:List) => ListItem(S +String "/" +String S1) Abs(S, L)
 rule Abs(_, .List) => .List
 ``` 
+
+### Abs for Nested Operation
+
+```k
+syntax StdOp ::= AbsOp(String, StdOp) [function]
+rule AbsOp(S, Op (Args) {Attr:Map} : FT) => Op (Abs(S, Args)) {Attr} : FT
+rule AbsOp(S, Op (Args) {Attr:Map} SL:SuccessorList (Rs:StdRegions) : FT) 
+=> Op (Abs(S, Args)) {Attr} SL (AbsRegions(S, Rs)) : FT
+
+syntax StdRegions ::= AbsRegions(String, StdRegions) [function]
+rule AbsRegions(S, R:StdRegion , Rs:StdRegions) => AbsRegion(S, R) , AbsRegions(S, Rs)
+rule AbsRegions(_, .StdRegions) => .StdRegions
+
+syntax StdRegion ::= AbsRegion(String, StdRegion) [function]
+rule AbsRegion(S, {Bs:StdBlocks}) => {AbsBlocks(S, Bs)}
+
+// syntax StdBlocks ::= List{StdBlock, ""}
+// syntax StdBlock ::= StdBlockLabel StdOps
+// syntax StdOps ::= List{StdOpL, ""}
+
+syntax StdBlocks ::= AbsBlocks(String, StdBlocks) [function]
+rule AbsBlocks(S, B:StdBlock Bs:StdBlocks) => AbsBlock(S, B) AbsBlocks(S, Bs)
+rule AbsBlocks(_, .StdBlocks) => .StdBlocks
+
+syntax StdBlock ::= AbsBlock(String, StdBlock) [function]
+rule AbsBlock(S, Bid (VIDS:List) : OL:StdOps) => Bid (Abs(S, VIDS)) : AbsOps(S, OL)
+
+syntax StdOps ::= AbsOps(String, StdOps) [function]
+rule AbsOps(S, OL:StdOpL Ops:StdOps) => AbsOpL(S, OL) AbsOps(S, Ops)
+rule AbsOps(_, .StdOps) => .StdOps
+
+syntax StdOpL ::= AbsOpL(String, StdOpL) [function]
+rule AbsOpL(S, L = Op:StdOp) => L = AbsOp(S, Op)
+rule AbsOpL(S, Op:StdOp) => AbsOp(S, Op)
+```
 
 ### Cast ValueIdAndTypes to StringList
 

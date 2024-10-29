@@ -77,8 +77,7 @@ syntax Region ::= "{" Operations Blocks "}"
 syntax Operations ::= List{Operation, ""}
 syntax Blocks ::= List{Block, ""}
 syntax Block ::= BlockLabel Operations
-syntax BlockLabel ::= CaretId ":" | StdBlockLabel
-syntax StdBlockLabel ::= CaretId "(" ValueIdAndTypeList ")" ":"
+syntax BlockLabel ::= CaretId ":" | CaretId "(" ValueIdAndTypeList ")" ":"
 ```
 
 #### DictionaryAttribute

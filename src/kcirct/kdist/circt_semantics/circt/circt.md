@@ -90,6 +90,16 @@ rule <setup> Op:StdOpL Ops:StdOps => Op ~> Ops ... </setup>
 // rule <setup> .StdOps => .K ... </setup>
 ```
 
+## Unfolding Standard Operations for `<current>`
+
+```k
+rule <current> { Bs:StdBlocks }:StdRegion => Bs ... </current>
+rule <current> _Cid ( .List ) : Ops:StdOps Bs:StdBlocks => Ops ~> Bs ... </current>
+rule <current> .StdBlocks => .K ... </current>
+rule <current> Op:StdOpL Ops:StdOps => Op ~> Ops ... </current>
+rule <current> .StdOps => .K ... </current>
+```
+
 ## Auto Connect for StdOp
 
 ```k

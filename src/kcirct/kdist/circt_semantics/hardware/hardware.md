@@ -23,6 +23,14 @@ rule
 rule
 <setup> "HARDWARE#CONNECT" ~> .List ~> .List => .K ... </setup>
 ```
+
+## Setup Procedures
+
+```k
+rule <setup> "HARDWARE#PROCEDURE" ~> Op => .K ... </setup>
+<procedures> PROCS:List => ListItem(Op) PROCS </procedures>
+```
+
 ## Read
 
 ```k
