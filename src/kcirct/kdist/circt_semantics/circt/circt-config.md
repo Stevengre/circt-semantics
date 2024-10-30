@@ -20,7 +20,8 @@ configuration
 - `<top-module>`: top module name
 
 ```k
-  <cmd> "CIRCT#SETUP" ~> "CIRCT#SIMULATE" ~> ListItem(bits(1,8)) </cmd>
+  <cmd> .K </cmd>
+  // <cmd> "CIRCT#SETUP" ~> "CIRCT#SIMULATE" ~> ListItem(bits(1,8)) </cmd>
   // <cmd> $Cmd:K </cmd>
   <top-module> $TopModule:String </top-module>
   <top-ins> .List </top-ins>

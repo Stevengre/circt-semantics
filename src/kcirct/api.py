@@ -35,10 +35,10 @@ TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 KOMPILE_DIR = WORKING_DIR / 'kompiled'
 OPT_KOMPILE_DIR = WORKING_DIR / 'opt-kompiled'
 
-sys.setrecursionlimit(2000000000)
+sys.setrecursionlimit(2**31 - 1)
 
-soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
+# soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+# resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
 
 class KCIRCT:
     working_dir: Path
