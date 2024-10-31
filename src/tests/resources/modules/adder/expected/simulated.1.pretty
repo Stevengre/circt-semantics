@@ -38,13 +38,16 @@
       .List
     </procedures>
     <signals>
-      "Adder/%0" |-> bits ( 10 , 8 )
-      "Adder/%1" |-> bits ( 6 , 8 )
+      "Adder/%0" |-> bits ( 12 , 8 )
+      "Adder/%1" |-> bits ( 8 , 8 )
       "Adder/%arg0" |-> bits ( 10 , 8 )
       "Adder/%arg1" |-> bits ( 2 , 8 )
     </signals>
     <history>
-      .Map
+      "Adder/%0" |-> bits ( 10 , 8 )
+      "Adder/%1" |-> bits ( 6 , 8 )
+      "Adder/%arg0" |-> bits ( 8 , 8 )
+      "Adder/%arg1" |-> bits ( 2 , 8 )
     </history>
     <currents>
       .CurrentInfoCellMap
