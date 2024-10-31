@@ -1,11 +1,8 @@
-<circt>
+<teq>
   <mlir>
     <prog>
       .K
     </prog>
-    <phase>
-      #phaseStop ~> #toStimulate ~> .K
-    </phase>
     <types>
       .Map
     </types>
@@ -14,39 +11,59 @@
       #loc |-> loc ( "circt-semantics/src/tests/resources/modules/adder/adder.mlir" : 1 : 50 )
     </attrs>
     <table>
-      "Adder" |-> "hw.module" ( .ValueIdList ) ( { .OperationList ^bb0 ( %arg0 : i8 , %arg1 : i8 , .ValueIdAndTypeList ) : %0 , .OpResults = "comb.add" ( %arg0 , %arg1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( i8 , .Types )  %1 , .OpResults = "comb.sub" ( %arg0 , %arg1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( %0 , %1 , .ValueIdList ) : ( i8 , i8 , .Types ) -> ( .Types )  .OperationList  .BlockList } , .Regions ) { "module_type" |-> !hw.modty < input io_a : i8 , input io_b : i8 , output res_add : i8 , output res_sub : i8 , .ModulePortList >
-      "parameters" |-> [ ]
+      "Adder" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , input io_b : i8 , output res_add : i8 , output res_sub : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
       "result_locs" |-> [ #loc , #loc1 , .AttributeValueList ]
-      "sym_name" |-> "Adder" } : ( .Types ) -> ( .Types )
+      ( "sym_name" |-> "Adder" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" )
+      ListItem ( "%arg1" ) ) : ListItem ( "%0" ) = "comb.add" ( ListItem ( "%arg0" )
+      ListItem ( "%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "comb.sub" ( ListItem ( "%arg0" )
+      ListItem ( "%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" )
+      ListItem ( "%1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
     </table>
+    <symbols>
+      .List
+    </symbols>
   </mlir>
-  <cmd>
-    .K
-  </cmd>
-  <entry>
-    ""
-  </entry>
-  <input>
-    .List
-  </input>
-  <clock>
-    0
-  </clock>
-  <running>
-    .List
-  </running>
-  <boot>
-    .List
-  </boot>
-  <ckts>
-    .CktCellMap
-  </ckts>
-  <exit>
-    <exit-code>
+  <hardware>
+    <setup>
+      .K
+    </setup>
+    <connection>
+      .Map
+    </connection>
+    <procedures>
+      .List
+    </procedures>
+    <signals>
+      .Map
+    </signals>
+    <history>
+      .Map
+    </history>
+    <currents>
+      .CurrentInfoCellMap
+    </currents>
+    <clock>
       0
-    </exit-code>
-    <exit-info>
-      "Success"
-    </exit-info>
-  </exit>
-</circt>
+    </clock>
+  </hardware>
+  <circt>
+    <cmd>
+      .K
+    </cmd>
+    <top-module>
+      ""
+    </top-module>
+    <top-ins>
+      .List
+    </top-ins>
+  </circt>
+  <hw>
+    <hw-instances>
+      .HwInstanceCellMap
+      <hw-setup-inst>
+        .List
+      </hw-setup-inst>
+    </hw-instances>
+  </hw>
+</teq>

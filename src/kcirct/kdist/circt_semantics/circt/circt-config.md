@@ -21,9 +21,10 @@ configuration
 
 ```k
   <cmd> .K </cmd>
-  // <cmd> "CIRCT#SETUP" ~> "CIRCT#SIMULATE" ~> ListItem(bits(1,8)) </cmd>
+  // <cmd> "CIRCT#SETUP" ~> "CIRCT#SIMULATE" ~> ListItem(bits(1,8)) ListItem(bits(2,8)) </cmd>
   // <cmd> $Cmd:K </cmd>
-  <top-module> $TopModule:String </top-module>
+  // <top-module> $TopModule:String </top-module>
+  <top-module> "":String </top-module>
   <top-ins> .List </top-ins>
 ```
 
