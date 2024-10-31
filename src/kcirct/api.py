@@ -278,6 +278,57 @@ class KCIRCT:
 
     def read_ports_fast(self, state_file: Path) -> dict[str, tuple[int, int]]:
         """Read the outputs from the Kore pattern."""
+        signals = self.read_signals(state_file)
+        signal_port_mapping = self.read_signal_port_mapping(state_file)
+        ports = {}
+        for signal in signal_port_mapping:
+            ports[signal_port_mapping[signal]] = signals[signal]
+        return ports
+
+    def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
+        """Read the signal port mapping from the Kore pattern."""
+        with open(state_file, 'r') as file:
+            state = file.read()
+        signal_port_mapping = {}
+        while len(state):
+            idx0 = state.find("Lbl'-LT-'hw-inputs'-GT-'")
+            if idx0 == -1:
+                break
+            idx1 = state.find("Lbl'-LT-'hw-inports'-GT-'")
+            idx2 = state.find("Lbl'-LT-'hw-in-types'-GT-'")
+            idx3 = state.find("Lbl'-LT-'hw-outputs'-GT-'")
+            idx4 = state.find("Lbl'-LT-'hw-outports'-GT-'")
+            idx5 = state.find("Lbl'-LT-'hw-out-types'-GT-'")
+            
+            hw_inputs_str = state[idx0:idx1]
+            hw_inports_str = state[idx1:idx2]
+            hw_outputs_str = state[idx3:idx4]
+            hw_outports_str = state[idx4:idx5]
+            state = state[idx5:]
+            
+            def _find_names(str: str) -> list[str]:
+                names = []
+                while len(str):
+                    pre_idx = str.find('"')
+                    if pre_idx == -1:
+                        break
+                    end_idx = str.find('"', pre_idx + 1)
+                    names.append(str[pre_idx + 1:end_idx])
+                    str = str[end_idx + 1:]
+                return names
+            
+            hw_inputs = _find_names(hw_inputs_str)
+            hw_inports = _find_names(hw_inports_str)
+            hw_outputs = _find_names(hw_outputs_str)
+            hw_outports = _find_names(hw_outports_str)
+            for hw_inport, hw_input in zip(hw_inports, hw_inputs, strict=True):
+                signal_port_mapping[hw_inport] = '/'.join(hw_inport.split('/')[:-1] + [hw_input])
+            for hw_outport, hw_output in zip(hw_outports, hw_outputs, strict=True):
+                signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
+        return signal_port_mapping
+    
+    def read_signals(self, state_file: Path) -> dict[str, tuple[int, int]]:
+        """Read the signals from the Kore pattern."""
         with open(state_file, 'r') as file:
             state = file.read()
             
@@ -289,7 +340,7 @@ class KCIRCT:
         pre_idx = 0
         end_idx = 0
         ports: dict[str, tuple[int, int]] = {}
-        while pre_idx < len(sub_str):
+        while len(sub_str):
             # find port name
             pre_idx = sub_str.find('"', pre_idx)
             if pre_idx == -1:
