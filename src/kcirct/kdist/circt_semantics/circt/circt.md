@@ -54,6 +54,8 @@ rule
 <connection> Conn:Map </connection>
 <procedures> PROCS:List </procedures>
 <top-ins> INS:List </top-ins>
+<signals> Signals:Map => .Map </signals>
+<history> _ => Signals </history>
 (
    .Bag
 => <current-info>

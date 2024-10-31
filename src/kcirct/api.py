@@ -6,7 +6,6 @@ It does not include:
 
 from __future__ import annotations
 
-import resource
 import subprocess
 import sys
 import time
@@ -14,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pyk.kdist import kdist
 from pyk.kore.parser import KoreParser
 from pyk.kore.prelude import DV, SORT_K_ITEM, App, SortApp, dv, inj, kseq, top_cell_initializer
 from pyk.ktool.kprint import KPrint
@@ -32,47 +32,33 @@ DATA_DIR = API_DIR / 'tmp'
 SEMANTICS_PATH = API_DIR / 'kdist' / 'circt_semantics' / 'circt-core.k'
 PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
-KOMPILE_DIR = WORKING_DIR / 'kompiled'
-OPT_KOMPILE_DIR = WORKING_DIR / 'opt-kompiled'
 
 sys.setrecursionlimit(2**31 - 1)
 
 # soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
 # resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
 
+
 class KCIRCT:
     working_dir: Path
     data_dir: Path
+    parser_dir: Path
     definition_dir: Path
     _kprint: KPrint | None
-    _use_opt: bool
     # TODO: 在语义确定没问题之后，将左右的Kore Parser和top_down从pipeline中删除
 
-    def __init__(self, use_opt: bool = False) -> None:
-        print('Initializing KCIRCT...')
+    def __init__(self) -> None:
         self.working_dir = WORKING_DIR
-        print(f'Working directory: {self.working_dir}')
-        self.working_dir.mkdir(parents=True, exist_ok=True)
-
         self.data_dir = DATA_DIR
-        print(f'Data directory: {self.data_dir}')
+        self.parser_dir = PARSER_DIR
+        self.working_dir.mkdir(parents=True, exist_ok=True)
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        print(f'Parser directory: {PARSER_DIR}')
-        PARSER_DIR.mkdir(parents=True, exist_ok=True)
-        self._use_opt = use_opt
-        self.definition_dir = OPT_KOMPILE_DIR if use_opt else KOMPILE_DIR
+        self.parser_dir.mkdir(parents=True, exist_ok=True)
+        self.definition_dir = kdist.get('circt-semantics.llvm')
+
         self._kprint = KPrint(definition_dir=self.definition_dir)
 
     def ensure_env(self):
-        if self.definition_dir.exists():
-            print('Kompiled directory exists.')
-            print('If you want to re-kompile, please delete the existing directory.')
-            print(f'Kompiled directory: {self.definition_dir}')
-        else:
-            print('Kompiling...')
-            KCIRCT.kompile(use_opt=self._use_opt)
-            print(f'Kompiled: {self.definition_dir}')
-
         if not TOP_LEVEL_PARSER.exists():
             print('Generating TopLevelParser...')
             self.generate_parser(sort='TopLevel', parser=TOP_LEVEL_PARSER)
@@ -102,14 +88,6 @@ class KCIRCT:
         return KCIRCT.Result(stdout.decode('utf-8'), time_cost)
 
     @staticmethod
-    def kompile(use_opt: bool = False) -> None:
-        if use_opt:
-            KCIRCT.run(['kompile', str(SEMANTICS_PATH), '-o', str(OPT_KOMPILE_DIR), '-O3', '-ccopt', '-g'])
-        else:
-            KCIRCT.run(['kompile', str(SEMANTICS_PATH), '-o', str(KOMPILE_DIR)])
-        return
-    
-    @staticmethod
     def kompile_manual(k_file: Path, output_file: Path, command: list[str]) -> None:
         KCIRCT.run(
             [
@@ -120,10 +98,10 @@ class KCIRCT:
                 str(output_file),
             ]
         )
-    
+
     def set_definition_dir(self, definition_dir: Path) -> None:
         self.definition_dir = definition_dir
-    
+
     def krun_manual(self, input_file: Path, command: list[str]) -> None:
         KCIRCT.run(
             [
@@ -134,6 +112,7 @@ class KCIRCT:
                 *command,
             ]
         )
+
     def generate_parser(self, sort: str, parser: Path) -> None:
         KCIRCT.run(
             [
@@ -297,6 +276,95 @@ class KCIRCT:
 
         return self.krun(state.top_down(_rewrite))
 
+    def read_ports_fast(self, state_file: Path) -> dict[str, tuple[int, int]]:
+        """Read the outputs from the Kore pattern."""
+        signals = self.read_signals(state_file)
+        signal_port_mapping = self.read_signal_port_mapping(state_file)
+        ports = {}
+        for signal in signal_port_mapping:
+            ports[signal_port_mapping[signal]] = signals[signal]
+        return ports
+
+    def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
+        """Read the signal port mapping from the Kore pattern."""
+        with open(state_file, 'r') as file:
+            state = file.read()
+        signal_port_mapping = {}
+        while len(state):
+            idx0 = state.find("Lbl'-LT-'hw-inputs'-GT-'")
+            if idx0 == -1:
+                break
+            idx1 = state.find("Lbl'-LT-'hw-inports'-GT-'")
+            idx2 = state.find("Lbl'-LT-'hw-in-types'-GT-'")
+            idx3 = state.find("Lbl'-LT-'hw-outputs'-GT-'")
+            idx4 = state.find("Lbl'-LT-'hw-outports'-GT-'")
+            idx5 = state.find("Lbl'-LT-'hw-out-types'-GT-'")
+            
+            hw_inputs_str = state[idx0:idx1]
+            hw_inports_str = state[idx1:idx2]
+            hw_outputs_str = state[idx3:idx4]
+            hw_outports_str = state[idx4:idx5]
+            state = state[idx5:]
+            
+            def _find_names(str: str) -> list[str]:
+                names = []
+                while len(str):
+                    pre_idx = str.find('"')
+                    if pre_idx == -1:
+                        break
+                    end_idx = str.find('"', pre_idx + 1)
+                    names.append(str[pre_idx + 1:end_idx])
+                    str = str[end_idx + 1:]
+                return names
+            
+            hw_inputs = _find_names(hw_inputs_str)
+            hw_inports = _find_names(hw_inports_str)
+            hw_outputs = _find_names(hw_outputs_str)
+            hw_outports = _find_names(hw_outports_str)
+            for hw_inport, hw_input in zip(hw_inports, hw_inputs, strict=True):
+                signal_port_mapping[hw_inport] = '/'.join(hw_inport.split('/')[:-1] + [hw_input])
+            for hw_outport, hw_output in zip(hw_outports, hw_outputs, strict=True):
+                signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
+        return signal_port_mapping
+    
+    def read_signals(self, state_file: Path) -> dict[str, tuple[int, int]]:
+        """Read the signals from the Kore pattern."""
+        with open(state_file, 'r') as file:
+            state = file.read()
+            
+        start_index = state.find("Lbl'-LT-'signals'-GT-'{}")
+        end_index = state.find("Lbl'-LT-'history'-GT-'{}")
+        if start_index == -1 or end_index == -1:
+            raise ValueError(f"No signals found in {state_file}")
+        sub_str = state[start_index:end_index]
+        pre_idx = 0
+        end_idx = 0
+        ports: dict[str, tuple[int, int]] = {}
+        while len(sub_str):
+            # find port name
+            pre_idx = sub_str.find('"', pre_idx)
+            if pre_idx == -1:
+                break
+            end_idx = sub_str.find('"', pre_idx + 1)
+            port_name = sub_str[pre_idx + 1:end_idx]
+            sub_str = sub_str[end_idx + 1:]
+            
+            # find port value
+            pre_idx = sub_str.find('"')
+            end_idx = sub_str.find('"', pre_idx + 1)
+            port_value = int(sub_str[pre_idx + 1:end_idx])
+            sub_str = sub_str[end_idx + 1:]
+            
+            # find port size
+            pre_idx = sub_str.find('"')
+            end_idx = sub_str.find('"', pre_idx + 1)
+            port_size = int(sub_str[pre_idx + 1:end_idx])
+            sub_str = sub_str[end_idx + 1:]
+            
+            ports[port_name] = (port_value, port_size)
+        
+        return ports
+
     def read_ports(self, state: Pattern) -> dict[str, tuple[int, int]]:
         """Read the outputs from the Kore pattern."""
         # cid.port_name -> (port_value, port_size)
@@ -388,8 +456,7 @@ class KCIRCT:
                 init_pattern = top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm_pattern)})
                 init_pattern.write(file)
 
-        _print_correct_pattern(pgm, output_file)
-
+        # _print_correct_pattern(pgm, output_file)
         template = """LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
         temp_file = output_file.parent / (output_file.name + '.prestate')
         with open(pgm, 'r') as file:
@@ -429,16 +496,16 @@ class KCIRCT:
         phase = "toStimulate" | "build"
         """
 
-        match = """(kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'phaseStop'Unds'MLIR-CONF'Unds'PhaseControl{}()),kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'toStimulate'Unds'MLIR-CONF'Unds'PhaseControl{}()),dotk{}())))"""
-        rewrite = """(kseq{}(inj{SortPhaseControl{}, SortKItem{}}(Lbl'Hash'toStimulate'Unds'MLIR-CONF'Unds'PhaseControl{}()),dotk{}()))"""
+        match_cmd = """Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
+        rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SETUP")), dotk{}()))"""
 
-        match_entry = """Lbl'-LT-'entry'-GT-'{}(\dv{SortString{}}("")"""
-        rewrite_entry = """Lbl'-LT-'entry'-GT-'{}(\dv{SortString{}}("{top_module}")"""
-        rewrite_entry = rewrite_entry.replace("{top_module}", top_module)
+        match_top_module = """Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("")"""
+        rewrite_top_module = """Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("{top_module}")"""
+        rewrite_top_module = rewrite_top_module.replace("{top_module}", top_module)
 
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
-        rewritten_pattern = self._kore_replace(input_file, match, rewrite)
-        rewritten_pattern = self._kore_str_replace(rewritten_pattern, match_entry, rewrite_entry)
+        rewritten_pattern = self._kore_replace(input_file, match_cmd, rewrite_cmd)
+        rewritten_pattern = self._kore_str_replace(rewritten_pattern, match_top_module, rewrite_top_module)
         with open(rewritten_file, 'w') as file:
             file.write(rewritten_pattern)
         self.krun_fast(input_file=rewritten_file, output_file=output_file)
@@ -488,27 +555,36 @@ class KCIRCT:
         else:
             return input_str  # 如果标签不存在，返回原始字符串
 
-    def run_simulate_fast(self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]], depth: int | None = None) -> None:
+    def run_simulate_fast(
+        self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]], depth: int | None = None
+    ) -> None:
         """Run the simulate step on Kore.
 
         This is the fourth step in the CIRCT Semantics pipeline.
         phase = "simulate"
         """
 
-        rewrite = """{}(kseq{}(inj{SortCmdCIRCT{}, SortKItem{}}(Lbl'Hash'always'Unds'COMMON-SYNTAX'Unds'CmdCIRCT{}()),dotk{}())),"""
+        match_cmd = """Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
+        rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),kseq{}(inj{SortList{}, SortKItem{}}({inputs}),dotk{}())))"""
 
-        with open(input_file, 'r') as file:
-            input_str = file.read()
-        rewritten_pattern = self._rewrite_cell(input_str, 'cmd', 'entry', rewrite)
+        def _bits(value: int, size: int) -> str:
+            bits_template = """inj{SortBits{}, SortKItem{}}(Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(inj{SortInt{}, SortBitsValue{}}(\dv{SortInt{}}("{value}")),\dv{SortInt{}}("{size}")))"""
+            return bits_template.replace("{value}", str(value)).replace("{size}", str(size))
 
-        input_pattern = self.kore_input(inputs)
-        input_pattern_file = output_file.parent / (output_file.name + '.input_pattern')
-        with open(input_pattern_file, 'w') as file:
-            input_pattern.write(file)
-        with open(input_pattern_file, 'r') as file:
-            input_pattern_str = file.read()
+        def _list_item(value: str, size: int) -> str:
+            content = _bits(value, size)
+            return 'LblListItem{}(' + content + ')'
 
-        rewritten_pattern = self._rewrite_cell(rewritten_pattern, 'input', 'clock', "{}(" + input_pattern_str + "),")
+        def _list(inputs: list[tuple[int, int]]) -> str:
+            res = ''
+            for value, size in inputs:
+                res += _list_item(value, size) + ','
+            res = res[:-1]
+            res = "\left-assoc{}(Lbl'Unds'List'Unds'{}(" + res + "))"
+            return res
+
+        rewritten_cmd = rewrite_cmd.replace("{inputs}", _list(inputs))
+        rewritten_pattern = self._kore_replace(input_file, match_cmd, rewritten_cmd)
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
         with open(rewritten_file, 'w') as file:
             file.write(rewritten_pattern)
@@ -567,13 +643,13 @@ class KCIRCT:
         return self.run(state.top_down(_rewrite))
 
     def kore_input(self, inputs: list[tuple[int, int]]) -> Pattern:
-        def _bits_list(inputs: list[tuple[int, int]]) -> Pattern:
+        def _bits_list(inputs: list[tuple[int, int]]) -> str:
             res = ''
             for input in inputs:
-                res += f'ListItem(bits({input[0]}, {input[1]}) : i{input[1]}) '
+                res += f'ListItem(bits({input[0]}, {input[1]})) '
             return res
 
-        return self.compile_expression(expression=f'ListItem({_bits_list(inputs)})', sort='List')
+        return self.compile_expression(expression=_bits_list(inputs), sort='List')
 
     # APIs for VCD
 

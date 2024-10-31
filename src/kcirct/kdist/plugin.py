@@ -45,9 +45,11 @@ __TARGETS__: Final = {
     'llvm': KompileTarget(
         lambda src_dir: {
             'backend': PykBackend.LLVM,
-            'main_file': src_dir / 'circt_semantics/main.k',
-            'main_module': 'MAIN',
-            'syntax_module': 'MAIN-SYNTAX',
+            'main_file': src_dir / 'circt_semantics/circt-core.k',
+            'main_module': 'CIRCT-CORE',
+            'syntax_module': 'CIRCT-CORE-SYNTAX',
+            # 'opt_level': 3,
+            # 'ccopts': ['-g'],
             # 'gen_bison_parser': True,
             # 'gen_glr_bison_parser': True,
             # 'bison-stack-max-depth': 10000000,

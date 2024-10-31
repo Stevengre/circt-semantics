@@ -2,6 +2,7 @@ import filecmp
 import time
 
 from kcirct.api import KCIRCT
+
 from ..resources import DATA_PATH
 
 MLIR_FILE = DATA_PATH / 'rocket-small' / 'rocket-small-drop.mlir'
@@ -81,6 +82,7 @@ INPUTS = inputs = [
     ],
 ]
 
+
 def measure_time(func, output_message: str):
     """测量函数运行时间并打印消息。"""
     start_time = time.time()
@@ -134,29 +136,32 @@ def test_step_run() -> None:
 def test_small():
     kcirct = KCIRCT(use_opt=True)
     kcirct.ensure_env()
-    measure_time(
-        lambda: kcirct.compile_fast(MLIR_FILE, MLIR_FILE.parent / 'pgm.kore'),
-        'KCIRCT Parse Time'
-    )
+    measure_time(lambda: kcirct.compile_fast(MLIR_FILE, MLIR_FILE.parent / 'pgm.kore'), 'KCIRCT Parse Time')
     measure_time(
         lambda: kcirct.run_preprocess_fast(MLIR_FILE.parent / 'pgm.kore', MLIR_FILE.parent / 'preprocessed.kore'),
-        'KCIRCT Preprocess Time'
+        'KCIRCT Preprocess Time',
     )
     measure_time(
-        lambda: kcirct.run_setup_fast(MLIR_FILE.parent / 'preprocessed.kore', MLIR_FILE.parent / 'setup.kore', TOP_MODULE),
-        'KCIRCT Setup Time'
+        lambda: kcirct.run_setup_fast(
+            MLIR_FILE.parent / 'preprocessed.kore', MLIR_FILE.parent / 'setup.kore', TOP_MODULE
+        ),
+        'KCIRCT Setup Time',
     )
     measure_time(
         lambda: kcirct.run_initialize_fast(MLIR_FILE.parent / 'setup.kore', MLIR_FILE.parent / 'initialized.kore'),
-        'KCIRCT Initialize Time'
+        'KCIRCT Initialize Time',
     )
     measure_time(
-        lambda: kcirct.run_simulate_fast(MLIR_FILE.parent / 'initialized.kore', MLIR_FILE.parent / 'simulated.0.opt.kore', INPUTS[0]),
-        'KCIRCT Simulate Time'
+        lambda: kcirct.run_simulate_fast(
+            MLIR_FILE.parent / 'initialized.kore', MLIR_FILE.parent / 'simulated.0.opt.kore', INPUTS[0]
+        ),
+        'KCIRCT Simulate Time',
     )
     measure_time(
-        lambda: kcirct.write_pretty(MLIR_FILE.parent / 'simulated.0.opt.kore', MLIR_FILE.parent / 'simulated.0.opt.pretty'),
-        'KCIRCT Write Pretty Time'
+        lambda: kcirct.write_pretty(
+            MLIR_FILE.parent / 'simulated.0.opt.kore', MLIR_FILE.parent / 'simulated.0.opt.pretty'
+        ),
+        'KCIRCT Write Pretty Time',
     )
 
 
@@ -167,7 +172,7 @@ def test_pretty() -> None:
     kcirct.ensure_env()
     kcirct.write_pretty(kore_file, pretty_file)
     print('Finished pretty printing: ' + str(pretty_file))
-    
+
 
 def test_check_pretty() -> None:
     pretty_file = DATA_PATH / 'rocket-small' / 'simulated.0.kore.107000.pretty'
@@ -186,4 +191,3 @@ def test_check_pretty() -> None:
                 flag = False
             if '<k>' in line:
                 flag = True
-
