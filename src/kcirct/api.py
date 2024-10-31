@@ -276,6 +276,44 @@ class KCIRCT:
 
         return self.krun(state.top_down(_rewrite))
 
+    def read_ports_fast(self, state_file: Path) -> dict[str, tuple[int, int]]:
+        """Read the outputs from the Kore pattern."""
+        with open(state_file, 'r') as file:
+            state = file.read()
+            
+        start_index = state.find("Lbl'-LT-'signals'-GT-'{}")
+        end_index = state.find("Lbl'-LT-'history'-GT-'{}")
+        if start_index == -1 or end_index == -1:
+            raise ValueError(f"No signals found in {state_file}")
+        sub_str = state[start_index:end_index]
+        pre_idx = 0
+        end_idx = 0
+        ports: dict[str, tuple[int, int]] = {}
+        while pre_idx < len(sub_str):
+            # find port name
+            pre_idx = sub_str.find('"', pre_idx)
+            if pre_idx == -1:
+                break
+            end_idx = sub_str.find('"', pre_idx + 1)
+            port_name = sub_str[pre_idx + 1:end_idx]
+            sub_str = sub_str[end_idx + 1:]
+            
+            # find port value
+            pre_idx = sub_str.find('"')
+            end_idx = sub_str.find('"', pre_idx + 1)
+            port_value = int(sub_str[pre_idx + 1:end_idx])
+            sub_str = sub_str[end_idx + 1:]
+            
+            # find port size
+            pre_idx = sub_str.find('"')
+            end_idx = sub_str.find('"', pre_idx + 1)
+            port_size = int(sub_str[pre_idx + 1:end_idx])
+            sub_str = sub_str[end_idx + 1:]
+            
+            ports[port_name] = (port_value, port_size)
+        
+        return ports
+
     def read_ports(self, state: Pattern) -> dict[str, tuple[int, int]]:
         """Read the outputs from the Kore pattern."""
         # cid.port_name -> (port_value, port_size)
