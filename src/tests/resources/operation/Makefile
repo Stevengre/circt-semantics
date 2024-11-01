@@ -22,8 +22,8 @@ $(FILE)__main.cpp: $(FILE).sv
 
 .PHONY: $(FILE_PATH)V$(FILE_NAME)
 $(FILE_PATH)V$(FILE_NAME): $(FILE)__main.cpp $(FILE).sv
-	verilator --cc --exe --build $(FILE_NAME)__main.cpp $(FILE).sv --trace --Mdir $(FILE_PATH)obj_dir
-	cp $(FILE_PATH)obj_dir/V$(FILE_NAME) $@
+	@erilator --cc --exe --build $(FILE_NAME)__main.cpp $(FILE).sv --trace --Mdir $(FILE_PATH)obj_dir
+	@cp $(FILE_PATH)obj_dir/V$(FILE_NAME) $@
 	@echo "Run $@"
 
 clean:
