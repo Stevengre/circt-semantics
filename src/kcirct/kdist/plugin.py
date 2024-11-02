@@ -56,6 +56,14 @@ __TARGETS__: Final = {
             # 'coverage': True,
         },
     ),
+    'haskell': KompileTarget(
+        lambda src_dir: {
+            'backend': PykBackend.HASKELL,
+            'main_file': src_dir / 'circt_semantics/circt-core.k',
+            'main_module': 'CIRCT-CORE',
+            'syntax_module': 'CIRCT-CORE-SYNTAX',
+        },
+    ),
     # 'coverage': KompileTarget(
     #     lambda src_dir: {
     #         'backend': PykBackend.LLVM,
