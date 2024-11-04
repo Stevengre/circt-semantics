@@ -28,6 +28,19 @@ $(FILE_PATH)V$(FILE_NAME): $(FILE)__main.cpp $(FILE).sv
 
 clean:
 	find . -type d -name 'obj_dir' -exec rm -rf {} +
+	find . -type f -name 'pgm.kore' -exec rm -f {} +
+	find . -type f -name 'preprocessed.kore' -exec rm -f {} +
+	find . -type f -name 'preprocessed.kore.prestate' -exec rm -f {} +
+	find . -type f -name 'preprocessed.pretty' -exec rm -f {} +
+	find . -type f -name 'setup.kore' -exec rm -f {} +
+	find . -type f -name 'setup.kore.prestate' -exec rm -f {} +
+	find . -type f -name 'setup.pretty' -exec rm -f {} +
+	find . -type f -name 'simulated.*.kore' -exec rm -f {} +
+	find . -type f -name 'simulated.*.pretty' -exec rm -f {} +
+	find . -type f -name 'simulated.*.kore.prestate' -exec rm -f {} +
+	find . -type f -name '*.vcd' -exec rm -f {} +
+	find . -type f -name 'state.json' -exec rm -f {} +
+	find . -type f -name 'V*' -exec rm -f {} +
 
 # 帮助信息
 help:
