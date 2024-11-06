@@ -1,0 +1,22 @@
+{
+    "config": [
+        {
+            "name" : "add",
+            "length" : 2,
+            "type" : ["i8","i8"],
+            "mode" : 0
+        },
+        {
+            "name" : "and",
+            "length" : 2,
+            "type" : ["i8","i8"],
+            "mode" : 0
+        },
+        {
+            "name" : "concat",
+            "length" : 2,
+            "type" : ["i8","i8"],
+            "mode" : 0
+        }
+    ]
+}

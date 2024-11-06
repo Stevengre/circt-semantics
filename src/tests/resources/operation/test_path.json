@@ -1,0 +1,8 @@
+{
+    "level1":[
+        {
+            "name":"comb",
+            "operation":["add","and","concat"]
+        }
+    ]
+}

@@ -26,6 +26,19 @@ $(FILE_PATH)V$(FILE_NAME): $(FILE)__main.cpp $(FILE).sv
 	@cp $(FILE_PATH)obj_dir/V$(FILE_NAME) $@
 	@echo "Run $@"
 
+cleanProcess:
+	find . -type d -name 'obj_dir' -exec rm -rf {} +
+	find . -type f -name 'pgm.kore' -exec rm -f {} +
+	find . -type f -name 'preprocessed.kore' -exec rm -f {} +
+	find . -type f -name 'preprocessed.kore.prestate' -exec rm -f {} +
+	find . -type f -name 'preprocessed.pretty' -exec rm -f {} +
+	find . -type f -name 'setup.kore' -exec rm -f {} +
+	find . -type f -name 'setup.kore.prestate' -exec rm -f {} +
+	find . -type f -name 'setup.pretty' -exec rm -f {} +
+	find . -type f -name 'simulated.*.kore' -exec rm -f {} +
+	find . -type f -name 'simulated.*.pretty' -exec rm -f {} +
+	find . -type f -name 'simulated.*.kore.prestate' -exec rm -f {} +
+
 clean:
 	find . -type d -name 'obj_dir' -exec rm -rf {} +
 	find . -type f -name 'pgm.kore' -exec rm -f {} +
