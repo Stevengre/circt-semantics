@@ -106,13 +106,15 @@ module BITS
     rule BitsXor(.List) => bits(0, 0)
     
     rule bits(X1:Int, W1:Int)   ^Bits bits(X2:Int, W2:Int)  => bits(X1 xorInt X2, maxInt(W1, W2))
-    rule bits(#x, W1) ^Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
-    rule bits(_, W1) ^Bits bits(#x, W2) => bits(#x, maxInt(W1, W2))
+    rule bits(_, W1) ^Bits bits(_, W2) => bits(0, maxInt(W1, W2))
     [owise]
-    // TODO: optimize after bit-level z
-    rule bits(_:Int, W1) ^Bits bits(#z, W2) => bits(#z, maxInt(W1, W2))
-    rule bits(#z, W1) ^Bits bits(_:Int, W2) => bits(#z, maxInt(W1, W2))
-    rule bits(#z, W1) ^Bits bits(#z, W2)    => bits(0, maxInt(W1, W2))
+    // rule bits(#x, W1) ^Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
+    // rule bits(_, W1) ^Bits bits(#x, W2) => bits(#x, maxInt(W1, W2))
+    // [owise]
+    // // TODO: optimize after bit-level z
+    // rule bits(_:Int, W1) ^Bits bits(#z, W2) => bits(#z, maxInt(W1, W2))
+    // rule bits(#z, W1) ^Bits bits(_:Int, W2) => bits(#z, maxInt(W1, W2))
+    // rule bits(#z, W1) ^Bits bits(#z, W2)    => bits(0, maxInt(W1, W2))
 
     rule BitsCast(bits(X:Int, W:Int)) => bits(X &Int (2 ^Int W -Int 1), W) 
     requires X >=Int 0 andBool W >=Int 0
@@ -181,10 +183,13 @@ module BITS
     [owise]
 
     rule Bits2BitList(bits(X:Int, W:Int)) => Bits2BitList(bits(X >>Int 1, W -Int 1)) ListItem(bits(X &Int 1, 1))
+    requires W >Int 0
     rule Bits2BitList(bits(_:Int, 0)) => .List
     rule Bits2BitList(bits(_:XZValue, _:Int)) => .List
 
     rule BitsParity(bits(X:Int, W:Int)) => BitsCast(BitsXor(Bits2BitList(bits(X, W))), 1)
+    // rule BitsParity(bits(X:Int, W:Int)) => BitsXor(Bits2BitList(bits(X, W)))
+    // rule BitsParity(bits(X:Int, W:Int)) => bits(X &Int 1, 1)
     rule BitsParity(bits(_:XZValue, _:Int)) => bits(#x, 1)
 
     rule Bool2Int(B:Bool) => #if B #then 1 #else 0 #fi

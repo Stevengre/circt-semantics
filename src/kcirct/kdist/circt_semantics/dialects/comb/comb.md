@@ -146,7 +146,7 @@ rule
 
 ```k
 rule
-<current> "comb.icmp" ( ListItem(B1:Bits) ListItem(B2:Bits) ) {"predicate" |-> Pred:Int _:Map} : _ => ListItem(BitsCmp(Pred, B1, B2)) ... </current>
+<current> "comb.icmp" ( ListItem(B1:Bits) ListItem(B2:Bits) ) {"predicate" |-> Pred:Int : _:IntegerType _:Map} : _ => ListItem(BitsCmp(Pred, B1, B2)) ... </current>
 ```
 
 ```k
