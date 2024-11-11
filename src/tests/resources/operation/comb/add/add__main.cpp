@@ -37,7 +37,6 @@ int main(int argc, char** argv, char**) {
     Verilated::traceEverOn(true);
     topp->trace(tfp, 99); // 设置波形跟踪深度
     tfp->open("./comb/add/trace_vtor.vcd"); // 打开 VCD 文件 ,这里写相对路径的话，我可以在operation目录下
-        //运行Vadd
     // Evaluate initials
     topp->eval();  // Evaluate
     // Simulate until $finish
@@ -51,7 +50,7 @@ int main(int argc, char** argv, char**) {
         topp->eval();
         tfp->dump(main_time);
         ++main_time;
-        std::cout<<int(topp->res) <<std::endl;
+        // std::cout<<int(topp->res) <<std::endl;
     }
     
     // Final model cleanup

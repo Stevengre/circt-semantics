@@ -1,8 +1,27 @@
 {
-    "level1":[
+    "level1": [
         {
-            "name":"comb",
-            "operation":["add","and","concat"]
+            "name": "comb",
+            "operation": [
+                "add",
+                "and",
+                "concat",
+                "divs",
+                "divu",
+                "extract",
+                "icmp",
+                "mods",
+                "modu",
+                "mul",
+                "or",
+                "parity",
+                "replicate",
+                "shrs",
+                "shru",
+                "sub",
+                "truth_table",
+                "xor"
+            ]
         }
     ]
 }

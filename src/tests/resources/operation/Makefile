@@ -39,6 +39,9 @@ cleanProcess:
 	find . -type f -name 'simulated.*.pretty' -exec rm -f {} +
 	find . -type f -name 'simulated.*.kore.prestate' -exec rm -f {} +
 
+cleanObj:
+	find . -type d -name 'obj_dir' -exec rm -rf {} +
+
 clean:
 	find . -type d -name 'obj_dir' -exec rm -rf {} +
 	find . -type f -name 'pgm.kore' -exec rm -f {} +

@@ -1,22 +1,163 @@
 {
     "config": [
         {
-            "name" : "add",
-            "length" : 2,
-            "type" : ["i8","i8"],
-            "mode" : 0
+            "name": "add",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
         },
         {
-            "name" : "and",
-            "length" : 2,
-            "type" : ["i8","i8"],
-            "mode" : 0
+            "name": "and",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
         },
         {
-            "name" : "concat",
-            "length" : 2,
-            "type" : ["i8","i8"],
-            "mode" : 0
+            "name": "concat",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "divs",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "divu",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "extract",
+            "length": 1,
+            "type": [
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "icmp",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "mods",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "modu",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "mul",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "or",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "parity",
+            "length": 1,
+            "type": [
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "replicate",
+            "length": 1,
+            "type": [
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "shrs",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "shru",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "sub",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "truth_table",
+            "length": 2,
+            "type": [
+                1,
+                1
+            ],
+            "mode": 4
+        },
+        {
+            "name": "xor",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
         }
     ]
 }
