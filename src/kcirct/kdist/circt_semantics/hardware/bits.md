@@ -141,12 +141,16 @@ module BITS
 
 
     rule BitsDivs(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 /sBits B2
+    // TODO: check the undefined behavior of divInt when X2 is 0 for symbolic execution
+    rule bits(X1:Int, W1:Int) /sBits bits(0, _W2:Int) => bits(0, W1)
     rule bits(X1:Int, W1:Int) /sBits bits(X2:Int, _W2:Int) => BitsCast(bits(X1 /Int X2, W1)) requires X2 =/=Int 0
     rule bits(_:XZValue, W1:Int) /sBits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) /sBits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
 
     rule BitsDivu(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 /uBits B2
+    // TODO: check the undefined behavior of divInt when X2 is 0 for symbolic execution
+    rule bits(X1:Int, W1:Int) /uBits bits(0, _W2:Int) => bits(0, W1)
     rule bits(X1:Int, W1:Int) /uBits bits(X2:Int, _W2:Int) => BitsCast(bits(X1 /Int X2, W1)) requires X2 =/=Int 0
     rule bits(_:XZValue, W1:Int) /uBits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) /uBits bits(_:XZValue, _W2:Int) => bits(#x, W1)
@@ -204,6 +208,8 @@ module BITS
 
     rule BitsMods(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 modsBits B2
 
+    // TODO: check the undefined behavior of modInt when X2 is 0 for symbolic execution
+    rule bits(X1:Int, W1:Int) modsBits bits(0, _W2:Int) => bits(0, W1)
     rule bits(X1:Int, W1:Int) modsBits bits(X2:Int, _W2:Int) => bits(X1 modInt X2, W1) requires X2 =/=Int 0
     rule bits(_:XZValue, W1:Int) modsBits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) modsBits bits(_:XZValue, _W2:Int) => bits(#x, W1)
@@ -211,6 +217,8 @@ module BITS
 
     rule BitsModu(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 moduBits B2
 
+    // TODO: check the undefined behavior of modInt when X2 is 0 for symbolic execution
+    rule bits(X1:Int, W1:Int) moduBits bits(0, _W2:Int) => bits(0, W1)
     rule bits(X1:Int, W1:Int) moduBits bits(X2:Int, _W2:Int) => bits(X1 modInt X2, W1) requires X2 =/=Int 0
     rule bits(_:XZValue, W1:Int) moduBits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) moduBits bits(_:XZValue, _W2:Int) => bits(#x, W1)
