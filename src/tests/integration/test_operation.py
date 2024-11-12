@@ -75,6 +75,6 @@ if __name__ == '__main__':
     nowtest = 'hw'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'enum_cmp':
+        if dir.name == 'wire':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
