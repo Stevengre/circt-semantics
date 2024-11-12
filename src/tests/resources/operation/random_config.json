@@ -158,6 +158,129 @@
                 8
             ],
             "mode": 1000
+        },
+        {
+            "name": "aggregate_constant",
+            "length": 0,
+            "type": [],
+            "mode": 0
+        },
+        {
+            "name": "array_concat",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "array_get",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "bitcast",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "constant",
+            "length": 0,
+            "type": [],
+            "mode": 0
+        },
+        {
+            "name": "enum.cmp",
+            "length": 0,
+            "type": [],
+            "mode": 0
+        },
+        {
+            "name": "hierpath",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "instance",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "module",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "output",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "struct_explode",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "struct_extract",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "struct_inject",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "union_create",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
+            "name": "wire",
+            "length": 0,
+            "type": [],
+            "mode": 0
         }
     ]
 }

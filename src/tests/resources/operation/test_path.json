@@ -22,6 +22,26 @@
                 "truth_table",
                 "xor"
             ]
+        },
+        {
+            "name": "hw",
+            "operation": [
+                "aggregate_constant",
+                "array_concat",
+                "array_get",
+                "bitcast",
+                "constant",
+                "enum.cmp",
+                "hierpath",
+                "instance",
+                "module",
+                "output",
+                "struct_explode",
+                "struct_extract",
+                "struct_inject",
+                "union_create",
+                "wire"
+            ]
         }
     ]
 }

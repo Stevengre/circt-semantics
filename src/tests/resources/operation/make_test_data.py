@@ -76,7 +76,9 @@ def make_test_data(random_config, test_path):
             if os.path.exists(output_filr[config['name']]) != True:
                 misson = test_data(config = config, output_file=output_filr[config['name']])
                 #全枚举            
-                if config['mode'] > 0:
+                if config['length'] == 0:
+                    misson.output_data = []
+                elif config['mode'] > 0:
                     misson.randomBuild([],0)
                 elif config['mode'] == 0:
                     misson.add1([],0)
