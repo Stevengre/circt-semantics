@@ -29,7 +29,11 @@ if TYPE_CHECKING:
 def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     print(mlir_file)
 
+
+
     kcirct = KCIRCT()
+    # kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
+
     kcirct.ensure_env()
     # KCIRCT Parsing: from mlir to kore
     kcirct.compile_fast(mlir_file, mlir_file.parent / 'pgm.kore')
@@ -51,9 +55,15 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
         print(str(vcd.time)+str(mlir_file))
         vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
 
+
+def test_diffvcd(test_path: Path)->None:
+    #我要通过subprocess调用./diffvcd.py test_path/trace_vtor.vcd test_path/test.vcd并想知道它的返回值是不是0
+    return
+
+
 if __name__ == '__main__':
     for i,dir in enumerate(COMB_DIRS):
-        if dir.name not in ['parity','icmp'] :
-        # if dir.name == 'add':
+        # if dir.name not in ['parity','icmp'] :
+        if dir.name == 'parity':
             test_evaluate_demo(COMB_MLIR_GNERIC_FILES[i],COMB_EXPECTED_TOP_MODULES[i],
                                 COMB_INPUTS[i])
