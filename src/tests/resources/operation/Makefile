@@ -13,7 +13,7 @@ $(FILE).generic.mlir: $(FILE).mlir
 	circt-opt --mlir-print-op-generic $< > $@
 
 $(FILE).sv: $(FILE).generic.mlir
-	firtool --lowering-options=disallowLocalVariables $< -o $@
+	firtool --lowering-options=disallowLocalVariables  $< -o $@
 
 $(FILE)__main.cpp: $(FILE).sv
 	@verilator --cc --exe --build $< --trace --main --Mdir $(FILE_PATH)obj_dir

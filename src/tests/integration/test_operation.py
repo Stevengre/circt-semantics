@@ -15,6 +15,12 @@ from ..resources.operation import (
     COMB_EXPECTED_TOP_MODULES,
     COMB_INPUTS,
     COMB_TEST_IDS,
+    DIRS,
+    TEST_IDS,
+    MLIR_FILES,
+    MLIR_GNERIC_FILES,
+    EXPECTED_TOP_MODULES,
+    INPUTS,
 )
 
 if TYPE_CHECKING:
@@ -27,9 +33,6 @@ if TYPE_CHECKING:
     ids=COMB_TEST_IDS,
 )
 def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
-    print(mlir_file)
-
-
 
     kcirct = KCIRCT()
     # kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
@@ -42,18 +45,25 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     # KCIRCT Hardware Setup & Initialization
     kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
     # KCIRCT Simulation
-    input = inputs[0]
     vcd = KVCD(vcd_path=mlir_file.parent / f'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
-    kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input)
-    vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-    for input in inputs[1:]:
-        vcd.time += 1
-        kcirct.run_simulate_fast(
-            mlir_file.parent / f'simulated.{(vcd.time-1)&1}.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input
-        )
-        print(str(vcd.time)+str(mlir_file))
+    
+    if len(inputs) == 0:
+        input = None
+        kcirct.krun_fast(mlir_file.parent / 'setup.kore',mlir_file.parent / f'simulated.{vcd.time&1}.kore')
         vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        print(str(vcd.time)+str(mlir_file))
+    else:
+        input = inputs[0]
+        kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input)
+        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        for input in inputs[1:]:
+            vcd.time += 1
+            kcirct.run_simulate_fast(
+                mlir_file.parent / f'simulated.{(vcd.time-1)&1}.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input
+            )
+            print(str(vcd.time)+str(mlir_file))
+            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
 
 
 def test_diffvcd(test_path: Path)->None:
@@ -62,8 +72,9 @@ def test_diffvcd(test_path: Path)->None:
 
 
 if __name__ == '__main__':
-    for i,dir in enumerate(COMB_DIRS):
+    nowtest = 'hw'
+    for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'parity':
-            test_evaluate_demo(COMB_MLIR_GNERIC_FILES[i],COMB_EXPECTED_TOP_MODULES[i],
-                                COMB_INPUTS[i])
+        if dir.name == 'enum_cmp':
+            test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
+                                INPUTS[nowtest][i])
