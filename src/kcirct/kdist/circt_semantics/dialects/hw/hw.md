@@ -183,6 +183,14 @@ rule
 => ListItem(ToBits(V, T))
 ...
 </current>
+
+rule
+<current>
+   "hw.constant" ( .List ) { "value" |-> V:AttributeValue _:Map } : ( .Types ) -> ( T:Type )
+=> ListItem(ToBits(V, T))
+...
+</current>
+[owise]
 ```
 
 ## HW Operations for Array
