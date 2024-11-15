@@ -1,15 +1,25 @@
-#loc = loc("hw/instance/instance.mlir":1:42)
-#loc1 = loc("hw/instance/instance.mlir":5:42)
+#loc = loc("hw/instance/instance.mlir":2:48)
+#loc1 = loc("hw/instance/instance.mlir":7:48)
+#loc2 = loc("hw/instance/instance.mlir":12:37)
+#loc3 = loc("hw/instance/instance.mlir":12:56)
 "builtin.module"() ({
   "hw.module"() ({
-  ^bb0(%arg0: i8, %arg1: i8):
-    %0 = "comb.add"(%arg0, %arg1) : (i8, i8) -> i8
-    "hw.output"(%0) : (i8) -> ()
-  }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i8>, parameters = [], result_locs = [#loc], sym_name = "Bar"} : () -> ()
+  ^bb0(%arg0: i8):
+    %0 = "hw.constant"() {value = 1 : i8} : () -> i8
+    %1 = "comb.add"(%arg0, %0) {sv.namehint = "_out_T"} : (i8, i8) -> i8
+    "hw.output"(%1) : (i8) -> ()
+  }) {module_type = !hw.modty<input io_a : i8, output res : i8>, parameters = [], result_locs = [#loc], sym_name = "AddOne", sym_visibility = "private"} : () -> ()
   "hw.module"() ({
-  ^bb0(%arg0: i8, %arg1: i8):
-    %0 = "hw.instance"(%arg0, %arg1) {argNames = ["a", "b"], inner_sym = #hw<innerSym@sym_bar>, instanceName = "bar", moduleName = @Bar, parameters = [], resultNames = ["res"]} : (i8, i8) -> i8
-    "hw.output"(%0) : (i8) -> ()
-  }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i8>, parameters = [], result_locs = [#loc1], sym_name = "Foo"} : () -> ()
+  ^bb0(%arg0: i8):
+    %0 = "hw.instance"(%arg0) {argNames = ["io_a"], instanceName = "i3", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+    %1 = "hw.instance"(%0) {argNames = ["io_a"], instanceName = "i1", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+    "hw.output"(%1) : (i8) -> ()
+  }) {module_type = !hw.modty<input io_a : i8, output res2 : i8>, parameters = [], result_locs = [#loc1], sym_name = "AddTwo", sym_visibility = "private"} : () -> ()
+  "hw.module"() ({
+  ^bb0(%arg0: i8):
+    %0 = "hw.instance"(%arg0) {argNames = ["io_a"], instanceName = "i0", moduleName = @AddTwo, parameters = [], resultNames = ["res2"]} : (i8) -> i8
+    %1 = "hw.instance"(%0) {argNames = ["io_a"], instanceName = "i2", moduleName = @AddOne, parameters = [], resultNames = ["res"]} : (i8) -> i8
+    "hw.output"(%0, %1) : (i8, i8) -> ()
+  }) {module_type = !hw.modty<input io_a : i8, output res_out2 : i8, output res_out1 : i8>, parameters = [], result_locs = [#loc2, #loc3], sym_name = "Foo"} : () -> ()
 }) : () -> ()
 

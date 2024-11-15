@@ -304,7 +304,7 @@ class KCIRCT:
             hw_inports_str = state[idx1:idx2]
             hw_outputs_str = state[idx3:idx4]
             hw_outports_str = state[idx4:idx5]
-            state = state[idx5:]
+            state = state[idx5+1:]
             
             def _find_names(str: str) -> list[str]:
                 names = []

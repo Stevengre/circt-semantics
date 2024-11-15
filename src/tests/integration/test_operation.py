@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
 
     kcirct = KCIRCT()
-    # kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
+    kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
 
     kcirct.ensure_env()
     # KCIRCT Parsing: from mlir to kore
@@ -71,10 +71,18 @@ def test_diffvcd(test_path: Path)->None:
     return
 
 
+def test_entry()->None:
+    nowtest = 'hw'
+    for i,dir in enumerate(DIRS[nowtest]):
+        # if dir.name not in ['parity','icmp'] :
+        if dir.name == 'instance':
+            test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
+                                INPUTS[nowtest][i])
+
 if __name__ == '__main__':
     nowtest = 'hw'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'wire':
+        if dir.name == 'instance':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])

@@ -1,0 +1,253 @@
+<teq>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      #loc1 |-> loc ( "hw/instance/instance.mlir" : 7 : 48 )
+      #loc2 |-> loc ( "hw/instance/instance.mlir" : 12 : 37 )
+      #loc3 |-> loc ( "hw/instance/instance.mlir" : 12 : 56 )
+      #loc |-> loc ( "hw/instance/instance.mlir" : 2 : 48 )
+    </attrs>
+    <table>
+      "AddOne" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , output res : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc , .AttributeValueList ]
+      "sym_name" |-> "AddOne"
+      ( "sym_visibility" |-> "private" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" ) ) : ListItem ( "%0" ) = "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "comb.add" ( ListItem ( "%arg0" )
+      ListItem ( "%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%1" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      "AddTwo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , output res2 : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc1 , .AttributeValueList ]
+      "sym_name" |-> "AddTwo"
+      ( "sym_visibility" |-> "private" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" ) ) : ListItem ( "%0" ) = "hw.instance" ( ListItem ( "%arg0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i3"
+      "moduleName" |-> @AddOne
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "hw.instance" ( ListItem ( "%0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i1"
+      "moduleName" |-> @AddOne
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%1" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      "Foo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input io_a : i8 , output res_out2 : i8 , output res_out1 : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc2 , #loc3 , .AttributeValueList ]
+      ( "sym_name" |-> "Foo" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" ) ) : ListItem ( "%0" ) = "hw.instance" ( ListItem ( "%arg0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i0"
+      "moduleName" |-> @AddTwo
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res2" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%1" ) = "hw.instance" ( ListItem ( "%0" ) ) { ( "argNames" |-> [ "io_a" , .AttributeValueList ] )
+      "instanceName" |-> "i2"
+      "moduleName" |-> @AddOne
+      "parameters" |-> [ .AttributeValueList ]
+      ( "resultNames" |-> [ "res" , .AttributeValueList ] ) } : ( i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" )
+      ListItem ( "%1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+    </table>
+    <symbols>
+      .List
+    </symbols>
+  </mlir>
+  <hardware>
+    <setup>
+      .K
+    </setup>
+    <connection>
+      "Foo/%0" |-> "Foo/i0/%1"
+      "Foo/%1" |-> "Foo/i2/%1"
+      "Foo/i0/%0" |-> "Foo/i0/i3/%1"
+      "Foo/i0/%1" |-> "Foo/i0/i1/%1"
+      "Foo/i0/%arg0" |-> "Foo/%arg0"
+      "Foo/i0/i1/%0" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Foo/i0/i1/%1" |-> "comb.add" ( ListItem ( "Foo/i0/i1/%arg0" )
+      ListItem ( "Foo/i0/i1/%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Foo/i0/i1/%arg0" |-> "Foo/i0/%0"
+      "Foo/i0/i3/%0" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Foo/i0/i3/%1" |-> "comb.add" ( ListItem ( "Foo/i0/i3/%arg0" )
+      ListItem ( "Foo/i0/i3/%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Foo/i0/i3/%arg0" |-> "Foo/i0/%arg0"
+      "Foo/i2/%0" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Foo/i2/%1" |-> "comb.add" ( ListItem ( "Foo/i2/%arg0" )
+      ListItem ( "Foo/i2/%0" ) ) { "sv.namehint" |-> "_out_T" } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Foo/i2/%arg0" |-> "Foo/%0"
+    </connection>
+    <procedures>
+      .List
+    </procedures>
+    <signals>
+      "Foo/%0" |-> bits ( 134 , 8 )
+      "Foo/%1" |-> bits ( 135 , 8 )
+      "Foo/%arg0" |-> bits ( 132 , 8 )
+      "Foo/i0/%0" |-> bits ( 133 , 8 )
+      "Foo/i0/%1" |-> bits ( 134 , 8 )
+      "Foo/i0/%arg0" |-> bits ( 132 , 8 )
+      "Foo/i0/i1/%0" |-> bits ( 1 , 8 )
+      "Foo/i0/i1/%1" |-> bits ( 134 , 8 )
+      "Foo/i0/i1/%arg0" |-> bits ( 133 , 8 )
+      "Foo/i0/i3/%0" |-> bits ( 1 , 8 )
+      "Foo/i0/i3/%1" |-> bits ( 133 , 8 )
+      "Foo/i0/i3/%arg0" |-> bits ( 132 , 8 )
+      "Foo/i2/%0" |-> bits ( 1 , 8 )
+      "Foo/i2/%1" |-> bits ( 135 , 8 )
+      "Foo/i2/%arg0" |-> bits ( 134 , 8 )
+    </signals>
+    <history>
+      .Map
+    </history>
+    <currents>
+      .CurrentInfoCellMap
+    </currents>
+    <clock>
+      0
+    </clock>
+  </hardware>
+  <circt>
+    <cmd>
+      .K
+    </cmd>
+    <top-module>
+      "Foo"
+    </top-module>
+    <top-ins>
+      ListItem ( "Foo/%arg0" )
+    </top-ins>
+  </circt>
+  <hw>
+    <hw-instances>
+      <hw-instance>
+        <hw-id>
+          "Foo"
+        </hw-id>
+        <hw-module>
+          "Foo"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res_out2 )
+          ListItem ( res_out1 )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/%0" )
+          ListItem ( "Foo/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Foo/i0"
+        </hw-id>
+        <hw-module>
+          "AddTwo"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/i0/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res2 )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/i0/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Foo/i0/i1"
+        </hw-id>
+        <hw-module>
+          "AddOne"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/i0/i1/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/i0/i1/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Foo/i0/i3"
+        </hw-id>
+        <hw-module>
+          "AddOne"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/i0/i3/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/i0/i3/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance> <hw-instance>
+        <hw-id>
+          "Foo/i2"
+        </hw-id>
+        <hw-module>
+          "AddOne"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( io_a )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/i2/%arg0" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/i2/%1" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance>
+      <hw-setup-inst>
+        .List
+      </hw-setup-inst>
+    </hw-instances>
+  </hw>
+</teq>

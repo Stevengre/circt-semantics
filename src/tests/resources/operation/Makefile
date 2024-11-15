@@ -6,23 +6,24 @@ FILE_NAME := $(basename $(notdir $(FILE_MLIR)))
 FILE := $(FILE_PATH)$(FILE_NAME)
 
 # 定义默认目标
+default: all
 all: $(FILE_PATH)V$(FILE_NAME)
 
 # 定义规则
-$(FILE).generic.mlir: $(FILE).mlir
-	circt-opt --mlir-print-op-generic $< > $@
+$(FILE).generic.mlir: 
+	circt-opt --mlir-print-op-generic $(FILE).mlir > $@
 
 $(FILE).sv: $(FILE).generic.mlir
 	firtool --lowering-options=disallowLocalVariables  $< -o $@
 
 $(FILE)__main.cpp: $(FILE).sv
-	@verilator --cc --exe --build $< --trace --main --Mdir $(FILE_PATH)obj_dir
+	@verilator --cc --sv --exe --build $< --trace --main --Mdir $(FILE_PATH)obj_dir
 	@cp $(FILE_PATH)obj_dir/V$(FILE_NAME)__main.cpp $@
 	@echo "Please edit $(FILE)__main.cpp and build again"
 
 .PHONY: $(FILE_PATH)V$(FILE_NAME)
 $(FILE_PATH)V$(FILE_NAME): $(FILE)__main.cpp $(FILE).sv
-	@verilator -LDFLAGS "-ljsoncpp" --cc --exe --build $(FILE_NAME)__main.cpp $(FILE).sv --trace --Mdir $(FILE_PATH)obj_dir
+	@verilator -LDFLAGS "-ljsoncpp" --cc --sv --exe --build $(FILE_NAME)__main.cpp $(FILE).sv --trace --Mdir $(FILE_PATH)obj_dir
 	@cp $(FILE_PATH)obj_dir/V$(FILE_NAME) $@
 	@echo "Run $@"
 

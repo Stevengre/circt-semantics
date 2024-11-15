@@ -199,7 +199,7 @@
             "mode": 0
         },
         {
-            "name": "enum.cmp",
+            "name": "enum_cmp",
             "length": 0,
             "type": [],
             "mode": 0
@@ -215,9 +215,8 @@
         },
         {
             "name": "instance",
-            "length": 2,
+            "length": 1,
             "type": [
-                8,
                 8
             ],
             "mode": 1000
@@ -281,6 +280,77 @@
             "length": 0,
             "type": [],
             "mode": 0
-        }
+        },
+        { "name": "always", "length": 3, "type": [ 1, 8, 8 ], "mode": 1000, "clock": 1 },
+        { "name": "alwayscomb", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "alwaysff", "length": 3, "type": [ 1, 8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "array_index_inout", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "assert", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "assert_concurrent", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "assign", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "assume", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "assume_concurrent", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "bpassign", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        
+        { "name": "case", "length": 3, "type": [ 1, 8, 8 ], "mode": 1000 ,"clock": 1 },
+        
+        { "name": "constantX", "length": 3, "type": [ 1, 8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "constantZ", "length": 3, "type": [ 1, 8, 8 ], "mode": 1000 ,"clock": 1 },
+        
+        { "name": "cover", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "cover_concurrent", "length": 3, "type": [ 1, 8, 8 ], "mode": 1000 ,"clock": 1 },
+        
+        { "name": "error", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "exit", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "fatal", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        
+        { "name": "finish", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        
+        { "name": "force", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "for", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 ,"clock": 1 },
+        { "name": "fwrite", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "generate", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "if", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "ifdef", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "ifdef_procedural", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "info", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "indexed_part_select", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "indexed_part_select_inout", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "initial", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "logic", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "macro_decl", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "macro_def", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+
+        { "name": "macro_ref_se", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "ordered", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "passign", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "readmem", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "release", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 },
+        
+        { "name": "stop", "length": 3, "type": [ 1,8, 8 ], "mode": 1000 },
+        
+        { "name": "struct_field_inout", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "verbatim", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "verbatim_expr", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "verbatim_expr_se", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+                
+        { "name": "sv_wire", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        
+        { "name": "xmr", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "xmr_ref", "length": 2, "type": [ 8, 8 ], "mode": 1000 }
     ]
 }

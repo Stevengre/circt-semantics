@@ -2,6 +2,7 @@ LLVM (http://llvm.org/):
   LLVM version 19.0.0git
   Optimized build.
 CIRCT firtool-1.71.0
+Verilator 5.022 2024-02-24 rev conda-forge build 1
 
 template: see comb/add/add__main.cpp
 请修改cpp中:

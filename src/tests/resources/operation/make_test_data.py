@@ -75,7 +75,7 @@ def make_test_data(random_config, test_path):
         if config['name'] in output_filr:
             if os.path.exists(output_filr[config['name']]) != True:
                 misson = test_data(config = config, output_file=output_filr[config['name']])
-                #全枚举            
+                #全枚举 &随机  
                 if config['length'] == 0:
                     misson.output_data = []
                 elif config['mode'] > 0:
@@ -83,7 +83,9 @@ def make_test_data(random_config, test_path):
                 elif config['mode'] == 0:
                     misson.add1([],0)
                     
-                #随机枚举TODO
+                if 'clock' in config and config['clock'] == 1:
+                    for index, out1 in enumerate(misson.output_data):
+                        out1[0][0] = (index+1)%2
                 misson.write()
     return
 
