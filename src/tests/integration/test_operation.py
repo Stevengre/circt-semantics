@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import timeit
+from pathlib import Path
 from typing import TYPE_CHECKING, List
 
-import pytest
+import pytest,subprocess
 
 from kcirct.api import KCIRCT
 from kcirct.vcd import KVCD
@@ -79,10 +80,31 @@ def test_entry()->None:
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
+
+def test_diffvcd(now: Path | None = None) -> None:
+    test_path = Path('/home/zjh/proj/cym-circt-semantics/src/tests/resources/operation/')
+    now = 'seq/from_clock'
+    test_path = test_path / now
+    # 构建完整的命令
+    vcd_file1 = test_path / 'test.vcd'
+    vcd_file2 = test_path / 'trace_vtor.vcd'
+    command = ['./scripts/diffvcd.py', str(vcd_file1), str(vcd_file2)]
+    
+    # 运行命令并捕获返回值
+    result = subprocess.run(command, capture_output=True, text=True)
+    
+    # 检查返回值是否为0
+    if result.returncode == 0:
+        print("diffvcd 成功，返回值为0")
+    else:
+        print(f"diffvcd 失败，返回值为 {result.returncode}")
+        print(f"标准输出: {result.stdout}")
+        print(f"标准错误: {result.stderr}")
+
 if __name__ == '__main__':
-    nowtest = 'seq'
+    nowtest = 'comb'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'from_clock':
+        if dir.name == 'shrs':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
