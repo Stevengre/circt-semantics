@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Foo",
+    "numStateBytes": 31,
+    "states": [
+      {
+        "name": "clk",
+        "offset": 0,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "reset",
+        "offset": 1,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "data_in",
+        "offset": 2,
+        "numBits": 8,
+        "type": "input"
+      },
+      {
+        "name": "addr",
+        "offset": 3,
+        "numBits": 2,
+        "type": "input"
+      },
+      {
+        "name": "read_out",
+        "offset": 4,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "rw_out",
+        "offset": 5,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "clk",
+        "offset": 6,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "reset",
+        "offset": 7,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "data_in",
+        "offset": 8,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "addr",
+        "offset": 9,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/R0_addr",
+        "offset": 16,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/R0_en",
+        "offset": 17,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/R0_data",
+        "offset": 18,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/RW0_addr",
+        "offset": 19,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/RW0_en",
+        "offset": 20,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/RW0_wmode",
+        "offset": 21,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/RW0_wdata",
+        "offset": 22,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/RW0_rdata",
+        "offset": 23,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/W0_addr",
+        "offset": 24,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/W0_en",
+        "offset": 25,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/W0_data",
+        "offset": 26,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "read_out",
+        "offset": 28,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "rw_out",
+        "offset": 29,
+        "numBits": 8,
+        "type": "wire"
+      }
+    ]
+  }
+]

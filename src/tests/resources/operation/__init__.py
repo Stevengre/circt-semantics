@@ -24,7 +24,7 @@ INPUTS = {}
 
 for level1 in LEVEL1_DIRS:
     print(level1.name)
-    if level1.name == '__pycache__' or level1.name == 'seq':
+    if level1.name == '__pycache__':
         continue
     name1 = level1.name
     DIRS[name1] = [dir for dir in (DATA_PATH / level1).iterdir() if dir.is_dir()]

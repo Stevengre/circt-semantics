@@ -351,6 +351,11 @@
         { "name": "sv_wire", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
         
         { "name": "xmr", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
-        { "name": "xmr_ref", "length": 2, "type": [ 8, 8 ], "mode": 1000 }
+        { "name": "xmr_ref", "length": 2, "type": [ 8, 8 ], "mode": 1000 },
+        { "name": "firreg", "length": 2, "type": [ 1, 1 ], "mode": 1000 ,"clock":1},
+        
+        { "name": "firmem", "length": 4, "type": [ 1, 1 ,8,2], "mode": 1000 ,"clock":1},
+        
+        { "name": "from_clock", "length": 1, "type": [ 1], "mode": 1000 }
     ]
 }

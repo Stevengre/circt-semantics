@@ -1,0 +1,89 @@
+<teq>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      #loc |-> loc ( "hw/constant/constant.mlir" : 1 : 20 )
+    </attrs>
+    <table>
+      "Foo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < output res : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc , .AttributeValueList ]
+      ( "sym_name" |-> "Foo" ) } [ .Successors ] ( { ^kgenbb0 ( .List ) : ListItem ( "%0" ) = "hw.constant" ( .List ) { "value" |-> 42 : i8 } : ( .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+    </table>
+    <symbols>
+      .List
+    </symbols>
+  </mlir>
+  <hardware>
+    <setup>
+      .K
+    </setup>
+    <connection>
+      "Foo/%0" |-> "hw.constant" ( .List ) { "value" |-> 42 : i8 } : ( .Types ) -> ( i8 , .Types )
+    </connection>
+    <procedures>
+      .List
+    </procedures>
+    <signals>
+      .Map
+    </signals>
+    <history>
+      .Map
+    </history>
+    <currents>
+      .CurrentInfoCellMap
+    </currents>
+    <clock>
+      0
+    </clock>
+  </hardware>
+  <circt>
+    <cmd>
+      .K
+    </cmd>
+    <top-module>
+      "Foo"
+    </top-module>
+    <top-ins>
+      .List
+    </top-ins>
+  </circt>
+  <hw>
+    <hw-instances>
+      <hw-instance>
+        <hw-id>
+          "Foo"
+        </hw-id>
+        <hw-module>
+          "Foo"
+        </hw-module>
+        <hw-inputs>
+          .List
+        </hw-inputs>
+        <hw-inports>
+          .List
+        </hw-inports>
+        <hw-in-types>
+          .List
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/%0" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance>
+      <hw-setup-inst>
+        .List
+      </hw-setup-inst>
+    </hw-instances>
+  </hw>
+</teq>

@@ -6,7 +6,7 @@ module Foo(	// sv/if/if.generic.mlir:3:3
 );
 
   always @*	// sv/if/if.generic.mlir:6:5
-    $error("error");	// sv/if/if.generic.mlir:8:9
+    $info("hitif");	// sv/if/if.generic.mlir:8:9
   assign res = a + b;	// sv/if/if.generic.mlir:12:10, :13:5
 endmodule
 

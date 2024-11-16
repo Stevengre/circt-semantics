@@ -96,6 +96,13 @@
                 "verilog",
                 "xmr"
             ]
+        },{
+            "name": "seq",
+            "operation": [
+                "firreg",
+                "firmem",
+                "from_clock"
+            ]
         }
     ]
 }

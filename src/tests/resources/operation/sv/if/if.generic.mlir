@@ -5,7 +5,7 @@
     %0 = "hw.constant"() {value = true} : () -> i1
     "sv.always"() ({
       "sv.if"(%0) ({
-        "sv.error"() {message = "error"} : () -> ()
+        "sv.info"() {message = "hitif"} : () -> ()
       }, {
       }) : (i1) -> ()
     }) {events = []} : () -> ()
