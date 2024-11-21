@@ -98,8 +98,7 @@ rule
 ```k
 rule
 <current> 
-(.K => ListItem(H[Port] orDefault .Map) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
-~> "seq.firmem" ( .List ) { _:Map } : _FT 
+  ("seq.firmem" ( .List ) { _:Map } : _FT => ListItem(H[Port] orDefault .Map)) 
 ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
@@ -107,6 +106,32 @@ rule
 <history> H:Map </history>
 requires notBool (Port in_keys(Signals))
 [priority(35)]
+
+rule
+<current> 
+  ("seq.firmem" ( .List ) { _:Map } : _FT => ListItem(Signals[Port] orDefault .Map)) 
+~> "HARDWARE#WRITE" ~> ListItem(Port)
+...
+</current>
+<signals> Signals:Map </signals>
+requires (Port in_keys(Signals))
+[priority(35)]
+
+rule
+<current> 
+   L0:List ListItem(Stimuli:Map) ~> "HARDWARE#WRITE" ~> L1:List ListItem(Port:String)  
+=> L0 ~> "HARDWARE#WRITE" ~> L1
+...
+</current>
+<signals> M => M [Port <- Stimuli] </signals>
+
+rule
+<current> 
+   READ:List ~> "HARDWARE#READ_DIRECT" ~> ListItem(Port:String) L:List 
+=> READ ListItem(Signal) ~> "HARDWARE#READ_DIRECT" ~> L
+... 
+</current>
+<signals> ... Port |-> Signal:Map ... </signals>
 ```
 
 ### `seq.firmem.read_port`
@@ -116,8 +141,7 @@ requires notBool (Port in_keys(Signals))
 ```k
 rule
 <current> 
-(.K => ListItem(H[Port] orDefault bits(#x, getWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
-~> "seq.firmem.read_port" ( _:List ) { _:Map } : (_) -> (T:IntegerType) 
+("seq.firmem.read_port" ( _:List ) { _:Map } : (_) -> (T:IntegerType) => ListItem(H[Port] orDefault bits(0, getWidth(T))))
 ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
@@ -148,7 +172,7 @@ rule
    ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) _:List
 ~> "seq.firmem.read_port" ( ListItem(_) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } : (_) -> (T:IntegerType)
 => #if checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
-   #then Mem[Addr] orDefault bits(#x, getWidth(T))
+   #then Mem[Addr] orDefault bits(0, getWidth(T))
    #else ListItem("HARDWARE#KEEP") #fi
 ...
 </current>
@@ -182,8 +206,7 @@ rule
 ```k
 rule
 <current> 
-(.K => ListItem(H[Port] orDefault bits(#x, getWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
-~> "seq.firmem.read_port" ( _:List ) { _:Map } : (_) -> (T:IntegerType) 
+("seq.firmem.read_port" ( _:List ) { _:Map } : (_) -> (T:IntegerType) => ListItem(H[Port] orDefault bits(0, getWidth(T))))
 ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
