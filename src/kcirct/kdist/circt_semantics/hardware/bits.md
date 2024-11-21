@@ -124,7 +124,7 @@ module BITS
     rule BitsCast(bits(X:Int, _W:Int), W1:Int) => BitsCast(bits(X, W1))
 
     rule BitsMul(ListItem(B:Bits) L:List) => B *Bits BitsMul(L)
-    rule BitsMul(.List) => bits(0, 0)
+    rule BitsMul(ListItem(B:Bits)) => B
 
     rule bits(X1:Int, W1:Int) *Bits bits(X2:Int, W2:Int) => BitsCast(bits(X1 *Int X2, W1 +Int W2))
     // TODO: optimize
