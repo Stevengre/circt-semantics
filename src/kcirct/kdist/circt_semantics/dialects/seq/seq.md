@@ -49,6 +49,17 @@ rule
 </current>
 <signals> Signals:Map </signals>
 requires notBool (Port in_keys(Signals))
+[priority(34)]
+
+rule
+<current> 
+(.K => ListItem(bits(0, getWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
+~> "seq.firreg" ( ListItem(_:String) _:List ) { _:Map } : (_) -> (T:IntegerType) 
+~> "HARDWARE#WRITE" ~> ListItem(Port)
+...
+</current>
+<signals> Signals:Map </signals>
+requires notBool (Port in_keys(Signals))
 [priority(35)]
 ```
 
