@@ -78,7 +78,7 @@ module BITS
     [owise]
 
     rule BitsAnd(ListItem(B:Bits) L:List) => B &Bits BitsAnd(L)
-    rule BitsAnd(.List) => bits(0, 0)
+    rule BitsAnd(ListItem(B:Bits)) => B
 
     rule bits(X1:Int, W1:Int)   &Bits bits(X2:Int, W2:Int)  => bits(X1 &Int X2, maxInt(W1, W2))
     // #x
