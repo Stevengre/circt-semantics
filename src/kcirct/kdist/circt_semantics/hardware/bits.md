@@ -55,6 +55,9 @@ module BITS-SYNTAX
     syntax Bool ::= Bits2Bool(Bits) [function]
 
     syntax Bool ::= checkEdge(Int, Bits, Bits) [function]
+
+    syntax Bool ::= isPos(Int, Int) [function]
+
 endmodule
 ```
 
@@ -159,7 +162,10 @@ module BITS
     [owise]
 
     rule BitsShrs(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 >>Bits B2
-    rule bits(X1:Int, W1:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X1 >>Int X2, W1)
+    rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X >>Int X2, W) requires isPos(X, W)
+    rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => bits((X >>Int X2) |Int ((2 ^Int W -Int 1) <<Int (W -Int X2)), W) requires (notBool isPos(X, W)) andBool (X2 <Int W)
+    rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => bits(2 ^Int W -Int 1, W) requires (notBool isPos(X, W)) andBool (X2 >=Int W)
+    // rule bits(X1:Int, W1:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X1 >>Int X2, W1)
     rule bits(_:XZValue, W1:Int) >>Bits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) >>Bits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
@@ -242,5 +248,7 @@ module BITS
         requires X1 =/=Int X2
     rule checkEdge(_, bits(_, _:Int), _) => false
     [owise]
+
+    rule isPos(X:Int, W:Int) => X >>Int (W -Int 1) ==Int 0
 endmodule
 ```
