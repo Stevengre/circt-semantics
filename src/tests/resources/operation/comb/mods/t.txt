@@ -33,14 +33,14 @@
       .List
     </procedures>
     <signals>
-      "Foo/%0" |-> bits ( 247 , 8 )
-      "Foo/%arg0" |-> bits ( 187 , 8 )
-      "Foo/%arg1" |-> bits ( 226 , 8 )
+      "Foo/%0" |-> bits ( 1 , 8 )
+      "Foo/%arg0" |-> bits ( 67 , 8 )
+      "Foo/%arg1" |-> bits ( 190 , 8 )
     </signals>
     <history>
-      "Foo/%0" |-> bits ( 33 , 8 )
-      "Foo/%arg0" |-> bits ( 107 , 8 )
-      "Foo/%arg1" |-> bits ( 219 , 8 )
+      "Foo/%0" |-> bits ( 97 , 8 )
+      "Foo/%arg0" |-> bits ( 97 , 8 )
+      "Foo/%arg1" |-> bits ( 102 , 8 )
     </history>
     <currents>
       .CurrentInfoCellMap
