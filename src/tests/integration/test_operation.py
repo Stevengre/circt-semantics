@@ -67,6 +67,7 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
 
 
+
 def test_diffvcd(test_path: Path)->None:
     #我要通过subprocess调用./diffvcd.py test_path/trace_vtor.vcd test_path/test.vcd并想知道它的返回值是不是0
     return
@@ -83,7 +84,7 @@ def test_entry()->None:
 
 def test_diffvcd(now: Path | None = None) -> None:
     test_path = Path('/home/zjh/proj/cym-circt-semantics/src/tests/resources/operation/')
-    now = 'seq/from_clock'
+    now = 'comb/mods'
     test_path = test_path / now
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
