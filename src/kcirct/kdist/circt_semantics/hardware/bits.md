@@ -47,6 +47,7 @@ module BITS-SYNTAX
                   | BitsModu(List)          [function]
                   | Bits "moduBits" Bits    [function]
                   | BitsSlice(Bits, Int, Int) [function]
+                  | BitsAbs(Bits)            [function]
 
     syntax List ::= Bits2BitList(Bits) [function]
 
@@ -55,6 +56,9 @@ module BITS-SYNTAX
     syntax Bool ::= Bits2Bool(Bits) [function]
 
     syntax Bool ::= checkEdge(Int, Bits, Bits) [function]
+
+    syntax Bool ::= isPos(Int, Int) [function]
+
 endmodule
 ```
 
@@ -78,7 +82,7 @@ module BITS
     [owise]
 
     rule BitsAnd(ListItem(B:Bits) L:List) => B &Bits BitsAnd(L)
-    rule BitsAnd(.List) => bits(0, 0)
+    rule BitsAnd(ListItem(B:Bits)) => B
 
     rule bits(X1:Int, W1:Int)   &Bits bits(X2:Int, W2:Int)  => bits(X1 &Int X2, maxInt(W1, W2))
     // #x
@@ -124,7 +128,7 @@ module BITS
     rule BitsCast(bits(X:Int, _W:Int), W1:Int) => BitsCast(bits(X, W1))
 
     rule BitsMul(ListItem(B:Bits) L:List) => B *Bits BitsMul(L)
-    rule BitsMul(.List) => bits(0, 0)
+    rule BitsMul(ListItem(B:Bits)) => B
 
     rule bits(X1:Int, W1:Int) *Bits bits(X2:Int, W2:Int) => BitsCast(bits(X1 *Int X2, W1 +Int W2))
     // TODO: optimize
@@ -159,7 +163,10 @@ module BITS
     [owise]
 
     rule BitsShrs(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 >>Bits B2
-    rule bits(X1:Int, W1:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X1 >>Int X2, W1)
+    rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X >>Int X2, W) requires isPos(X, W)
+    rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => bits((X >>Int X2) |Int ((2 ^Int W -Int 1) <<Int (W -Int X2)), W) requires (notBool isPos(X, W)) andBool (X2 <Int W)
+    rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => bits(2 ^Int W -Int 1, W) requires (notBool isPos(X, W)) andBool (X2 >=Int W)
+    // rule bits(X1:Int, W1:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X1 >>Int X2, W1)
     rule bits(_:XZValue, W1:Int) >>Bits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) >>Bits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
@@ -211,11 +218,12 @@ module BITS
     rule BitsDup(B:Bits, N:Int) => B concatBits BitsDup(B, N -Int 1) requires N >Int 0
     rule BitsDup(_:Bits, 0) => bits(0, 0)
 
-    rule BitsMods(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 modsBits B2
+    rule BitsMods(ListItem(B1:Bits) ListItem(B2:Bits)) => BitsAbs(B1) modsBits BitsAbs(B2)
 
     // TODO: check the undefined behavior of modInt when X2 is 0 for symbolic execution
     rule bits(X1:Int, W1:Int) modsBits bits(0, _W2:Int) => bits(0, W1)
-    rule bits(X1:Int, W1:Int) modsBits bits(X2:Int, _W2:Int) => bits(X1 modInt X2, W1) requires X2 =/=Int 0
+    rule bits(X1:Int, W1:Int) modsBits bits(X2:Int, _W2:Int) => 
+    bits(X1 modInt X2, W1) requires X2 =/=Int 0
     rule bits(_:XZValue, W1:Int) modsBits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) modsBits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
@@ -242,5 +250,10 @@ module BITS
         requires X1 =/=Int X2
     rule checkEdge(_, bits(_, _:Int), _) => false
     [owise]
+
+    rule isPos(X:Int, W:Int) => X >>Int (W -Int 1) ==Int 0
+
+    rule BitsAbs(bits(X:Int, W:Int)) => bits(X, W) requires isPos(X, W)
+    rule BitsAbs(bits(X:Int, W:Int)) => bits((X xorInt (2 ^Int W -Int 1)) +Int 1, W) requires notBool isPos(X, W)
 endmodule
 ```

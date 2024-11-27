@@ -1,0 +1,108 @@
+{
+    "level1": [
+        {
+            "name": "comb",
+            "operation": [
+                "add",
+                "and",
+                "concat",
+                "divs",
+                "divu",
+                "extract",
+                "icmp",
+                "mods",
+                "modu",
+                "mul",
+                "or",
+                "parity",
+                "replicate",
+                "shrs",
+                "shru",
+                "sub",
+                "truth_table",
+                "xor"
+            ]
+        },
+        {
+            "name": "hw",
+            "operation": [
+                "aggregate_constant",
+                "array_concat",
+                "array_get",
+                "bitcast",
+                "constant",
+                "enum.cmp",
+                "hierpath",
+                "instance",
+                "module",
+                "output",
+                "struct_explode",
+                "struct_extract",
+                "struct_inject",
+                "union_create",
+                "wire"
+            ]
+        },{
+            "name": "sv",
+            "operation": [
+                "always",
+                "assign",
+                "constantZ",
+                "finish",
+                "ifdef",
+                "logic",
+                "readmem",
+                "verbatim_expr",
+                "verbatim_expr_se",
+                "alwayscomb",
+                "assume",
+                "cover",
+                "for",
+                "ifdef_procedural",
+                "macro_decl",
+                "release",
+                "warning",
+                "alwaysff",
+                "assume_concurrent",
+                "cover_concurrent",
+                "force",
+                "indexed_part_select",
+                "macro_def",
+                "stop",
+                "sv_wire",
+                "array_index_inout",
+                "bpassign",
+                "error",
+                "fwrite",
+                "indexed_part_select_inout",
+                "macro_ref_se",
+                "struct_field_inout",
+                "xmr",
+                "assert",
+                "case",
+                "exit",
+                "generate",
+                "info",
+                "initial",
+                "passign",
+                "verbatim",
+                "xmr_ref",
+                "assert_concurrent",
+                "constantX",
+                "fatal",
+                "if",
+                "initial",
+                "ordered",
+                "verilog",
+                "xmr"
+            ]
+        },{
+            "name": "seq",
+            "operation": [
+                "firreg",
+                "firmem",
+                "from_clock"
+            ]
+        }
+    ]
+}
