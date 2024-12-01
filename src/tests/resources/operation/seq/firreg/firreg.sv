@@ -43,37 +43,37 @@
   `endif // not def ENABLE_INITIAL_REG_
 `endif // not def SYNTHESIS
 
-module Foo(	// seq/firreg/firreg.generic.mlir:2:3
-  input        clk,	// seq/firreg/firreg.generic.mlir:3:10
-               reset,	// seq/firreg/firreg.generic.mlir:3:28
-  output [7:0] res
+module Foo(	// seq/firreg/firreg.generic.mlir:3:3
+  input        clk,	// seq/firreg/firreg.generic.mlir:4:8
+               reset,	// seq/firreg/firreg.generic.mlir:4:27
+  output [7:0] res	// seq/firreg/firreg.mlir:1:55
 );
 
-  reg [7:0] counter;	// seq/firreg/firreg.generic.mlir:4:19
-  always @(posedge clk) begin	// seq/firreg/firreg.generic.mlir:3:10
-    if (reset)	// seq/firreg/firreg.generic.mlir:3:10
-      counter <= 8'h0;	// seq/firreg/firreg.generic.mlir:4:19
-    else	// seq/firreg/firreg.generic.mlir:3:10
-      counter <= counter + 8'h1;	// seq/firreg/firreg.generic.mlir:4:19, :5:15
+  reg [7:0] reg_port;	// seq/firreg/firreg.generic.mlir:5:10
+  always @(posedge clk) begin	// seq/firreg/firreg.generic.mlir:4:8
+    if (reset)	// seq/firreg/firreg.generic.mlir:4:8
+      reg_port <= 8'h0;	// seq/firreg/firreg.generic.mlir:5:10
+    else	// seq/firreg/firreg.generic.mlir:4:8
+      reg_port <= reg_port + 8'h1;	// seq/firreg/firreg.generic.mlir:5:10, :8:10
   end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_	// seq/firreg/firreg.generic.mlir:2:3
-    `ifdef FIRRTL_BEFORE_INITIAL	// seq/firreg/firreg.generic.mlir:2:3
-      `FIRRTL_BEFORE_INITIAL	// seq/firreg/firreg.generic.mlir:2:3
+  `ifdef ENABLE_INITIAL_REG_	// seq/firreg/firreg.generic.mlir:3:3
+    `ifdef FIRRTL_BEFORE_INITIAL	// seq/firreg/firreg.generic.mlir:3:3
+      `FIRRTL_BEFORE_INITIAL	// seq/firreg/firreg.generic.mlir:3:3
     `endif // FIRRTL_BEFORE_INITIAL
-    logic [31:0] _RANDOM[0:0];	// seq/firreg/firreg.generic.mlir:2:3
-    initial begin	// seq/firreg/firreg.generic.mlir:2:3
-      `ifdef INIT_RANDOM_PROLOG_	// seq/firreg/firreg.generic.mlir:2:3
-        `INIT_RANDOM_PROLOG_	// seq/firreg/firreg.generic.mlir:2:3
+    logic [31:0] _RANDOM[0:0];	// seq/firreg/firreg.generic.mlir:3:3
+    initial begin	// seq/firreg/firreg.generic.mlir:3:3
+      `ifdef INIT_RANDOM_PROLOG_	// seq/firreg/firreg.generic.mlir:3:3
+        `INIT_RANDOM_PROLOG_	// seq/firreg/firreg.generic.mlir:3:3
       `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT	// seq/firreg/firreg.generic.mlir:2:3
-        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// seq/firreg/firreg.generic.mlir:2:3
-        counter = _RANDOM[/*Zero width*/ 1'b0][7:0];	// seq/firreg/firreg.generic.mlir:2:3, :4:19
+      `ifdef RANDOMIZE_REG_INIT	// seq/firreg/firreg.generic.mlir:3:3
+        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// seq/firreg/firreg.generic.mlir:3:3
+        reg_port = _RANDOM[/*Zero width*/ 1'b0][7:0];	// seq/firreg/firreg.generic.mlir:3:3, :5:10
       `endif // RANDOMIZE_REG_INIT
     end // initial
-    `ifdef FIRRTL_AFTER_INITIAL	// seq/firreg/firreg.generic.mlir:2:3
-      `FIRRTL_AFTER_INITIAL	// seq/firreg/firreg.generic.mlir:2:3
+    `ifdef FIRRTL_AFTER_INITIAL	// seq/firreg/firreg.generic.mlir:3:3
+      `FIRRTL_AFTER_INITIAL	// seq/firreg/firreg.generic.mlir:3:3
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign res = counter;	// seq/firreg/firreg.generic.mlir:4:19, :8:7
+  assign res = reg_port;	// seq/firreg/firreg.generic.mlir:5:10, :9:5
 endmodule
 

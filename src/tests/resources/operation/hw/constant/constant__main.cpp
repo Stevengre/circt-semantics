@@ -43,8 +43,9 @@ int main(int argc, char** argv, char**) {
 
     getInput();
 
-    while (!Verilated::gotFinish() && main_time < 1) {
+    while (!Verilated::gotFinish() && main_time < inputs.size()) {
         // Evaluate model
+        topp->a = inputs[int(main_time)][0][0].asInt();
         topp->eval();
         tfp->dump(main_time);
         ++main_time;
