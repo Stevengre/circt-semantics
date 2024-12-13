@@ -10,12 +10,13 @@
       .Map
     </attrs>
     <table>
-      "Foo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input clk : !seq.clock , input reset : i1 , input data_in : i8 , input addr : i2 , output read_out : i8 , output rw_out : i8 , .ModulePortList > )
+      "Foo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input clk : !seq.clock , input reset : i1 , input data_in : i8 , input addr : i2 , input mode : i1 , output read_out : i8 , output rw_out : i8 , .ModulePortList > )
       "parameters" |-> [ .AttributeValueList ]
       ( "sym_name" |-> "Foo" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%clk" )
       ListItem ( "%reset" )
       ListItem ( "%data_in" )
-      ListItem ( "%addr" ) ) : ListItem ( "%mem" ) = "seq.firmem" ( .List ) { ( "depth" |-> 4 : i64 )
+      ListItem ( "%addr" )
+      ListItem ( "%mode" ) ) : ListItem ( "%mem" ) = "seq.firmem" ( .List ) { ( "depth" |-> 4 : i64 )
       "name" |-> "memory"
       "readLatency" |-> 0 : i32
       "ruw" |-> 0 : i32
@@ -33,7 +34,7 @@
       ListItem ( "%clk" )
       ListItem ( "%enable" )
       ListItem ( "%data_in" )
-      ListItem ( "%readmode" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , i1 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%read_data" )
+      ListItem ( "%mode" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , i1 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%read_data" )
       ListItem ( "%read_write_data" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
     </table>
     <symbols>
@@ -62,7 +63,7 @@
       ListItem ( "Foo/%clk" )
       ListItem ( "Foo/%enable" )
       ListItem ( "Foo/%data_in" )
-      ListItem ( "Foo/%readmode" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , i1 , .Types ) -> ( i8 , .Types )
+      ListItem ( "Foo/%mode" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , i1 , .Types ) -> ( i8 , .Types )
       "Foo/%readmode" |-> "hw.constant" ( .List ) { "value" |-> 0 : i1 } : ( .Types ) -> ( i1 , .Types )
       "Foo/%writemode" |-> "hw.constant" ( .List ) { "value" |-> 1 : i1 } : ( .Types ) -> ( i1 , .Types )
     </connection>
@@ -74,71 +75,23 @@
       ListItem ( "Foo/%data_in" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , .Types ) -> ( .Types ) )
     </procedures>
     <signals>
-      "Foo/%addr" |-> bits ( 1 , 2 )
+      "Foo/%addr" |-> bits ( 0 , 2 )
       "Foo/%clk" |-> bits ( 1 , 1 )
-      "Foo/%data_in" |-> bits ( 156 , 8 )
+      "Foo/%data_in" |-> bits ( 17 , 8 )
+      "Foo/%enable" |-> bits ( 1 , 1 )
+      "Foo/%mem" |-> ( bits ( 0 , 2 ) |-> bits ( 17 , 8 ) )
+      "Foo/%mode" |-> bits ( 0 , 1 )
+      "Foo/%read_data" |-> bits ( 0 , 8 )
+      "Foo/%read_write_data" |-> bits ( 0 , 8 )
+      "Foo/%readmode" |-> bits ( 0 , 1 )
       "Foo/%reset" |-> bits ( 1 , 1 )
+      "Foo/%writemode" |-> bits ( 1 , 1 )
     </signals>
     <history>
       .Map
     </history>
     <currents>
-      <current-info>
-        <current-id>
-          0
-        </current-id>
-        <current>
-          ListItem ( .Map ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%mem" ) ~> "seq.firmem" ( .List ) { ( "depth" |-> 4 : i64 )
-          "name" |-> "memory"
-          "readLatency" |-> 0 : i32
-          "ruw" |-> 0 : i32
-          "width" |-> 8 : i64
-          "writeLatency" |-> 1 : i32
-          ( "wuw" |-> 1 : i32 ) } : ( .Types ) -> ( !seq.firmem < 4 x 8 > , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%mem" ) ~> ListItem ( "Foo/%addr" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable" )
-          ListItem ( "Foo/%data_in" )
-          ListItem ( "Foo/%readmode" ) ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%addr" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable" )
-          ListItem ( "Foo/%data_in" )
-          ListItem ( "Foo/%readmode" ) ~> "seq.firmem.read_write_port" ( ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%addr" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable" )
-          ListItem ( "Foo/%data_in" )
-          ListItem ( "Foo/%readmode" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , i1 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%read_write_data" ) ~> ListItem ( "Foo/%writemode" )
-          ListItem ( "Foo/%readmode" )
-          ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%read_data" )
-          ListItem ( "Foo/%enable" ) ~> .K
-        </current>
-      </current-info> <current-info>
-        <current-id>
-          1
-        </current-id>
-        <current>
-          ListItem ( .Map ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%mem" ) ~> "seq.firmem" ( .List ) { ( "depth" |-> 4 : i64 )
-          "name" |-> "memory"
-          "readLatency" |-> 0 : i32
-          "ruw" |-> 0 : i32
-          "width" |-> 8 : i64
-          "writeLatency" |-> 1 : i32
-          ( "wuw" |-> 1 : i32 ) } : ( .Types ) -> ( !seq.firmem < 4 x 8 > , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%mem" ) ~> ListItem ( "Foo/%addr" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable" )
-          ListItem ( "Foo/%data_in" ) ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%addr" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable" )
-          ListItem ( "Foo/%data_in" ) ~> "seq.firmem.write_port" ( ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%addr" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable" )
-          ListItem ( "Foo/%data_in" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , .Types ) -> ( .Types ) ~> .K
-        </current>
-      </current-info>
+      .CurrentInfoCellMap
     </currents>
     <clock>
       0
@@ -156,6 +109,7 @@
       ListItem ( "Foo/%reset" )
       ListItem ( "Foo/%data_in" )
       ListItem ( "Foo/%addr" )
+      ListItem ( "Foo/%mode" )
     </top-ins>
   </circt>
   <hw>
@@ -172,18 +126,21 @@
           ListItem ( reset )
           ListItem ( data_in )
           ListItem ( addr )
+          ListItem ( mode )
         </hw-inputs>
         <hw-inports>
           ListItem ( "Foo/%clk" )
           ListItem ( "Foo/%reset" )
           ListItem ( "Foo/%data_in" )
           ListItem ( "Foo/%addr" )
+          ListItem ( "Foo/%mode" )
         </hw-inports>
         <hw-in-types>
           ListItem ( !seq.clock )
           ListItem ( i1 )
           ListItem ( i8 )
           ListItem ( i2 )
+          ListItem ( i1 )
         </hw-in-types>
         <hw-outputs>
           ListItem ( read_out )

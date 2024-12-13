@@ -49,6 +49,7 @@ int main(int argc, char** argv, char**) {
         topp->reset = inputs[int(main_time)][1][0].asInt();
         topp->data_in = inputs[int(main_time)][2][0].asInt();
         topp->addr = inputs[int(main_time)][3][0].asInt();
+        topp->mode = inputs[int(main_time)][4][0].asInt();
         topp->eval();
         tfp->dump(main_time);
         ++main_time;
