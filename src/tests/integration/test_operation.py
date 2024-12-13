@@ -28,6 +28,13 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
+
+def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+    kcirct = KCIRCT()
+    kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
+
+
+
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs',
     zip(COMB_MLIR_GNERIC_FILES, COMB_EXPECTED_TOP_MODULES, COMB_INPUTS, strict=True),
@@ -67,10 +74,30 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
 
 
-def test_diffvcd(test_path: Path)->None:
-    #我要通过subprocess调用./diffvcd.py test_path/trace_vtor.vcd test_path/test.vcd并想知道它的返回值是不是0
-    return
 
+def test_pretty() -> None:
+    nowtest = 'comb'
+    for i,dir in enumerate(DIRS[nowtest]):
+        # if dir.name not in ['parity','icmp'] :
+        if dir.name == 'shrs':
+            test_print_pretty(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
+                                INPUTS[nowtest][i])
+
+
+def test_learn_op(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+
+    kcirct = KCIRCT()
+    # kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
+    kcirct.krun_fast()
+
+
+def test_learn() -> None:
+    nowtest = 'comb'
+    for i,dir in enumerate(DIRS[nowtest]):
+        # if dir.name not in ['parity','icmp'] :
+        if dir.name == 'mods':
+            test_learn_op(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
+                                INPUTS[nowtest][i])
 
 def test_entry()->None:
     nowtest = 'sv'
@@ -83,7 +110,7 @@ def test_entry()->None:
 
 def test_diffvcd(now: Path | None = None) -> None:
     test_path = Path('/home/zjh/proj/cym-circt-semantics/src/tests/resources/operation/')
-    now = 'seq/from_clock'
+    now = 'seq/firreg'
     test_path = test_path / now
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
@@ -102,9 +129,9 @@ def test_diffvcd(now: Path | None = None) -> None:
         print(f"标准错误: {result.stderr}")
 
 if __name__ == '__main__':
-    nowtest = 'comb'
+    nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'shrs':
+        if dir.name == 'firreg':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])

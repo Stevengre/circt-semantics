@@ -161,9 +161,9 @@
         },
         {
             "name": "aggregate_constant",
-            "length": 0,
-            "type": [],
-            "mode": 0
+            "length": 2,
+            "type": [8,8],
+            "mode": 10
         },
         {
             "name": "array_concat",
@@ -194,9 +194,9 @@
         },
         {
             "name": "constant",
-            "length": 0,
-            "type": [],
-            "mode": 0
+            "length": 1,
+            "type": [8],
+            "mode": 100
         },
         {
             "name": "enum_cmp",
