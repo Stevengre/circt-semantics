@@ -342,11 +342,15 @@ class KCIRCT:
         ports: dict[str, tuple[int, int]] = {}
         while len(sub_str):
             # find port name
-            pre_idx = sub_str.find('"', pre_idx)
+            pre_idx = sub_str.find('"')
             if pre_idx == -1:
                 break
             end_idx = sub_str.find('"', pre_idx + 1)
             port_name = sub_str[pre_idx + 1:end_idx]
+            if port_name == 'Foo/%mem':
+                skip_pos = sub_str.find('Foo', end_idx + 10) - 3
+                sub_str = sub_str[skip_pos:]
+                continue
             sub_str = sub_str[end_idx + 1:]
             
             # find port value

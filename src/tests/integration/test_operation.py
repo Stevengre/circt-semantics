@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import timeit
 from pathlib import Path
+import time
 from typing import TYPE_CHECKING, List
 
 import pytest,subprocess
@@ -50,20 +50,30 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     
     if len(inputs) == 0:
         input = None
+        start_time = time.time()
         kcirct.krun_fast(mlir_file.parent / 'setup.kore',mlir_file.parent / f'simulated.{vcd.time&1}.kore')
+        end_time = time.time()
         vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
         print(str(vcd.time)+str(mlir_file))
+        print('runtime:'+str(end_time-start_time))
     else:
         input = inputs[0]
+        start_time = time.time()
         kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input)
+        end_time = time.time()
+        tot_time = end_time - start_time
         vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
         for input in inputs[1:]:
             vcd.time += 1
+            start_time = time.time()
             kcirct.run_simulate_fast(
                 mlir_file.parent / f'simulated.{(vcd.time-1)&1}.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input
             )
+            end_time = time.time()
+            tot_time += end_time - start_time
             print(str(vcd.time)+str(mlir_file))
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        print('runtime:'+str((end_time-start_time)/len(inputs)))
 
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     kcirct = KCIRCT()
@@ -73,7 +83,7 @@ def test_pretty() -> None:
     nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem':
+        if dir.name == 'firmem_rw':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
@@ -94,17 +104,17 @@ def test_learn() -> None:
                                 INPUTS[nowtest][i])
 
 def test_entry()->None:
-    nowtest = 'sv'
+    nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'error':
+        if dir.name == 'firmem':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
 
 def test_diffvcd(now: Path | None = None) -> None:
     test_path = Path('/home/zjh/proj/cym-circt-semantics/src/tests/resources/operation/')
-    now = 'seq/firreg'
+    now = 'seq/firmem_rw'
     test_path = test_path / now
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
@@ -126,6 +136,6 @@ if __name__ == '__main__':
     nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem':
+        if dir.name == 'firmem_rw':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])

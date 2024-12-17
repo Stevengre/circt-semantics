@@ -5,12 +5,6 @@ module memory_4x8(	// seq/firmem/firmem.generic.mlir:4:14
   input        R0_en,
                R0_clk,
   output [7:0] R0_data,
-  input  [1:0] RW0_addr,
-  input        RW0_en,
-               RW0_clk,
-               RW0_wmode,
-  input  [7:0] RW0_wdata,
-  output [7:0] RW0_rdata,
   input  [1:0] W0_addr,
   input        W0_en,
                W0_clk,
@@ -18,10 +12,6 @@ module memory_4x8(	// seq/firmem/firmem.generic.mlir:4:14
 );
 
   reg [7:0] Memory[0:3];	// seq/firmem/firmem.generic.mlir:4:14
-  always @(posedge RW0_clk) begin	// seq/firmem/firmem.generic.mlir:4:14
-    if (RW0_en & RW0_wmode & 1'h1)	// seq/firmem/firmem.generic.mlir:4:14
-      Memory[RW0_addr] <= RW0_wdata;	// seq/firmem/firmem.generic.mlir:4:14
-  end // always @(posedge)
   always @(posedge W0_clk) begin	// seq/firmem/firmem.generic.mlir:4:14
     if (W0_en & 1'h1)	// seq/firmem/firmem.generic.mlir:4:14
       Memory[W0_addr] <= W0_data;	// seq/firmem/firmem.generic.mlir:4:14
@@ -39,7 +29,6 @@ module memory_4x8(	// seq/firmem/firmem.generic.mlir:4:14
     end // initial
   `endif // ENABLE_INITIAL_MEM_
   assign R0_data = R0_en ? Memory[R0_addr] : 8'bx;	// seq/firmem/firmem.generic.mlir:4:14
-  assign RW0_rdata = RW0_en & ~RW0_wmode ? Memory[RW0_addr] : 8'bx;	// seq/firmem/firmem.generic.mlir:4:14
 endmodule
 
 // Standard header to adapt well known macros for register randomization.
@@ -88,29 +77,27 @@ endmodule
 
 module Foo(	// seq/firmem/firmem.generic.mlir:2:3
   input        clk,	// seq/firmem/firmem.generic.mlir:3:10
-               reset,	// seq/firmem/firmem.generic.mlir:3:28
-  input  [7:0] data_in,	// seq/firmem/firmem.generic.mlir:3:40
-  input  [1:0] addr,	// seq/firmem/firmem.generic.mlir:3:55
-  input        mode,	// seq/firmem/firmem.generic.mlir:3:67
-  output [7:0] read_out,
-               rw_out
+  input  [7:0] data_in_w,	// seq/firmem/firmem.generic.mlir:3:28
+               data_in_rw,	// seq/firmem/firmem.generic.mlir:3:44
+  input  [1:0] addr_r,	// seq/firmem/firmem.generic.mlir:3:62
+               addr_w,	// seq/firmem/firmem.generic.mlir:3:76
+               addr_rw,	// seq/firmem/firmem.generic.mlir:3:90
+  input        mode,	// seq/firmem/firmem.generic.mlir:3:105
+               enable_r,	// seq/firmem/firmem.generic.mlir:3:117
+               enable_w,	// seq/firmem/firmem.generic.mlir:3:132
+               enable_rw,	// seq/firmem/firmem.generic.mlir:3:148
+  output [7:0] read_out
 );
 
   memory_4x8 memory_ext (	// seq/firmem/firmem.generic.mlir:4:14
-    .R0_addr   (addr),
-    .R0_en     (1'h1),	// seq/firmem/firmem.generic.mlir:2:3
-    .R0_clk    (clk),
-    .R0_data   (read_out),
-    .RW0_addr  (addr),
-    .RW0_en    (1'h1),	// seq/firmem/firmem.generic.mlir:2:3
-    .RW0_clk   (clk),
-    .RW0_wmode (mode),
-    .RW0_wdata (data_in),
-    .RW0_rdata (rw_out),
-    .W0_addr   (addr),
-    .W0_en     (1'h1),	// seq/firmem/firmem.generic.mlir:2:3
-    .W0_clk    (clk),
-    .W0_data   (data_in)
+    .R0_addr (addr_r),
+    .R0_en   (enable_r),
+    .R0_clk  (clk),
+    .R0_data (read_out),
+    .W0_addr (addr_w),
+    .W0_en   (enable_w),
+    .W0_clk  (clk),
+    .W0_data (data_in_w)
   );	// seq/firmem/firmem.generic.mlir:4:14
 endmodule
 

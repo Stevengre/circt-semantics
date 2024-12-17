@@ -46,7 +46,7 @@ VL_ATTR_COLD void Vfirmem___024root___eval_settle(Vfirmem___024root* vlSelf) {
 #ifdef VL_DEBUG
             Vfirmem___024root___dump_triggers__stl(vlSelf);
 #endif
-            VL_FATAL_MT("seq/firmem/firmem.sv", 89, "", "Settle region did not converge.");
+            VL_FATAL_MT("seq/firmem/firmem.sv", 78, "", "Settle region did not converge.");
         }
         __VstlIterCount = ((IData)(1U) + __VstlIterCount);
         __VstlContinue = 0U;
@@ -152,12 +152,16 @@ VL_ATTR_COLD void Vfirmem___024root___ctor_var_reset(Vfirmem___024root* vlSelf) 
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vfirmem___024root___ctor_var_reset\n"); );
     // Body
     vlSelf->clk = VL_RAND_RESET_I(1);
-    vlSelf->reset = VL_RAND_RESET_I(1);
-    vlSelf->data_in = VL_RAND_RESET_I(8);
-    vlSelf->addr = VL_RAND_RESET_I(2);
+    vlSelf->data_in_w = VL_RAND_RESET_I(8);
+    vlSelf->data_in_rw = VL_RAND_RESET_I(8);
+    vlSelf->addr_r = VL_RAND_RESET_I(2);
+    vlSelf->addr_w = VL_RAND_RESET_I(2);
+    vlSelf->addr_rw = VL_RAND_RESET_I(2);
     vlSelf->mode = VL_RAND_RESET_I(1);
+    vlSelf->enable_r = VL_RAND_RESET_I(1);
+    vlSelf->enable_w = VL_RAND_RESET_I(1);
+    vlSelf->enable_rw = VL_RAND_RESET_I(1);
     vlSelf->read_out = VL_RAND_RESET_I(8);
-    vlSelf->rw_out = VL_RAND_RESET_I(8);
     for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
         vlSelf->Foo__DOT__memory_ext__DOT__Memory[__Vi0] = VL_RAND_RESET_I(8);
     }

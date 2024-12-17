@@ -10,9 +10,9 @@ VL_INLINE_OPT void Vfirmem___024root___ico_sequent__TOP__0(Vfirmem___024root* vl
     Vfirmem__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vfirmem___024root___ico_sequent__TOP__0\n"); );
     // Body
-    vlSelf->read_out = vlSelf->Foo__DOT__memory_ext__DOT__Memory
-        [vlSelf->addr];
-    vlSelf->rw_out = ((IData)(vlSelf->mode) ? 0U : (IData)(vlSelf->read_out));
+    vlSelf->read_out = ((IData)(vlSelf->enable_r) ? 
+                        vlSelf->Foo__DOT__memory_ext__DOT__Memory
+                        [vlSelf->addr_r] : 0U);
 }
 
 void Vfirmem___024root___eval_ico(Vfirmem___024root* vlSelf) {
@@ -59,32 +59,22 @@ VL_INLINE_OPT void Vfirmem___024root___nba_sequent__TOP__0(Vfirmem___024root* vl
     __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v0 = 0;
     CData/*0:0*/ __Vdlyvset__Foo__DOT__memory_ext__DOT__Memory__v0;
     __Vdlyvset__Foo__DOT__memory_ext__DOT__Memory__v0 = 0;
-    CData/*1:0*/ __Vdlyvdim0__Foo__DOT__memory_ext__DOT__Memory__v1;
-    __Vdlyvdim0__Foo__DOT__memory_ext__DOT__Memory__v1 = 0;
-    CData/*7:0*/ __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v1;
-    __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v1 = 0;
     // Body
     __Vdlyvset__Foo__DOT__memory_ext__DOT__Memory__v0 = 0U;
-    __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v1 
-        = vlSelf->data_in;
-    __Vdlyvdim0__Foo__DOT__memory_ext__DOT__Memory__v1 
-        = vlSelf->addr;
-    if (vlSelf->mode) {
+    if (vlSelf->enable_w) {
         __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v0 
-            = vlSelf->data_in;
+            = vlSelf->data_in_w;
         __Vdlyvset__Foo__DOT__memory_ext__DOT__Memory__v0 = 1U;
         __Vdlyvdim0__Foo__DOT__memory_ext__DOT__Memory__v0 
-            = vlSelf->addr;
+            = vlSelf->addr_w;
     }
     if (__Vdlyvset__Foo__DOT__memory_ext__DOT__Memory__v0) {
         vlSelf->Foo__DOT__memory_ext__DOT__Memory[__Vdlyvdim0__Foo__DOT__memory_ext__DOT__Memory__v0] 
             = __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v0;
     }
-    vlSelf->Foo__DOT__memory_ext__DOT__Memory[__Vdlyvdim0__Foo__DOT__memory_ext__DOT__Memory__v1] 
-        = __Vdlyvval__Foo__DOT__memory_ext__DOT__Memory__v1;
-    vlSelf->read_out = vlSelf->Foo__DOT__memory_ext__DOT__Memory
-        [vlSelf->addr];
-    vlSelf->rw_out = ((IData)(vlSelf->mode) ? 0U : (IData)(vlSelf->read_out));
+    vlSelf->read_out = ((IData)(vlSelf->enable_r) ? 
+                        vlSelf->Foo__DOT__memory_ext__DOT__Memory
+                        [vlSelf->addr_r] : 0U);
 }
 
 void Vfirmem___024root___eval_nba(Vfirmem___024root* vlSelf) {
@@ -161,7 +151,7 @@ void Vfirmem___024root___eval(Vfirmem___024root* vlSelf) {
 #ifdef VL_DEBUG
             Vfirmem___024root___dump_triggers__ico(vlSelf);
 #endif
-            VL_FATAL_MT("seq/firmem/firmem.sv", 89, "", "Input combinational region did not converge.");
+            VL_FATAL_MT("seq/firmem/firmem.sv", 78, "", "Input combinational region did not converge.");
         }
         __VicoIterCount = ((IData)(1U) + __VicoIterCount);
         __VicoContinue = 0U;
@@ -177,7 +167,7 @@ void Vfirmem___024root___eval(Vfirmem___024root* vlSelf) {
 #ifdef VL_DEBUG
             Vfirmem___024root___dump_triggers__nba(vlSelf);
 #endif
-            VL_FATAL_MT("seq/firmem/firmem.sv", 89, "", "NBA region did not converge.");
+            VL_FATAL_MT("seq/firmem/firmem.sv", 78, "", "NBA region did not converge.");
         }
         __VnbaIterCount = ((IData)(1U) + __VnbaIterCount);
         __VnbaContinue = 0U;
@@ -188,7 +178,7 @@ void Vfirmem___024root___eval(Vfirmem___024root* vlSelf) {
 #ifdef VL_DEBUG
                 Vfirmem___024root___dump_triggers__act(vlSelf);
 #endif
-                VL_FATAL_MT("seq/firmem/firmem.sv", 89, "", "Active region did not converge.");
+                VL_FATAL_MT("seq/firmem/firmem.sv", 78, "", "Active region did not converge.");
             }
             vlSelf->__VactIterCount = ((IData)(1U) 
                                        + vlSelf->__VactIterCount);
@@ -211,11 +201,19 @@ void Vfirmem___024root___eval_debug_assertions(Vfirmem___024root* vlSelf) {
     // Body
     if (VL_UNLIKELY((vlSelf->clk & 0xfeU))) {
         Verilated::overWidthError("clk");}
-    if (VL_UNLIKELY((vlSelf->reset & 0xfeU))) {
-        Verilated::overWidthError("reset");}
-    if (VL_UNLIKELY((vlSelf->addr & 0xfcU))) {
-        Verilated::overWidthError("addr");}
+    if (VL_UNLIKELY((vlSelf->addr_r & 0xfcU))) {
+        Verilated::overWidthError("addr_r");}
+    if (VL_UNLIKELY((vlSelf->addr_w & 0xfcU))) {
+        Verilated::overWidthError("addr_w");}
+    if (VL_UNLIKELY((vlSelf->addr_rw & 0xfcU))) {
+        Verilated::overWidthError("addr_rw");}
     if (VL_UNLIKELY((vlSelf->mode & 0xfeU))) {
         Verilated::overWidthError("mode");}
+    if (VL_UNLIKELY((vlSelf->enable_r & 0xfeU))) {
+        Verilated::overWidthError("enable_r");}
+    if (VL_UNLIKELY((vlSelf->enable_w & 0xfeU))) {
+        Verilated::overWidthError("enable_w");}
+    if (VL_UNLIKELY((vlSelf->enable_rw & 0xfeU))) {
+        Verilated::overWidthError("enable_rw");}
 }
 #endif  // VL_DEBUG

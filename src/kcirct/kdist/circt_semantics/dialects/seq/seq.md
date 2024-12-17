@@ -136,30 +136,20 @@ rule
 
 ### `seq.firmem.read_port`
 
-#### Setup Current Signal Before Update
 
-```k
-rule
-<current> 
-("seq.firmem.read_port" ( _:List ) { _:Map } : (_) -> (T:IntegerType) => ListItem(H[Port] orDefault bits(0, getWidth(T))))
-~> "HARDWARE#WRITE" ~> ListItem(Port)
-...
-</current>
-<signals> Signals:Map </signals>
-<history> H:Map </history>
-requires notBool (Port in_keys(Signals))
-[priority(35)]
-```
 
 #### Not Enabled
 
 ```k
 rule
 <current> 
-   ListItem(_) ListItem(_) ListItem(_) ListItem(Enable:Bits)
-~> "seq.firmem.read_port" ( _:List ) { _:Map } : _FT
-=> ListItem("HARDWARE#KEEP")
+   (ListItem(_) ListItem(_) ListItem(_) ListItem(Enable:Bits)
+~> "seq.firmem.read_port" ( _:List ) { _:Map } :  (_) -> (T:IntegerType)
+=> ListItem(bits(0, getWidth(T)))) ~> "HARDWARE#WRITE" ~> ListItem(Port)
+...
 </current>
+<signals> Signals:Map </signals>
+<history> H:Map </history>
 requires notBool Bits2Bool(Enable)
 [priority(30)]
 ```
@@ -169,11 +159,11 @@ requires notBool Bits2Bool(Enable)
 ```k
 rule
 <current> 
-   ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) _:List
+  ( ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) _:List
 ~> "seq.firmem.read_port" ( ListItem(_) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } : (_) -> (T:IntegerType)
 => #if checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
-   #then Mem[Addr] orDefault bits(0, getWidth(T))
-   #else ListItem("HARDWARE#KEEP") #fi
+   #then ListItem(Mem[Addr] orDefault bits(0, getWidth(T)))
+   #else ListItem(H[Port] orDefault bits(0, getWidth(T))) #fi) ~> "HARDWARE#WRITE" ~> ListItem(Port) 
 ...
 </current>
 <history> H:Map </history>
@@ -196,24 +186,26 @@ rule
    #else S #fi 
 </signals>
 <history> H:Map </history>
-[priority(30)]
+[priority(35)]
 ```
 
 ### `seq.firmem.read_write_port`
 
-#### Setup Current Signal Before Update
+
+#### Not Enabled
 
 ```k
 rule
 <current> 
-("seq.firmem.read_write_port" ( _:List ) { _:Map } : (_) -> (T:IntegerType) => ListItem(H[Port] orDefault bits(0, getWidth(T))))
-~> "HARDWARE#WRITE" ~> ListItem(Port)
+   (ListItem(_) ListItem(_) ListItem(_) ListItem(Enable:Bits) _:List
+~> "seq.firmem.read_write_port" ( _:List ) { _:Map } :  (_) -> (T:IntegerType)
+=> ListItem(bits(0, getWidth(T)))) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
 <signals> Signals:Map </signals>
 <history> H:Map </history>
-requires notBool (Port in_keys(Signals))
-[priority(35)]
+requires notBool Bits2Bool(Enable)
+[priority(30)]
 ```
 
 #### Update
@@ -221,15 +213,15 @@ requires notBool (Port in_keys(Signals))
 ```k
 rule
 <current> 
-   ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) ListItem(Enable:Bits) ListItem(Data:Bits) ListItem(Mode:Bits)
+   (ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) ListItem(Enable:Bits) ListItem(Data:Bits) ListItem(Mode:Bits)
 ~> "seq.firmem.read_write_port" ( ListItem(MemId:String) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } : (_) -> (T:IntegerType)
-=> #if Bits2Bool(Enable) andBool (notBool Bits2Bool(Mode)) andBool checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
-   #then Mem[Addr] orDefault bits(0, getWidth(T))
-   #else ListItem("HARDWARE#KEEP") #fi
+=> #if (notBool Bits2Bool(Mode)) andBool checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
+   #then ListItem(Mem[Addr] orDefault bits(0, getWidth(T)))
+   #else ListItem(H[Port] orDefault bits(0, getWidth(T))) #fi) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
 <signals> S:Map => 
-   #if Bits2Bool(Enable) andBool Bits2Bool(Mode) andBool checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
+   #if Bits2Bool(Mode) andBool checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then S [MemId <- Mem[Addr <- Data]] 
    #else S #fi 
 </signals>

@@ -30,12 +30,16 @@ void Vfirmem___024root__trace_chg_0_sub_0(Vfirmem___024root* vlSelf, VerilatedVc
         bufp->chgCData(oldp+3,(vlSelf->Foo__DOT__memory_ext__DOT__Memory[3]),8);
     }
     bufp->chgBit(oldp+4,(vlSelf->clk));
-    bufp->chgBit(oldp+5,(vlSelf->reset));
-    bufp->chgCData(oldp+6,(vlSelf->data_in),8);
-    bufp->chgCData(oldp+7,(vlSelf->addr),2);
-    bufp->chgBit(oldp+8,(vlSelf->mode));
-    bufp->chgCData(oldp+9,(vlSelf->read_out),8);
-    bufp->chgCData(oldp+10,(vlSelf->rw_out),8);
+    bufp->chgCData(oldp+5,(vlSelf->data_in_w),8);
+    bufp->chgCData(oldp+6,(vlSelf->data_in_rw),8);
+    bufp->chgCData(oldp+7,(vlSelf->addr_r),2);
+    bufp->chgCData(oldp+8,(vlSelf->addr_w),2);
+    bufp->chgCData(oldp+9,(vlSelf->addr_rw),2);
+    bufp->chgBit(oldp+10,(vlSelf->mode));
+    bufp->chgBit(oldp+11,(vlSelf->enable_r));
+    bufp->chgBit(oldp+12,(vlSelf->enable_w));
+    bufp->chgBit(oldp+13,(vlSelf->enable_rw));
+    bufp->chgCData(oldp+14,(vlSelf->read_out),8);
 }
 
 void Vfirmem___024root__trace_cleanup(void* voidSelf, VerilatedVcd* /*unused*/) {

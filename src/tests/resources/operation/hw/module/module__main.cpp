@@ -43,15 +43,25 @@ int main(int argc, char** argv, char**) {
 
     getInput();
 
+         std::chrono::high_resolution_clock::duration duration =
+      std::chrono::high_resolution_clock::duration::zero();
+
     while (!Verilated::gotFinish() && main_time < inputs.size()) {
         // Evaluate model
         topp->a = inputs[int(main_time)][0][0].asInt();
         topp->b = inputs[int(main_time)][1][0].asInt();
+        auto t_before = std::chrono::high_resolution_clock::now();
         topp->eval();
+        auto t_after = std::chrono::high_resolution_clock::now();
+        duration += t_after - t_before;
         tfp->dump(main_time);
         ++main_time;
         // std::cout<<int(topp->res) <<std::endl;
     }
+    auto seconds = std::chrono::duration_cast<std::chrono::duration<double>>(
+                         duration)
+                         .count();
+    std::cout<<seconds/inputs.size()<<std::endl;
     
     // Final model cleanup
     topp->final();

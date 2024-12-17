@@ -15,12 +15,16 @@ class alignas(VL_CACHE_LINE_BYTES) Vfirmem___024root final : public VerilatedMod
 
     // DESIGN SPECIFIC STATE
     VL_IN8(clk,0,0);
-    VL_IN8(reset,0,0);
-    VL_IN8(data_in,7,0);
-    VL_IN8(addr,1,0);
+    VL_IN8(data_in_w,7,0);
+    VL_IN8(data_in_rw,7,0);
+    VL_IN8(addr_r,1,0);
+    VL_IN8(addr_w,1,0);
+    VL_IN8(addr_rw,1,0);
     VL_IN8(mode,0,0);
+    VL_IN8(enable_r,0,0);
+    VL_IN8(enable_w,0,0);
+    VL_IN8(enable_rw,0,0);
     VL_OUT8(read_out,7,0);
-    VL_OUT8(rw_out,7,0);
     CData/*0:0*/ __VstlFirstIteration;
     CData/*0:0*/ __VicoFirstIteration;
     CData/*0:0*/ __Vtrigprevexpr___TOP__clk__0;

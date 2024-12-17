@@ -11,12 +11,16 @@ Vfirmem::Vfirmem(VerilatedContext* _vcontextp__, const char* _vcname__)
     : VerilatedModel{*_vcontextp__}
     , vlSymsp{new Vfirmem__Syms(contextp(), _vcname__, this)}
     , clk{vlSymsp->TOP.clk}
-    , reset{vlSymsp->TOP.reset}
-    , data_in{vlSymsp->TOP.data_in}
-    , addr{vlSymsp->TOP.addr}
+    , data_in_w{vlSymsp->TOP.data_in_w}
+    , data_in_rw{vlSymsp->TOP.data_in_rw}
+    , addr_r{vlSymsp->TOP.addr_r}
+    , addr_w{vlSymsp->TOP.addr_w}
+    , addr_rw{vlSymsp->TOP.addr_rw}
     , mode{vlSymsp->TOP.mode}
+    , enable_r{vlSymsp->TOP.enable_r}
+    , enable_w{vlSymsp->TOP.enable_w}
+    , enable_rw{vlSymsp->TOP.enable_rw}
     , read_out{vlSymsp->TOP.read_out}
-    , rw_out{vlSymsp->TOP.rw_out}
     , rootp{&(vlSymsp->TOP)}
 {
     // Register model with the context
