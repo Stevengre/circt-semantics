@@ -6,7 +6,7 @@ module Foo(	// sv/info/info.generic.mlir:3:3
   output [7:0] result	// sv/info/info.mlir:1:55
 );
 
-  always @*	// sv/info/info.generic.mlir:5:5
+  always @(posedge clk)	// sv/info/info.generic.mlir:5:5
     $info("world");	// sv/info/info.generic.mlir:6:7
   assign result = a + b;	// sv/info/info.generic.mlir:8:10, :9:5
 endmodule

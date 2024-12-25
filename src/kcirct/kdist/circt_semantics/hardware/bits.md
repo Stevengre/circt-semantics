@@ -247,8 +247,11 @@ module BITS
     rule BitsSlice(bits(V:XZValue, _:Int), Begin:Int, End:Int) => bits(V, End -Int Begin)
 
     // 0: posedge, 1: negedge, 2: edge
-    rule checkEdge(0, bits(0, _:Int), bits(1, _:Int)) => true
-    rule checkEdge(1, bits(1, _:Int), bits(0, _:Int)) => true
+    // checkEdge(Event:Int, Current:Bits, History:Bits)
+    rule checkEdge(0, bits(1, _:Int), bits(0, _:Int)) => true
+    rule checkEdge(0, bits(1, _:Int), bits(#x, _:Int)) => true
+    rule checkEdge(1, bits(0, _:Int), bits(1, _:Int)) => true
+    rule checkEdge(1, bits(0, _:Int), bits(#x, _:Int)) => true
     rule checkEdge(2, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => true
         requires X1 =/=Int X2
     rule checkEdge(_, bits(_, _:Int), _) => false

@@ -1,6 +1,6 @@
-hw.module @Foo(in %a: i8, in %b: i8, out res: i8 ) {
+hw.module @Foo(in %clk: i1,in %a: i8, in %b: i8, out res: i8 ) {
     %cond = hw.constant 1: i1
-    sv.always{
+    sv.always posedge  %clk {
         sv.if %cond {
             sv.info "hitIf"
         }

@@ -9,6 +9,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import time
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -327,7 +328,7 @@ class KCIRCT:
                 signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
         return signal_port_mapping
     
-    def read_signals(self, state_file: Path) -> dict[str, tuple[int, int]]:
+    def read_signals(self, state_file: Path) -> dict[str, tuple[int, int] | dict[tuple[int, int], tuple[int, int]]]:
         """Read the signals from the Kore pattern."""
         with open(state_file, 'r') as file:
             state = file.read()
@@ -342,27 +343,67 @@ class KCIRCT:
         ports: dict[str, tuple[int, int]] = {}
         while len(sub_str):
             # find port name
-            pre_idx = sub_str.find('"', pre_idx)
+            pre_idx = sub_str.find('"')
             if pre_idx == -1:
                 break
             end_idx = sub_str.find('"', pre_idx + 1)
             port_name = sub_str[pre_idx + 1:end_idx]
             sub_str = sub_str[end_idx + 1:]
             
-            # find port value
-            pre_idx = sub_str.find('"')
-            end_idx = sub_str.find('"', pre_idx + 1)
-            port_value = int(sub_str[pre_idx + 1:end_idx])
-            sub_str = sub_str[end_idx + 1:]
-            
-            # find port size
-            pre_idx = sub_str.find('"')
-            end_idx = sub_str.find('"', pre_idx + 1)
-            port_size = int(sub_str[pre_idx + 1:end_idx])
-            sub_str = sub_str[end_idx + 1:]
-            
-            ports[port_name] = (port_value, port_size)
-        
+            # find type
+            pattern = r'inj\{Sort([^{}]*)\{\}'
+            match = re.search(pattern, sub_str)
+            if match:
+                type = match.group(1)
+                if type == 'Bits':
+                    # find port value
+                    pre_idx = sub_str.find('"')
+                    end_idx = sub_str.find('"', pre_idx + 1)
+                    port_value = int(sub_str[pre_idx + 1:end_idx])
+                    sub_str = sub_str[end_idx + 1:]
+                    
+                    # find port size
+                    pre_idx = sub_str.find('"')
+                    end_idx = sub_str.find('"', pre_idx + 1)
+                    port_size = int(sub_str[pre_idx + 1:end_idx])
+                    sub_str = sub_str[end_idx + 1:]
+                    
+                    ports[port_name] = (port_value, port_size)
+                elif type == 'Map':
+                    mp : dict[tuple[int, int], tuple[int, int]] = {}
+                    map_end_idx = sub_str.find('"))))))))')
+                    map_str = sub_str[:map_end_idx+1]
+                    sub_str = sub_str[map_end_idx+1:]
+
+                    while len(map_str):
+                        # find Key value
+                        pre_idx = map_str.find('"')
+                        end_idx = map_str.find('"', pre_idx + 1)
+                        key_value = int(map_str[pre_idx + 1:end_idx])
+                        map_str = map_str[end_idx + 1:]
+                        
+                        # find Key size
+                        pre_idx = map_str.find('"')
+                        end_idx = map_str.find('"', pre_idx + 1)
+                        key_size = int(map_str[pre_idx + 1:end_idx])
+                        map_str = map_str[end_idx + 1:]
+
+                        # find Value value
+                        pre_idx = map_str.find('"')
+                        end_idx = map_str.find('"', pre_idx + 1)
+                        value_value = int(map_str[pre_idx + 1:end_idx])
+                        map_str = map_str[end_idx + 1:]
+                        
+                        # find Value size
+                        pre_idx = map_str.find('"')
+                        end_idx = map_str.find('"', pre_idx + 1)
+                        value_size = int(map_str[pre_idx + 1:end_idx])
+                        map_str = map_str[end_idx + 1:]
+                        mp[(key_value,key_size)] = (value_value,value_size)
+                    ports[port_name] = mp 
+            else:
+                print("Error: No type found in " + port_name)
+                sys.exit(1)
         return ports
 
     def read_ports(self, state: Pattern) -> dict[str, tuple[int, int]]:

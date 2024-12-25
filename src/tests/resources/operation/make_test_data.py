@@ -63,6 +63,55 @@ class test_data:
         with open(self.output_file, 'w', encoding='utf-8') as file:
             json.dump(output_dict, file, indent=4)
 
+    def mk_firmem(self):
+        mode = 0
+        #0的时候是写，1的时候是读
+        wirte_mode = 1
+        read_mode = 0
+        for time in range(0,self.config['mode']):
+            clk = (time+1)%2
+            now_data = []
+            now_data.append([clk,1])
+            if clk == 0:
+                now_data.append([0,8])
+                now_data.append([0,8])
+                now_data.append([0,2])
+                now_data.append([0,2])
+                now_data.append([0,2])
+                now_data.append([0,1])
+                now_data.append([0,1])
+                now_data.append([0,1])
+                now_data.append([0,1])
+            else:
+                if mode == 0:
+                    data_in_w = random.randint(0,2**8-1)
+                    data_in_rw = random.randint(0,2**8-1)
+                    now_data.append([data_in_w,8])
+                    now_data.append([data_in_rw,8])
+                    now_data.append([0,2])
+                    addr = random.randint(0,3)
+                    now_data.append([addr,2])
+                    addr = (addr+1)%4
+                    now_data.append([addr,2])
+                    now_data.append([wirte_mode,1])
+                    now_data.append([0,1])
+                    now_data.append([1,1])
+                    now_data.append([1,1])
+                else :
+                    now_data.append([0,8])
+                    now_data.append([0,8])
+                    addr = random.randint(0,3)
+                    now_data.append([addr,2])
+                    addr = (addr+1)%4
+                    now_data.append([0,2])
+                    now_data.append([addr,2])
+                    now_data.append([read_mode,1])
+                    now_data.append([1,1])
+                    now_data.append([0,1])
+                    now_data.append([1,1])
+                mode ^= 1
+            self.output_data.append(copy.deepcopy(now_data))
+
 def make_test_data(random_config, test_path):
     output_filr = {}
     for level1 in test_path['level1']:
@@ -76,7 +125,9 @@ def make_test_data(random_config, test_path):
             if os.path.exists(output_filr[config['name']]) != True:
                 misson = test_data(config = config, output_file=output_filr[config['name']])
                 #全枚举 &随机  
-                if config['length'] == 0:
+                if config['name'] == 'firmem':
+                    misson.mk_firmem()
+                elif config['length'] == 0:
                     misson.output_data = []
                 elif config['mode'] > 0:
                     misson.randomBuild([],0)

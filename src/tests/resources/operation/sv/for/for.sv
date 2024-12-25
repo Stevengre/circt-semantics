@@ -6,11 +6,11 @@ module Foo(	// sv/for/for.generic.mlir:3:3
   output [7:0] res	// sv/for/for.mlir:1:55
 );
 
-  always @* begin	// sv/for/for.generic.mlir:7:5
+  always @(posedge clk) begin	// sv/for/for.generic.mlir:7:5
     for (logic [7:0] i = 8'h0; i < b; i += 8'h1) begin
       $info("This is a test");	// sv/for/for.generic.mlir:10:9
     end	// sv/for/for.generic.mlir:5:10, :6:10
-  end // always @*
+  end // always @(posedge)
   assign res = a + b;	// sv/for/for.generic.mlir:13:10, :14:5
 endmodule
 
