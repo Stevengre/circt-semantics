@@ -73,6 +73,8 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
             tot_time += end_time - start_time
             print(str(vcd.time)+str(mlir_file))
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+            if vcd.time == 12:
+                break
         print('runtime:'+str((end_time-start_time)/len(inputs)))
 
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
@@ -83,7 +85,7 @@ def test_pretty() -> None:
     nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem_rw':
+        if dir.name == 'firmem':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
@@ -136,6 +138,6 @@ if __name__ == '__main__':
     nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem_rw':
+        if dir.name == 'firmem':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
