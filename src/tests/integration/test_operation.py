@@ -73,8 +73,6 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
             tot_time += end_time - start_time
             print(str(vcd.time)+str(mlir_file))
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-            if vcd.time == 12:
-                break
         print('runtime:'+str((end_time-start_time)/len(inputs)))
 
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
@@ -82,10 +80,10 @@ def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[
     kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
 
 def test_pretty() -> None:
-    nowtest = 'seq'
+    nowtest = 'hw'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem':
+        if dir.name == 'aggregate_constant2':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
@@ -106,17 +104,17 @@ def test_learn() -> None:
                                 INPUTS[nowtest][i])
 
 def test_entry()->None:
-    nowtest = 'seq'
+    nowtest = 'hw'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem':
+        if dir.name == 'aggregate_constant2':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
 
 def test_diffvcd(now: Path | None = None) -> None:
     test_path = Path('/home/zjh/proj/cym-circt-semantics/src/tests/resources/operation/')
-    now = 'seq/firmem_rw'
+    now = 'hw/aggregate_constant2'
     test_path = test_path / now
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
@@ -135,9 +133,9 @@ def test_diffvcd(now: Path | None = None) -> None:
         print(f"标准错误: {result.stderr}")
 
 if __name__ == '__main__':
-    nowtest = 'seq'
+    nowtest = 'hw'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem':
+        if dir.name == 'aggregate_constant2':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])

@@ -27,6 +27,7 @@
             "name": "hw",
             "operation": [
                 "aggregate_constant",
+                "aggregate_constant2",
                 "array_concat",
                 "array_get",
                 "bitcast",

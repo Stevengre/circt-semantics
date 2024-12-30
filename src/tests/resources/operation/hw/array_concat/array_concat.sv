@@ -2,9 +2,12 @@
 module Foo(	// hw/array_concat/array_concat.generic.mlir:3:3
   input  [7:0] a,	// hw/array_concat/array_concat.generic.mlir:4:8
                b,	// hw/array_concat/array_concat.generic.mlir:4:19
-  output [7:0] res	// hw/array_concat/array_concat.mlir:1:42
+  input        c,	// hw/array_concat/array_concat.generic.mlir:4:30
+               d,	// hw/array_concat/array_concat.generic.mlir:4:41
+  output [7:0] res	// hw/array_concat/array_concat.mlir:1:62
 );
 
-  assign res = b + a;	// hw/array_concat/array_concat.generic.mlir:12:10, :13:5
+  wire [1:0][7:0] _GEN = {{a}, {b}};	// hw/array_concat/array_concat.generic.mlir:7:10
+  assign res = _GEN[c] + _GEN[d];	// hw/array_concat/array_concat.generic.mlir:7:10, :10:10, :11:10, :12:10, :13:5
 endmodule
 

@@ -166,6 +166,12 @@
             "mode": 10
         },
         {
+            "name": "aggregate_constant2",
+            "length": 2,
+            "type": [2,8],
+            "mode": 1000
+        },
+        {
             "name": "array_concat",
             "length": 2,
             "type": [

@@ -174,6 +174,17 @@ rule
 requires ABS_NAME ==K AbsSymbolName(ListItem(S))
 ```
 
+## hw.aggregate_constant
+
+```k
+rule
+<current> 
+   "hw.aggregate_constant" ( .List ) { "fields" |-> [AVL:AttributeValueList] _:Map} : _FT
+=> ListItem(BitsConcat(AttrValueList2List(AVL)))
+... 
+</current>
+```
+
 ## hw.constant
 
 ```k

@@ -5,6 +5,7 @@ requires "hw-syntax.md"
 module HW-HELPER
 imports HW-SYNTAX
 imports LIST
+imports CIRCT
 ```
 ## `!hw.modty` Helpers
 
@@ -62,6 +63,15 @@ rule getModuleOutTypes(!hw.modty < input _:BareId : _:Type , L:ModulePortList >)
     => getModuleOutTypes(!hw.modty < L >)
 
 rule getModuleOutTypes(!hw.modty < .ModulePortList >) => .List
+```
+
+### AttributeValueList -> List
+
+```k
+syntax List ::= AttrValueList2List(AttributeValueList) [function]
+rule AttrValueList2List(V:AttributeValue : T:Type , AVL:AttributeValueList) => ListItem(ToBits(V, T)) AttrValueList2List(AVL)
+rule AttrValueList2List(V:AttributeValue : T:Type) => ListItem(ToBits(V, T))
+rule AttrValueList2List(.AttributeValueList) => .List
 ```
 
 ```k

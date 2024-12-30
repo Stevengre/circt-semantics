@@ -1,0 +1,101 @@
+<teq>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      #loc |-> loc ( "hw/aggregate_constant2/aggregate_constant2.mlir" : 1 : 42 )
+    </attrs>
+    <table>
+      "Foo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input a : i2 , input b : i8 , output res : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      "result_locs" |-> [ #loc , .AttributeValueList ]
+      ( "sym_name" |-> "Foo" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" )
+      ListItem ( "%arg1" ) ) : ListItem ( "%0" ) = "hw.aggregate_constant" ( .List ) { "fields" |-> [ -1 : i8 , 0 : i8 , 1 : i8 , 2 : i8 , .AttributeValueList ] } : ( .Types ) -> ( !hw.array < 4x i8 > , .Types )  ListItem ( "%1" ) = "hw.array_get" ( ListItem ( "%0" )
+      ListItem ( "%arg0" ) ) { "sv.namehint" |-> "add1" } : ( !hw.array < 4x i8 > , i2 , .Types ) -> ( i8 , .Types )  ListItem ( "%2" ) = "comb.add" ( ListItem ( "%1" )
+      ListItem ( "%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%2" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+    </table>
+    <symbols>
+      .List
+    </symbols>
+  </mlir>
+  <hardware>
+    <setup>
+      .K
+    </setup>
+    <connection>
+      "Foo/%0" |-> "hw.aggregate_constant" ( .List ) { "fields" |-> [ -1 : i8 , 0 : i8 , 1 : i8 , 2 : i8 , .AttributeValueList ] } : ( .Types ) -> ( !hw.array < 4x i8 > , .Types )
+      "Foo/%1" |-> "hw.array_get" ( ListItem ( "Foo/%0" )
+      ListItem ( "Foo/%arg0" ) ) { "sv.namehint" |-> "add1" } : ( !hw.array < 4x i8 > , i2 , .Types ) -> ( i8 , .Types )
+      "Foo/%2" |-> "comb.add" ( ListItem ( "Foo/%1" )
+      ListItem ( "Foo/%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+    </connection>
+    <procedures>
+      .List
+    </procedures>
+    <signals>
+      .Map
+    </signals>
+    <history>
+      .Map
+    </history>
+    <currents>
+      .CurrentInfoCellMap
+    </currents>
+    <clock>
+      0
+    </clock>
+  </hardware>
+  <circt>
+    <cmd>
+      "CIRCT#SIMULATE" ~> ListItem ( bits ( 0 , 2 ) )
+      ListItem ( bits ( 155 , 8 ) ) ~> .K
+    </cmd>
+    <top-module>
+      "Foo"
+    </top-module>
+    <top-ins>
+      ListItem ( "Foo/%arg0" )
+      ListItem ( "Foo/%arg1" )
+    </top-ins>
+  </circt>
+  <hw>
+    <hw-instances>
+      <hw-instance>
+        <hw-id>
+          "Foo"
+        </hw-id>
+        <hw-module>
+          "Foo"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( a )
+          ListItem ( b )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/%arg0" )
+          ListItem ( "Foo/%arg1" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( i2 )
+          ListItem ( i8 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/%2" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance>
+      <hw-setup-inst>
+        .List
+      </hw-setup-inst>
+    </hw-instances>
+  </hw>
+</teq>

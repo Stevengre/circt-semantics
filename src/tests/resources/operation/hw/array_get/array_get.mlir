@@ -7,6 +7,6 @@ hw.module @Foo(in %a: i8, in %b: i8, out res: i8) {
     %aa = hw.array_get %arr [%0] : !hw.array<2xi8>, i1
     %bb = hw.array_get %arr [%1] : !hw.array<2xi8>, i1
 
-    %res = comb.add %aa, %bb : i8
+    %res = comb.sub %aa, %bb : i8
     hw.output %res : i8
 }

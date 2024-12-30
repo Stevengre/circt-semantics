@@ -243,7 +243,7 @@ module BITS
     rule Bits2Bool(bits(X:Int, _:Int)) => X =/=Int 0
     rule Bits2Bool(bits(_:XZValue, _:Int)) => false
 
-    rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int (W -Int End)) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
+    rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int Begin) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
     rule BitsSlice(bits(V:XZValue, _:Int), Begin:Int, End:Int) => bits(V, End -Int Begin)
 
     // 0: posedge, 1: negedge, 2: edge
