@@ -128,7 +128,7 @@ def test_step_run() -> None:
         if filecmp.cmp(input_kore, output_kore, shallow=False):
             print(f'find stuck at {current_depth}, but it might be a correct result')
             kcirct.write_pretty(output_kore, input_kore.parent / f'{kore_name}.{current_depth}.pretty')
-            print(f'pretty file generated!!!!')
+            print('pretty file generated!!!!')
             break
         input_kore = output_kore
 

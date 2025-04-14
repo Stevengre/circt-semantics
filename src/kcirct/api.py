@@ -138,7 +138,7 @@ class KCIRCT:
         if not parser_path.exists():
             self.generate_parser(sort=sort, parser=parser_path)
 
-        expression_file = self.data_dir / f"expression.{sort}.kore"
+        expression_file = self.data_dir / f'expression.{sort}.kore'
         with open(expression_file, 'w') as file:
             file.write(expression)
         result = KCIRCT.run([str(parser_path), str(expression_file)])
@@ -199,7 +199,7 @@ class KCIRCT:
         """Step 2: Initialize the state with the initial state."""
         complied_pattern = KCIRCT.read_kore(compiled_pgm)
         state_initializer = self._init_state_pattern(complied_pattern, top_module, inputs)
-        state_initializer_path = compiled_pgm.parent / f"{compiled_pgm.name}.init.kore"
+        state_initializer_path = compiled_pgm.parent / f'{compiled_pgm.name}.init.kore'
         with open(state_initializer_path, 'w') as file:
             state_initializer.write(file)
         self.krun_fast(input_file=state_initializer_path, output_file=initial_state, depth=1)
@@ -215,14 +215,14 @@ class KCIRCT:
         """Run the CIRCT Semantics pipeline on Kore."""
 
         # write pattern to file
-        current_time = time.strftime("%Y%m%d%H%M%S")
-        input_path = self.data_dir / f"tmp{current_time}.{depth}.source.kore"
+        current_time = time.strftime('%Y%m%d%H%M%S')
+        input_path = self.data_dir / f'tmp{current_time}.{depth}.source.kore'
         input_path.parent.mkdir(parents=True, exist_ok=True)
         with open(input_path, 'w') as file:
             pattern.write(file)
 
         # run krun
-        output_path = self.data_dir / f"tmp{current_time}.{depth}.target.kore"
+        output_path = self.data_dir / f'tmp{current_time}.{depth}.target.kore'
         self.krun_fast(input_file=input_path, output_file=output_path, depth=depth)
 
         return KCIRCT.read_kore(output_path)
@@ -338,7 +338,7 @@ class KCIRCT:
         start_index = state.find("Lbl'-LT-'signals'-GT-'{}")
         end_index = state.find("Lbl'-LT-'history'-GT-'{}")
         if start_index == -1 or end_index == -1:
-            raise ValueError(f"No signals found in {state_file}")
+            raise ValueError(f'No signals found in {state_file}')
         sub_str = state[start_index:end_index]
         pre_idx = 0
         end_idx = 0
@@ -410,7 +410,7 @@ class KCIRCT:
                         mp[(key_value,key_size)] = (value_value,value_size)
                     ports[port_name] = mp 
             else:
-                print("Error: No type found in " + port_name)
+                print('Error: No type found in ' + port_name)
                 sys.exit(1)
         return ports
 
@@ -506,7 +506,7 @@ class KCIRCT:
                 init_pattern.write(file)
 
         # _print_correct_pattern(pgm, output_file)
-        template = """LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
+        template = r"""LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
         temp_file = output_file.parent / (output_file.name + '.prestate')
         with open(pgm, 'r') as file:
             pgm_pattern = file.read()
@@ -524,8 +524,8 @@ class KCIRCT:
             return input_str.replace(match_str, replace_str, 1)
         else:
             raise ValueError(
-                f"Input file: {input_file} does not finished preprocess. \n\
-                        Please check the pretty print of the input file: {input_file.parent / (input_file.name + '.pretty')}"
+                f'Input file: {input_file} does not finished preprocess. \n\
+                        Please check the pretty print of the input file: {input_file.parent / (input_file.name + '.pretty')}'
             )
 
     def _kore_str_replace(self, input_str: str, match_str: str, replace_str: str) -> str:
@@ -534,8 +534,8 @@ class KCIRCT:
             return input_str.replace(match_str, replace_str, 1)
         else:
             raise ValueError(
-                f"Input string does not finished preprocess. \n\
-                        Please check the pretty print of the input string."
+                'Input string does not finished preprocess. \n\
+                        Please check the pretty print of the input string.'
             )
 
     def run_setup_fast(self, input_file: Path, output_file: Path, top_module: str) -> None:
@@ -545,12 +545,12 @@ class KCIRCT:
         phase = "toStimulate" | "build"
         """
 
-        match_cmd = """Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
-        rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SETUP")), dotk{}()))"""
+        match_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
+        rewrite_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SETUP")), dotk{}()))"""
 
-        match_top_module = """Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("")"""
-        rewrite_top_module = """Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("{top_module}")"""
-        rewrite_top_module = rewrite_top_module.replace("{top_module}", top_module)
+        match_top_module = r"""Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("")"""
+        rewrite_top_module = r"""Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("{top_module}")"""
+        rewrite_top_module = rewrite_top_module.replace('{top_module}', top_module)
 
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
         rewritten_pattern = self._kore_replace(input_file, match_cmd, rewrite_cmd)
@@ -613,15 +613,15 @@ class KCIRCT:
         phase = "simulate"
         """
 
-        match_cmd = """Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
-        rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),kseq{}(inj{SortList{}, SortKItem{}}({inputs}),dotk{}())))"""
+        match_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
+        rewrite_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),kseq{}(inj{SortList{}, SortKItem{}}({inputs}),dotk{}())))"""
 
         def _bits(value: int, size: int) -> str:
             #将负数转换为补码
             if value < 0:
                 value = 2**size + value
-            bits_template = """inj{SortBits{}, SortKItem{}}(Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(inj{SortInt{}, SortBitsValue{}}(\dv{SortInt{}}("{value}")),\dv{SortInt{}}("{size}")))"""
-            return bits_template.replace("{value}", str(value)).replace("{size}", str(size))
+            bits_template = r"""inj{SortBits{}, SortKItem{}}(Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(inj{SortInt{}, SortBitsValue{}}(\dv{SortInt{}}("{value}")),\dv{SortInt{}}("{size}")))"""
+            return bits_template.replace('{value}', str(value)).replace('{size}', str(size))
 
         def _list_item(value: str, size: int) -> str:
             content = _bits(value, size)
@@ -632,7 +632,7 @@ class KCIRCT:
             for value, size in inputs:
                 res += _list_item(value, size) + ','
             res = res[:-1]
-            res = "\left-assoc{}(Lbl'Unds'List'Unds'{}(" + res + "))"
+            res = r"\left-assoc{}(Lbl'Unds'List'Unds'{}(" + res + '))'
             return res
 
         rewritten_cmd = rewrite_cmd.replace("{inputs}", _list(inputs))

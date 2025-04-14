@@ -38,7 +38,7 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     kcirct.write_pretty(mlir_file.parent / 'setup.kore', mlir_file.parent / 'setup.pretty')
     # KCIRCT Simulation
     input = inputs[0]
-    vcd = KVCD(vcd_path=mlir_file.parent / f'test.vcd', mlir_path=mlir_file)
+    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
     kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time}.kore', input)
     kcirct.write_pretty(mlir_file.parent / f'simulated.{vcd.time}.kore', mlir_file.parent / f'simulated.{vcd.time}.pretty')

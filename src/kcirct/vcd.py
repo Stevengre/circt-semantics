@@ -4,9 +4,11 @@ import json
 import subprocess
 from dataclasses import dataclass
 from functools import cached_property
-from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import TextIO
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 @dataclass
 class Signal:

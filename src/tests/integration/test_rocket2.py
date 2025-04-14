@@ -3,10 +3,10 @@ from __future__ import annotations
 import filecmp,json
 from pathlib import Path
 import time
-from typing import TYPE_CHECKING, List
+from typing import List
 import shutil
 
-import pytest,subprocess
+import subprocess
 
 from kcirct.api import KCIRCT
 from kcirct.vcd import KVCD
@@ -15,8 +15,6 @@ from tests.resources import (
     DATA_PATH,
 )
 
-if TYPE_CHECKING:
-    from pathlib import Path
 
 ROCKET_SMALL_MLIR_FILE_V14 = DATA_PATH / 'rocket-small' / 'rocket-small-1.4-drop.mlir'
 ROCKET_SMALL_MLIR_FILE_V16 = DATA_PATH / 'rocket-small' / 'rocket-small-1.6-drop.mlir'
@@ -47,11 +45,11 @@ def test_diffvcd(now: Path | None = None) -> None:
     
     # 检查返回值是否为0
     if result.returncode == 0:
-        print("diffvcd 成功，返回值为0")
+        print('diffvcd 成功，返回值为0')
     else:
-        print(f"diffvcd 失败，返回值为 {result.returncode}")
-        print(f"标准输出: {result.stdout}")
-        print(f"标准错误: {result.stderr}")
+        print(f'diffvcd 失败，返回值为 {result.returncode}')
+        print(f'标准输出: {result.stdout}')
+        print(f'标准错误: {result.stderr}')
 
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     kcirct = KCIRCT()
@@ -80,7 +78,7 @@ def test_evaluate_depth(mlir_file: Path, top_module: str) -> None:
         if filecmp.cmp(input_kore, output_kore, shallow=False):
             print(f'find stuck at {current_depth}, but it might be a correct result')
             kcirct.write_pretty(output_kore, input_kore.parent / f'{kore_name}.{current_depth}.pretty')
-            print(f'pretty file generated!!!!')
+            print('pretty file generated!!!!')
             break
         input_kore = output_kore
 
@@ -91,11 +89,10 @@ def test_from_setup1(mlir_file: Path, top_module: str, inputs) -> None:
 
     kcirct.ensure_env()
     # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / f'test.vcd', mlir_path=mlir_file)
+    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
     circle_num = 0
     tot_time = 0
-    index = 0
     run_time = 0
     
     shutil.copy(mlir_file.parent / 'setup1.simulated.begin.kore', mlir_file.parent / f'setup1.simulated.{0}.kore')
@@ -135,11 +132,10 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs) -> None:
     kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
   
     # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / f'test.vcd', mlir_path=mlir_file)
+    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
     circle_num = 0
     tot_time = 0
-    index = 0
     if len(inputs) == 0:
         input = None
         start_time = time.time()
@@ -187,11 +183,10 @@ def test_from_main(mlir_file: Path, top_module: str, inputs) -> None:
     kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
   
     # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / f'test.vcd', mlir_path=mlir_file)
+    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
     circle_num = 0
     tot_time = 0
-    index = 0
     if len(inputs) == 0:
         input = None
         start_time = time.time()

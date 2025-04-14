@@ -1,31 +1,24 @@
 from __future__ import annotations
 
-from pathlib import Path
 import time
-from typing import TYPE_CHECKING, List
+from typing import List
 
 import pytest,subprocess
-
+from pathlib import Path
 from kcirct.api import KCIRCT
 from kcirct.vcd import KVCD
 
 from ..resources.operation import (
-    DATA_PATH,
-    COMB_DIRS,
     COMB_MLIR_GNERIC_FILES,
     COMB_EXPECTED_TOP_MODULES,
     COMB_INPUTS,
     COMB_TEST_IDS,
     DIRS,
-    TEST_IDS,
-    MLIR_FILES,
     MLIR_GNERIC_FILES,
     EXPECTED_TOP_MODULES,
     INPUTS,
 )
 
-if TYPE_CHECKING:
-    from pathlib import Path
 
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs',
@@ -45,7 +38,7 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     # KCIRCT Hardware Setup & Initialization
     kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
     # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / f'test.vcd', mlir_path=mlir_file)
+    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
     
     if len(inputs) == 0:
@@ -133,11 +126,11 @@ def test_diffvcd(now: Path | None = None) -> None:
     
     # 检查返回值是否为0
     if result.returncode == 0:
-        print("diffvcd 成功，返回值为0")
+        print('diffvcd 成功，返回值为0')
     else:
-        print(f"diffvcd 失败，返回值为 {result.returncode}")
-        print(f"标准输出: {result.stdout}")
-        print(f"标准错误: {result.stderr}")
+        print(f'diffvcd 失败，返回值为 {result.returncode}')
+        print(f'标准输出: {result.stdout}')
+        print(f'标准错误: {result.stderr}')
 
 if __name__ == '__main__':
     nowtest = 'comb'
