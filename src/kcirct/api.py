@@ -7,6 +7,7 @@ It does not include:
 from __future__ import annotations
 
 import subprocess
+import resource
 import sys
 import time
 import re
@@ -35,9 +36,10 @@ PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 
 sys.setrecursionlimit(2**31 - 1)
+sys.set_int_max_str_digits(10000)
 
-# soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-# resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
+soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
 
 
 class KCIRCT:
@@ -371,6 +373,12 @@ class KCIRCT:
                     ports[port_name] = (port_value, port_size)
                 elif type == 'Map':
                     mp : dict[tuple[int, int], tuple[int, int]] = {}
+                    map_select = sub_str[:70]
+
+                    if map_select.find("'Lbl'Stop'Map{}())'") == -1:
+                        # empty map
+                        ports[port_name] = mp 
+                        continue
                     map_end_idx = sub_str.find('"))))))))')
                     map_str = sub_str[:map_end_idx+1]
                     sub_str = sub_str[map_end_idx+1:]
@@ -609,6 +617,9 @@ class KCIRCT:
         rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),kseq{}(inj{SortList{}, SortKItem{}}({inputs}),dotk{}())))"""
 
         def _bits(value: int, size: int) -> str:
+            #将负数转换为补码
+            if value < 0:
+                value = 2**size + value
             bits_template = """inj{SortBits{}, SortKItem{}}(Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(inj{SortInt{}, SortBitsValue{}}(\dv{SortInt{}}("{value}")),\dv{SortInt{}}("{size}")))"""
             return bits_template.replace("{value}", str(value)).replace("{size}", str(size))
 

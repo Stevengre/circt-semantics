@@ -37,24 +37,13 @@
       .List
     </procedures>
     <signals>
-      "Foo/%arg0" |-> bits ( 0 , 2 )
-      "Foo/%arg1" |-> bits ( 155 , 8 )
+      .Map
     </signals>
     <history>
       .Map
     </history>
     <currents>
-      <current-info>
-        <current-id>
-          0
-        </current-id>
-        <current>
-          ListItem ( bits ( -16776958 , 32 ) ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%0" ) ~> ListItem ( "Foo/%arg0" ) ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%0" )
-          ListItem ( "Foo/%arg0" ) ~> "hw.array_get" ( ListItem ( "Foo/%0" )
-          ListItem ( "Foo/%arg0" ) ) { "sv.namehint" |-> "add1" } : ( !hw.array < 4x i8 > , i2 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%1" ) ~> ListItem ( "Foo/%0" )
-          ListItem ( "Foo/%2" ) ~> .K
-        </current>
-      </current-info>
+      .CurrentInfoCellMap
     </currents>
     <clock>
       0
@@ -62,7 +51,8 @@
   </hardware>
   <circt>
     <cmd>
-      .K
+      "CIRCT#SIMULATE" ~> ListItem ( bits ( 0 , 2 ) )
+      ListItem ( bits ( 155 , 8 ) ) ~> .K
     </cmd>
     <top-module>
       "Foo"

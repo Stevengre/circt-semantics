@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Foo",
+    "numStateBytes": 48,
+    "states": [
+      {
+        "name": "a",
+        "offset": 0,
+        "numBits": 2,
+        "type": "input"
+      },
+      {
+        "name": "b",
+        "offset": 8,
+        "numBits": 64,
+        "type": "input"
+      },
+      {
+        "name": "res",
+        "offset": 16,
+        "numBits": 64,
+        "type": "output"
+      },
+      {
+        "name": "a",
+        "offset": 24,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "b",
+        "offset": 32,
+        "numBits": 64,
+        "type": "wire"
+      },
+      {
+        "name": "res",
+        "offset": 40,
+        "numBits": 64,
+        "type": "wire"
+      }
+    ]
+  }
+]

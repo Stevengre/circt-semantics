@@ -5,6 +5,6 @@ module Foo(	// hw/array_get/array_get.generic.mlir:3:3
   output [7:0] res	// hw/array_get/array_get.mlir:1:42
 );
 
-  assign res = b - a;	// hw/array_get/array_get.generic.mlir:10:10, :11:5
+  assign res = a - b;	// hw/array_get/array_get.generic.mlir:10:10, :11:5
 endmodule
 

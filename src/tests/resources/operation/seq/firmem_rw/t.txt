@@ -78,23 +78,10 @@
       ListItem ( "Foo/%enable_w" )
       ListItem ( "Foo/%data_in_w" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , .Types ) -> ( .Types ) )
     </procedures>
+    <register>
+      "Foo/%mem" |-> 1 , 0 , 0 , 1 , .AttributeValueList
+    </register>
     <signals>
-      "Foo/%addr_r" |-> bits ( 0 , 2 )
-      "Foo/%addr_rw" |-> bits ( 1 , 2 )
-      "Foo/%addr_w" |-> bits ( 0 , 2 )
-      "Foo/%clk" |-> bits ( 1 , 1 )
-      "Foo/%data_in_rw" |-> bits ( 0 , 8 )
-      "Foo/%data_in_w" |-> bits ( 0 , 8 )
-      "Foo/%enable_r" |-> bits ( 1 , 1 )
-      "Foo/%enable_rw" |-> bits ( 1 , 1 )
-      "Foo/%enable_w" |-> bits ( 0 , 1 )
-      "Foo/%mem" |-> ( bits ( 1 , 2 ) |-> bits ( 84 , 8 )
-      bits ( 2 , 2 ) |-> bits ( 249 , 8 ) )
-      "Foo/%mode" |-> bits ( 0 , 1 )
-      "Foo/%readmode" |-> bits ( 0 , 1 )
-      "Foo/%writemode" |-> bits ( 1 , 1 )
-    </signals>
-    <history>
       "Foo/%addr_r" |-> bits ( 0 , 2 )
       "Foo/%addr_rw" |-> bits ( 0 , 2 )
       "Foo/%addr_w" |-> bits ( 0 , 2 )
@@ -104,39 +91,38 @@
       "Foo/%enable_r" |-> bits ( 0 , 1 )
       "Foo/%enable_rw" |-> bits ( 0 , 1 )
       "Foo/%enable_w" |-> bits ( 0 , 1 )
-      "Foo/%mem" |-> ( bits ( 1 , 2 ) |-> bits ( 84 , 8 )
-      bits ( 2 , 2 ) |-> bits ( 249 , 8 ) )
+      "Foo/%mem" |-> ( bits ( 0 , 2 ) |-> bits ( 111 , 8 )
+      bits ( 1 , 2 ) |-> bits ( 246 , 8 )
+      bits ( 2 , 2 ) |-> bits ( 212 , 8 )
+      bits ( 3 , 2 ) |-> bits ( 189 , 8 ) )
       "Foo/%mode" |-> bits ( 0 , 1 )
+      "Foo/%read_data" |-> bits ( 0 , 8 )
+      "Foo/%read_write_data" |-> bits ( 0 , 8 )
+      "Foo/%readmode" |-> bits ( 0 , 1 )
+      "Foo/%writemode" |-> bits ( 1 , 1 )
+    </signals>
+    <history>
+      "Foo/%addr_r" |-> bits ( 0 , 2 )
+      "Foo/%addr_rw" |-> bits ( 2 , 2 )
+      "Foo/%addr_w" |-> bits ( 1 , 2 )
+      "Foo/%clk" |-> bits ( 1 , 1 )
+      "Foo/%data_in_rw" |-> bits ( 212 , 8 )
+      "Foo/%data_in_w" |-> bits ( 246 , 8 )
+      "Foo/%enable_r" |-> bits ( 0 , 1 )
+      "Foo/%enable_rw" |-> bits ( 1 , 1 )
+      "Foo/%enable_w" |-> bits ( 1 , 1 )
+      "Foo/%mem" |-> ( bits ( 0 , 2 ) |-> bits ( 111 , 8 )
+      bits ( 1 , 2 ) |-> bits ( 246 , 8 )
+      bits ( 2 , 2 ) |-> bits ( 212 , 8 )
+      bits ( 3 , 2 ) |-> bits ( 189 , 8 ) )
+      "Foo/%mode" |-> bits ( 1 , 1 )
       "Foo/%read_data" |-> bits ( 0 , 8 )
       "Foo/%read_write_data" |-> bits ( 0 , 8 )
       "Foo/%readmode" |-> bits ( 0 , 1 )
       "Foo/%writemode" |-> bits ( 1 , 1 )
     </history>
     <currents>
-      <current-info>
-        <current-id>
-          12
-        </current-id>
-        <current>
-          ListItem ( bits ( 84 , 8 ) ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%read_write_data" ) ~> ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%read_data" ) ~> .K
-        </current>
-      </current-info> <current-info>
-        <current-id>
-          13
-        </current-id>
-        <current>
-          .List ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%addr_w" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable_w" )
-          ListItem ( "Foo/%data_in_w" ) ~> "seq.firmem.write_port" ( ListItem ( "Foo/%mem" )
-          ListItem ( "Foo/%addr_w" )
-          ListItem ( "Foo/%clk" )
-          ListItem ( "Foo/%enable_w" )
-          ListItem ( "Foo/%data_in_w" ) ) { "operandSegmentSizes" |-> array < i32 : 1 , 1 , 1 , 1 , 1 , 0 , .AttributeValueList > } : ( !seq.firmem < 4 x 8 > , i2 , !seq.clock , i1 , i8 , .Types ) -> ( .Types ) ~> .K
-        </current>
-      </current-info>
+      .CurrentInfoCellMap
     </currents>
     <clock>
       0
@@ -144,7 +130,16 @@
   </hardware>
   <circt>
     <cmd>
-      .K
+      "CIRCT#SIMULATE" ~> ListItem ( bits ( 1 , 1 ) )
+      ListItem ( bits ( 0 , 8 ) )
+      ListItem ( bits ( 0 , 8 ) )
+      ListItem ( bits ( 3 , 2 ) )
+      ListItem ( bits ( 0 , 2 ) )
+      ListItem ( bits ( 0 , 2 ) )
+      ListItem ( bits ( 0 , 1 ) )
+      ListItem ( bits ( 1 , 1 ) )
+      ListItem ( bits ( 0 , 1 ) )
+      ListItem ( bits ( 1 , 1 ) ) ~> .K
     </cmd>
     <top-module>
       "Foo"

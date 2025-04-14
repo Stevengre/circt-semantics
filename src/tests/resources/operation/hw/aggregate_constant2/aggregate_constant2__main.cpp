@@ -61,7 +61,7 @@ int main(int argc, char** argv, char**) {
     auto seconds = std::chrono::duration_cast<std::chrono::duration<double>>(
                          duration)
                          .count();
-    std::cout<<seconds/inputs.size()<<std::endl;
+    std::cout<<seconds/1<<std::endl;
     
     // Final model cleanup
     topp->final();

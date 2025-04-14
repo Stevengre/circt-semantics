@@ -1,7 +1,7 @@
 [
   {
     "name": "Foo",
-    "numStateBytes": 6,
+    "numStateBytes": 14,
     "states": [
       {
         "name": "a",
@@ -22,20 +22,68 @@
         "type": "output"
       },
       {
-        "name": "a",
+        "name": "res1",
         "offset": 3,
+        "numBits": 1,
+        "type": "output"
+      },
+      {
+        "name": "res6",
+        "offset": 4,
+        "numBits": 1,
+        "type": "output"
+      },
+      {
+        "name": "res8",
+        "offset": 5,
+        "numBits": 1,
+        "type": "output"
+      },
+      {
+        "name": "res9",
+        "offset": 6,
+        "numBits": 1,
+        "type": "output"
+      },
+      {
+        "name": "a",
+        "offset": 7,
         "numBits": 8,
         "type": "wire"
       },
       {
         "name": "b",
-        "offset": 4,
+        "offset": 8,
         "numBits": 8,
         "type": "wire"
       },
       {
         "name": "res",
-        "offset": 5,
+        "offset": 9,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "res1",
+        "offset": 10,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "res6",
+        "offset": 11,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "res8",
+        "offset": 12,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "res9",
+        "offset": 13,
         "numBits": 1,
         "type": "wire"
       }

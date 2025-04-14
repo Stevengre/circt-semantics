@@ -1,0 +1,164 @@
+[
+  {
+    "name": "Foo",
+    "numStateBytes": 46,
+    "states": [
+      {
+        "name": "a",
+        "offset": 0,
+        "numBits": 32,
+        "type": "input"
+      },
+      {
+        "name": "b7",
+        "offset": 4,
+        "numBits": 4,
+        "type": "output"
+      },
+      {
+        "name": "b8",
+        "offset": 8,
+        "numBits": 32,
+        "type": "output"
+      },
+      {
+        "name": "b9",
+        "offset": 12,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "b10",
+        "offset": 13,
+        "numBits": 3,
+        "type": "output"
+      },
+      {
+        "name": "b11",
+        "offset": 14,
+        "numBits": 2,
+        "type": "output"
+      },
+      {
+        "name": "b12",
+        "offset": 15,
+        "numBits": 1,
+        "type": "output"
+      },
+      {
+        "name": "b13",
+        "offset": 16,
+        "numBits": 4,
+        "type": "output"
+      },
+      {
+        "name": "b14",
+        "offset": 17,
+        "numBits": 3,
+        "type": "output"
+      },
+      {
+        "name": "b15",
+        "offset": 18,
+        "numBits": 4,
+        "type": "output"
+      },
+      {
+        "name": "b16",
+        "offset": 19,
+        "numBits": 4,
+        "type": "output"
+      },
+      {
+        "name": "b17",
+        "offset": 20,
+        "numBits": 4,
+        "type": "output"
+      },
+      {
+        "name": "b18",
+        "offset": 21,
+        "numBits": 1,
+        "type": "output"
+      },
+      {
+        "name": "a",
+        "offset": 24,
+        "numBits": 32,
+        "type": "wire"
+      },
+      {
+        "name": "b7",
+        "offset": 28,
+        "numBits": 4,
+        "type": "wire"
+      },
+      {
+        "name": "b8",
+        "offset": 32,
+        "numBits": 32,
+        "type": "wire"
+      },
+      {
+        "name": "b9",
+        "offset": 36,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "b10",
+        "offset": 37,
+        "numBits": 3,
+        "type": "wire"
+      },
+      {
+        "name": "b11",
+        "offset": 38,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "b12",
+        "offset": 39,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "b13",
+        "offset": 40,
+        "numBits": 4,
+        "type": "wire"
+      },
+      {
+        "name": "b14",
+        "offset": 41,
+        "numBits": 3,
+        "type": "wire"
+      },
+      {
+        "name": "b15",
+        "offset": 42,
+        "numBits": 4,
+        "type": "wire"
+      },
+      {
+        "name": "b16",
+        "offset": 43,
+        "numBits": 4,
+        "type": "wire"
+      },
+      {
+        "name": "b17",
+        "offset": 44,
+        "numBits": 4,
+        "type": "wire"
+      },
+      {
+        "name": "b18",
+        "offset": 45,
+        "numBits": 1,
+        "type": "wire"
+      }
+    ]
+  }
+]

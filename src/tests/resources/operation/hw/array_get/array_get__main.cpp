@@ -43,7 +43,7 @@ int main(int argc, char** argv, char**) {
 
     getInput();
 
-      std::chrono::high_resolution_clock::duration duration =
+        std::chrono::high_resolution_clock::duration duration =
       std::chrono::high_resolution_clock::duration::zero();
 
     while (!Verilated::gotFinish() && main_time < inputs.size()) {
@@ -61,7 +61,8 @@ int main(int argc, char** argv, char**) {
     auto seconds = std::chrono::duration_cast<std::chrono::duration<double>>(
                          duration)
                          .count();
-    std::cout<<seconds/inputs.size()<<std::endl;   
+    std::cout<<seconds/inputs.size()<<std::endl;
+    
     // Final model cleanup
     topp->final();
     VL_DO_DANGLING(delete topp, topp);

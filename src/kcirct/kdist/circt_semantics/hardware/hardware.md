@@ -2,9 +2,17 @@
 
 ```k
 requires "hardware-config.md"
+requires "hardware-helper.md"
 requires "bits.md"
+requires "../mlir/builtin.md"
+requires "../circt/circt.md"
 module HARDWARE
 imports HARDWARE-CONFIG
+imports HARDWARE-HELPER
+imports BUILTIN-SYNTAX
+imports CIRCT
+imports BUILTIN
+imports INT
 imports BITS
 imports STRING
 ```
@@ -14,11 +22,30 @@ imports STRING
 ```k
 rule
 <setup> 
+   "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem( "seq.firreg" ( L:List ) { Config:Map } : (T1:Types) -> (T:IntegerType) ) L1:List
+=> "HARDWARE#CONNECT" ~> L0 ~> L1
+...
+</setup>
+<connection> M => M [Out <- "seq.firreg" ( L ) { Config } : (T1) -> (T)] </connection>
+<register> REG => REG [Out <- (0, getWidth(T), 0, 0)] </register>
+
+rule
+<setup> 
+   "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem( "seq.firmem" ( L:List ) { Config:Map } : Ft:StdFT ) L1:List
+=> "HARDWARE#CONNECT" ~> L0 ~> L1
+...
+</setup>
+<connection> M => M [Out <- "seq.firmem" ( L ) { Config } : Ft] </connection>
+<register> REG => REG [Out <- (1, 0, ToInt({Config["readLatency"] orDefault 0}:>AttributeValue), ToInt({Config["writeLatency"] orDefault 0}:>AttributeValue))] </register>
+
+rule
+<setup> 
    "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem(In) L1:List
 => "HARDWARE#CONNECT" ~> L0 ~> L1
 ...
 </setup>
 <connection> M => M [Out <- In] </connection>
+[owise]
 
 rule
 <setup> "HARDWARE#CONNECT" ~> .List ~> .List => .K ... </setup>
@@ -53,6 +80,29 @@ rule
 ... 
 </current>
 <signals> ... Port |-> Signal:Bits ... </signals>
+<register> Register:Map </register>
+requires notBool (Port in_keys(Register))
+
+rule
+<current> 
+   READ:List ~> "HARDWARE#READ_DIRECT" ~> ListItem(Port:String) L:List 
+=> READ ListItem(H[Port] orDefault bits(0, T)) ~> "HARDWARE#READ_DIRECT" ~> L
+... 
+</current>
+<history> H:Map </history>
+<register> ... Port |-> (RegType:Int, T:Int, RL:Int, _:Int) ... </register>
+requires RegType ==Int 0
+
+rule
+<current> 
+   READ:List ~> "HARDWARE#READ_DIRECT" ~> ListItem(Port:String) L:List 
+=> READ ListItem(H[Port] orDefault .Map) ~> "HARDWARE#READ_DIRECT" ~> L
+... 
+</current>
+<history> H:Map </history>
+<register> ... Port |-> (RegType:Int, T:Int, RL:Int, _:Int) ... </register>
+requires RegType ==Int 1
+
 ```
 
 ## Read with Last Values
@@ -97,9 +147,11 @@ rule
     <current> Op </current>
    </current-info>
 )
+[priority(195)]
 
 rule
 <current> "HARDWARE#NEW_CURRENT" ~> .List => .K ... </current>
+[priority(195)]
 ```
 
 ## Join Currents

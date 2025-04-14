@@ -59,7 +59,8 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     else:
         input = inputs[0]
         start_time = time.time()
-        kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input)
+        kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore',
+                                  mlir_file.parent / f'simulated.{vcd.time&1}.kore', input)
         end_time = time.time()
         tot_time = end_time - start_time
         vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
@@ -67,23 +68,29 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
             vcd.time += 1
             start_time = time.time()
             kcirct.run_simulate_fast(
-                mlir_file.parent / f'simulated.{(vcd.time-1)&1}.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input
+                mlir_file.parent / f'simulated.{(vcd.time-1)&1}.kore', 
+                mlir_file.parent / f'simulated.{vcd.time&1}.kore', input
             )
             end_time = time.time()
             tot_time += end_time - start_time
             print(str(vcd.time)+str(mlir_file))
+            # if vcd.time %2 == 1:
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+            # if vcd.time ==11:
+                # return
         print('runtime:'+str((end_time-start_time)/len(inputs)))
 
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     kcirct = KCIRCT()
-    kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
+    file_name = 'simulated.0.kore.prestate'
+    pretty_name = file_name + '.pretty'
+    kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / pretty_name)
 
 def test_pretty() -> None:
-    nowtest = 'hw'
+    nowtest = 'seq'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'aggregate_constant2':
+        if dir.name == 'firmem_rwl':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
@@ -104,17 +111,17 @@ def test_learn() -> None:
                                 INPUTS[nowtest][i])
 
 def test_entry()->None:
-    nowtest = 'hw'
+    nowtest = 'comb'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'aggregate_constant2':
+        if dir.name == 'mux':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])
 
 
 def test_diffvcd(now: Path | None = None) -> None:
     test_path = Path('/home/zjh/proj/cym-circt-semantics/src/tests/resources/operation/')
-    now = 'hw/aggregate_constant2'
+    now = 'seq/firmem_rwl'
     test_path = test_path / now
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
@@ -133,9 +140,9 @@ def test_diffvcd(now: Path | None = None) -> None:
         print(f"标准错误: {result.stderr}")
 
 if __name__ == '__main__':
-    nowtest = 'hw'
+    nowtest = 'comb'
     for i,dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'aggregate_constant2':
+        if dir.name == 'extract2':
             test_evaluate_demo(MLIR_GNERIC_FILES[nowtest][i],EXPECTED_TOP_MODULES[nowtest][i],
                                 INPUTS[nowtest][i])

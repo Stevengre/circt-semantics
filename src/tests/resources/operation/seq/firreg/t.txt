@@ -41,10 +41,8 @@
       .List
     </procedures>
     <signals>
-      "Foo/%c0" |-> bits ( 0 , 8 )
       "Foo/%c1" |-> bits ( 1 , 8 )
       "Foo/%clk" |-> bits ( 1 , 1 )
-      "Foo/%next" |-> bits ( 1 , 8 )
       "Foo/%reg_port" |-> bits ( 0 , 8 )
       "Foo/%reset" |-> bits ( 0 , 1 )
     </signals>
@@ -59,19 +57,29 @@
     <currents>
       <current-info>
         <current-id>
-          10
+          4990
         </current-id>
         <current>
-          ListItem ( bits ( 1 , 8 ) )
-          ListItem ( bits ( 1 , 1 ) )
-          ListItem ( bits ( 0 , 1 ) )
-          ListItem ( bits ( 0 , 8 ) ) ~> "seq.firreg" ( ListItem ( "Foo/%next" )
+          "HARDWARE#NEW_CURRENT" ~> ListItem ( ListItem ( "Foo/%reg_port" ) )
+          ListItem ( ListItem ( "Foo/%c0" ) ) ~> .K
+        </current>
+      </current-info> <current-info>
+        <current-id>
+          4992
+        </current-id>
+        <current>
+          "comb.add" ( ListItem ( "Foo/%reg_port" )
+          ListItem ( "Foo/%c1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%next" ) ~> ListItem ( "Foo/%clk" )
+          ListItem ( "Foo/%reset" )
+          ListItem ( "Foo/%c0" ) ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%next" )
+          ListItem ( "Foo/%clk" )
+          ListItem ( "Foo/%reset" )
+          ListItem ( "Foo/%c0" ) ~> "seq.firreg" ( ListItem ( "Foo/%next" )
           ListItem ( "Foo/%clk" )
           ListItem ( "Foo/%reset" )
           ListItem ( "Foo/%c0" ) ) { "name" |-> "counter" } : ( i8 , !seq.clock , i1 , i8 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%reg_port" ) ~> ListItem ( "Foo/%c1" ) ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%reg_port" )
           ListItem ( "Foo/%c1" ) ~> "comb.add" ( ListItem ( "Foo/%reg_port" )
-          ListItem ( "Foo/%c1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%next" ) ~> ListItem ( "Foo/%c1" )
-          ListItem ( "Foo/%reg_port" ) ~> .K
+          ListItem ( "Foo/%c1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%next" ) ~> .List ~> .K
         </current>
       </current-info>
     </currents>

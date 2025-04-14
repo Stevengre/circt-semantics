@@ -11,6 +11,7 @@
                 "extract",
                 "icmp",
                 "mods",
+                "mux",
                 "modu",
                 "mul",
                 "or",
@@ -20,7 +21,8 @@
                 "shru",
                 "sub",
                 "truth_table",
-                "xor"
+                "xor",
+                "shl"
             ]
         },
         {
@@ -28,6 +30,7 @@
             "operation": [
                 "aggregate_constant",
                 "aggregate_constant2",
+                "aggregate_constant3",
                 "array_concat",
                 "array_get",
                 "bitcast",

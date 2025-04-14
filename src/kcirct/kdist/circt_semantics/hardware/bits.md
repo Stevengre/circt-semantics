@@ -49,6 +49,7 @@ module BITS-SYNTAX
                   | BitsSlice(Bits, Int, Int) [function]
                   | BitsAbs(Bits)            [function]
                   | "~Bits" Bits             [function]
+                  | "!Bits" Bits            [function]
 
     syntax List ::= Bits2BitList(Bits) [function]
 
@@ -59,6 +60,8 @@ module BITS-SYNTAX
     syntax Bool ::= checkEdge(Int, Bits, Bits) [function]
 
     syntax Bool ::= isPos(Int, Int) [function]
+
+    syntax Int ::= getBitsWidth(Bits) [function]
 
 endmodule
 ```
@@ -110,7 +113,7 @@ module BITS
     rule BitsXor(ListItem(B:Bits) L:List) => B ^Bits BitsXor(L)
     rule BitsXor(.List) => bits(0, 0)
     
-    rule bits(X1:Int, W1:Int)   ^Bits bits(X2:Int, W2:Int)  => bits(X1 xorInt X2, maxInt(W1, W2))
+    rule bits(X1:Int, W1:Int) ^Bits bits(X2:Int, W2:Int)  => bits(X1 xorInt X2, maxInt(W1, W2))
     rule bits(_, W1) ^Bits bits(_, W2) => bits(0, maxInt(W1, W2))
     [owise]
     // rule bits(#x, W1) ^Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
@@ -123,7 +126,7 @@ module BITS
 
     rule BitsCast(bits(X:Int, W:Int)) => bits(X &Int (2 ^Int W -Int 1), W) 
     requires X >=Int 0 andBool W >=Int 0
-    rule BitsCast(bits(X:Int, W:Int)) => BitsCast(bits(2 ^Int W +Int X, W)) [owise]
+    rule BitsCast(bits(X:Int, W:Int)) => BitsCast(bits(2 ^Int W -Int ((0 -Int X) &Int ((2 ^Int W) -Int 1)), W)) [owise]
     rule BitsCast(bits(X:XZValue, W:Int)) => bits(X, W)
 
     rule BitsCast(bits(X:Int, _W:Int), W1:Int) => BitsCast(bits(X, W1))
@@ -150,7 +153,10 @@ module BITS
     rule BitsDivs(ListItem(B1:Bits) ListItem(B2:Bits)) => B1 /sBits B2
     // TODO: check the undefined behavior of divInt when X2 is 0 for symbolic execution
     rule bits(X1:Int, W1:Int) /sBits bits(0, _W2:Int) => bits(0, W1)
-    rule bits(X1:Int, W1:Int) /sBits bits(X2:Int, _W2:Int) => BitsCast(bits(X1 /Int X2, W1)) requires X2 =/=Int 0
+    rule bits(X1:Int, W1:Int) /sBits bits(X2:Int, W2:Int) => BitsCast(bits(X1 /Int X2, W1)) requires (isPos(X1, W1)) andBool (isPos(X2, W2))
+    rule bits(X1:Int, W1:Int) /sBits bits(X2:Int, W2:Int) => ~Bits ((~Bits bits(X1, W1)) /uBits bits(X2, W2)) requires (notBool isPos(X1, W1)) andBool (isPos(X2, W2))
+    rule bits(X1:Int, W1:Int) /sBits bits(X2:Int, W2:Int) => ~Bits (bits(X1, W1) /uBits (~Bits bits(X2, W2))) requires (isPos(X1, W1)) andBool (notBool isPos(X2, W2))
+    rule bits(X1:Int, W1:Int) /sBits bits(X2:Int, W2:Int) => (~Bits bits(X1, W1)) /uBits (~Bits bits(X2, W2)) requires (notBool isPos(X1, W1)) andBool (notBool isPos(X2, W2))    
     rule bits(_:XZValue, W1:Int) /sBits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) /sBits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
@@ -179,7 +185,8 @@ module BITS
     [owise]
 
     rule BitsShl(ListItem(B1:Bits) ListItem(B2:Bits))  => B1 <<Bits B2
-    rule bits(X1:Int, W1:Int) <<Bits bits(X2:Int, _W2:Int) => BitsCast(bits(X1 <<Int X2, W1))
+    rule bits(X1:Int, W1:Int) <<Bits bits(X2:Int, W2:Int) => BitsCast(bits(X1 <<Int X2, W1)) requires isPos(X2, W2)
+    rule bits(X1:Int, W1:Int) <<Bits bits(X2:Int, W2:Int) => BitsCast(bits(X1 <<Int (X2 +Int (2 ^Int W2)), W1)) requires (notBool isPos(X2, W2))
     rule bits(_:XZValue, W1:Int) <<Bits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) <<Bits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
@@ -265,5 +272,12 @@ module BITS
     // bits complementation
     rule ~Bits bits(X:Int, W:Int) => BitsCast(bits(((2 ^Int W -Int 1) xorInt X) +Int 1, W),W)
     rule ~Bits bits(_:XZValue, W:Int) => bits(#x, W)
+
+    // bits not
+    rule !Bits bits(X:Int, W:Int) => BitsCast(bits(X xorInt (2 ^Int W -Int 1), W), W)
+    rule !Bits bits(_:XZValue, W:Int) => bits(#x, W)
+
+    rule getBitsWidth(bits(X:Int, W:Int)) => W
+    rule getBitsWidth(bits(_, _)) => 0
 endmodule
 ```

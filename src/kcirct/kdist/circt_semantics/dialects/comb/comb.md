@@ -47,14 +47,14 @@ rule
 
 ```k
 rule
-<current> "comb.mul" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsMul(ListItem(B) L)) ... </current>
+<current> "comb.mul" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsMul(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.extract
 
 ```k
 rule
-<current> "comb.extract" ( ListItem(bits(B1:Int, _W1:Int)) ) {_:Map} : (_:Types) -> (T:IntegerType) => ListItem(BitsCast(bits(B1, getWidth(T)))) ... </current>
+<current> "comb.extract" ( ListItem(bits(B1:Int, _W1:Int)) ) {"lowBit" |-> Lowbit:Int : _:IntegerType _:Map} : (_:Types) -> (T:IntegerType) => ListItem(BitsCast(bits(B1 >>Int Lowbit, getWidth(T)))) ... </current>
 ```
 
 ## comb.replicate
@@ -103,28 +103,28 @@ rule
 
 ```k
 rule
-<current> "comb.divs" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsDivs(ListItem(B) L)) ... </current>
+<current> "comb.divs" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsDivs(ListItem(B) L)) ... </current>
 ```
 
 ## comb.divu
 
 ```k
 rule
-<current> "comb.divu" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsDivu(ListItem(B) L)) ... </current>
+<current> "comb.divu" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsDivu(ListItem(B) L)) ... </current>
 ```
 
 ## comb.mods
 
 ```k
 rule
-<current> "comb.mods" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsMods(ListItem(B) L)) ... </current>
+<current> "comb.mods" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsMods(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.modu
 
 ```k
 rule
-<current> "comb.modu" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsModu(ListItem(B) L)) ... </current>
+<current> "comb.modu" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsModu(ListItem(B) L)) ... </current>
 ```
 
 ## comb.parity
@@ -138,7 +138,7 @@ rule
 
 ```k
 rule
-<current> "comb.mux" ( ListItem(B1:Bits) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} : _ => #if notBool Bits2Bool(B1) #then B2 #else B3 #fi
+<current> "comb.mux" ( ListItem(B1:Bits) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) => #if Bits2Bool(B1) #then ListItem(BitsCast(B2, getWidth(T))) #else ListItem(BitsCast(B3, getWidth(T))) #fi
 ... </current>
 ```
 

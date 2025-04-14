@@ -1,7 +1,7 @@
 "builtin.module"() ({
   "hw.module"() ({
     ^bb0(%clk: !seq.clock, %data_in_w: i8, %data_in_rw : i8, %addr_r : i2, %addr_w : i2, %addr_rw : i2, %mode : i1, %enable_r : i1,%enable_w : i1, %enable_rw : i1):
-      %mem = "seq.firmem"() {name = "memory", depth = 4 : i64, width = 8 : i64, readLatency = 0 : i32, writeLatency = 1 : i32,ruw = 0 : i32, wuw = 1 : i32} : () -> !seq.firmem<4 x 8>
+      %mem = "seq.firmem"() {name = "memory", depth = 4 : i64, width = 8 : i64, readLatency = 3 : i32, writeLatency = 1 : i32,ruw = 0 : i32, wuw = 1 : i32} : () -> !seq.firmem<4 x 8>
 
       %writemode = "hw.constant"() {value = 1 : i1} : () -> i1
       %readmode = "hw.constant"() {value = 0 : i1} : () -> i1

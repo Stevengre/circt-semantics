@@ -1,0 +1,176 @@
+[
+  {
+    "name": "Foo",
+    "numStateBytes": 39,
+    "states": [
+      {
+        "name": "clk",
+        "offset": 0,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "data_in_w",
+        "offset": 1,
+        "numBits": 8,
+        "type": "input"
+      },
+      {
+        "name": "data_in_rw",
+        "offset": 2,
+        "numBits": 8,
+        "type": "input"
+      },
+      {
+        "name": "addr_r",
+        "offset": 3,
+        "numBits": 2,
+        "type": "input"
+      },
+      {
+        "name": "addr_w",
+        "offset": 4,
+        "numBits": 2,
+        "type": "input"
+      },
+      {
+        "name": "addr_rw",
+        "offset": 5,
+        "numBits": 2,
+        "type": "input"
+      },
+      {
+        "name": "mode",
+        "offset": 6,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "enable_r",
+        "offset": 7,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "enable_w",
+        "offset": 8,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "enable_rw",
+        "offset": 9,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "read_out",
+        "offset": 10,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "clk",
+        "offset": 11,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "data_in_w",
+        "offset": 12,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "data_in_rw",
+        "offset": 13,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "addr_r",
+        "offset": 14,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "addr_w",
+        "offset": 15,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "addr_rw",
+        "offset": 16,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "mode",
+        "offset": 17,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "enable_r",
+        "offset": 18,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "enable_w",
+        "offset": 19,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "enable_rw",
+        "offset": 20,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/R0_addr",
+        "offset": 28,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/R0_en",
+        "offset": 29,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/R0_data",
+        "offset": 30,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/W0_addr",
+        "offset": 31,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/W0_en",
+        "offset": 32,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "memory_ext/W0_data",
+        "offset": 33,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "read_out",
+        "offset": 35,
+        "numBits": 8,
+        "type": "wire"
+      }
+    ]
+  }
+]

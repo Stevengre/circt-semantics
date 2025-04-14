@@ -25,7 +25,7 @@ class test_data:
         box_size = 2**bits_num
         if index == 0:
             while self.num < self.config['mode']:
-                x=random.randint(0,box_size-1)
+                x=int(random.randint(0,box_size-1))
                 now_data.append([x,bits_num])
                 if index != self.config['length']-1:
                     self.randomBuild(now_data,index+1)
@@ -34,10 +34,37 @@ class test_data:
                     self.num += 1
                 now_data.pop()
         else:
-            x=random.randint(0,box_size-1)
+            x=int(random.randint(0,box_size-1))
             now_data.append([x,bits_num])
             if index != self.config['length']-1:
                 self.randomBuild(now_data,index+1)
+            else:
+                self.output_data.append(copy.deepcopy(now_data))
+                self.num += 1
+            now_data.pop()
+        return True
+    
+    def randomNegtiveBuild(self, now_data: list,index: int) -> bool:
+        bits_num = self.config['type'][index]
+        box_size = 1
+        box_size = 2**bits_num
+        if index == 0:
+            while self.num < self.config['mode']:
+                x=int(random.randint(0,box_size*1.5-1)-box_size/2)
+                #从补码的最小负数到无符号最大正数
+                now_data.append([x,bits_num])
+                if index != self.config['length']-1:
+                    self.randomNegtiveBuild(now_data,index+1)
+                else:
+                    self.output_data.append(copy.deepcopy(now_data))
+                    self.num += 1
+                now_data.pop()
+        else:
+            x=int(random.randint(0,box_size*1.5-1)-box_size/2)
+            #同理
+            now_data.append([x,bits_num])
+            if index != self.config['length']-1:
+                self.randomNegtiveBuild(now_data,index+1)
             else:
                 self.output_data.append(copy.deepcopy(now_data))
                 self.num += 1

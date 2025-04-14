@@ -12,11 +12,28 @@ module memory_4x8(	// seq/firmem/firmem.generic.mlir:4:14
 );
 
   reg [7:0] Memory[0:3];	// seq/firmem/firmem.generic.mlir:4:14
+  reg       _R0_en_d0;	// seq/firmem/firmem.generic.mlir:4:14
+  reg       _R0_en_d1;	// seq/firmem/firmem.generic.mlir:4:14
+  reg       _R0_en_d2;	// seq/firmem/firmem.generic.mlir:4:14
+  reg [1:0] _R0_addr_d0;	// seq/firmem/firmem.generic.mlir:4:14
+  reg [1:0] _R0_addr_d1;	// seq/firmem/firmem.generic.mlir:4:14
+  reg [1:0] _R0_addr_d2;	// seq/firmem/firmem.generic.mlir:4:14
+  always @(posedge R0_clk) begin	// seq/firmem/firmem.generic.mlir:4:14
+    _R0_en_d0 <= R0_en;	// seq/firmem/firmem.generic.mlir:4:14
+    _R0_en_d1 <= _R0_en_d0;	// seq/firmem/firmem.generic.mlir:4:14
+    _R0_en_d2 <= _R0_en_d1;	// seq/firmem/firmem.generic.mlir:4:14
+    _R0_addr_d0 <= R0_addr;	// seq/firmem/firmem.generic.mlir:4:14
+    _R0_addr_d1 <= _R0_addr_d0;	// seq/firmem/firmem.generic.mlir:4:14
+    _R0_addr_d2 <= _R0_addr_d1;	// seq/firmem/firmem.generic.mlir:4:14
+  end // always @(posedge)
   always @(posedge W0_clk) begin	// seq/firmem/firmem.generic.mlir:4:14
     if (W0_en & 1'h1)	// seq/firmem/firmem.generic.mlir:4:14
       Memory[W0_addr] <= W0_data;	// seq/firmem/firmem.generic.mlir:4:14
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_MEM_	// seq/firmem/firmem.generic.mlir:4:14
+    `ifdef RANDOMIZE_REG_INIT	// seq/firmem/firmem.generic.mlir:4:14
+      reg [31:0] _RANDOM;	// seq/firmem/firmem.generic.mlir:4:14
+    `endif // RANDOMIZE_REG_INIT
     reg [31:0] _RANDOM_MEM;	// seq/firmem/firmem.generic.mlir:4:14
     initial begin	// seq/firmem/firmem.generic.mlir:4:14
       `INIT_RANDOM_PROLOG_	// seq/firmem/firmem.generic.mlir:4:14
@@ -26,9 +43,18 @@ module memory_4x8(	// seq/firmem/firmem.generic.mlir:4:14
           Memory[i[1:0]] = _RANDOM_MEM[7:0];	// seq/firmem/firmem.generic.mlir:4:14
         end
       `endif // RANDOMIZE_MEM_INIT
+      `ifdef RANDOMIZE_REG_INIT	// seq/firmem/firmem.generic.mlir:4:14
+        _RANDOM = {`RANDOM};	// seq/firmem/firmem.generic.mlir:4:14
+        _R0_en_d0 = _RANDOM[0];	// seq/firmem/firmem.generic.mlir:4:14
+        _R0_en_d1 = _RANDOM[1];	// seq/firmem/firmem.generic.mlir:4:14
+        _R0_en_d2 = _RANDOM[2];	// seq/firmem/firmem.generic.mlir:4:14
+        _R0_addr_d0 = _RANDOM[4:3];	// seq/firmem/firmem.generic.mlir:4:14
+        _R0_addr_d1 = _RANDOM[6:5];	// seq/firmem/firmem.generic.mlir:4:14
+        _R0_addr_d2 = _RANDOM[8:7];	// seq/firmem/firmem.generic.mlir:4:14
+      `endif // RANDOMIZE_REG_INIT
     end // initial
   `endif // ENABLE_INITIAL_MEM_
-  assign R0_data = R0_en ? Memory[R0_addr] : 8'bx;	// seq/firmem/firmem.generic.mlir:4:14
+  assign R0_data = _R0_en_d2 ? Memory[_R0_addr_d2] : 8'bx;	// seq/firmem/firmem.generic.mlir:4:14
 endmodule
 
 // Standard header to adapt well known macros for register randomization.

@@ -31,6 +31,9 @@ module HW
 ### `HW#NEW_INSTANCE`
 
 ```k
+// rule 
+// <setup> .StdOps => .K ...</setup>[owise]
+
 rule 
 <setup> .K ~> "HW#NEW_INSTANCE" => .K ... </setup>
 <hw-setup-inst> Insts:List ListItem(_) => Insts </hw-setup-inst>
@@ -155,7 +158,9 @@ rule
   <hw-outports> .List => Abs(ABS_NAME, Args) </hw-outports>
   ...
 </hw-instance>
-requires ABS_NAME ==K AbsSymbolName(L) andBool size(L) >Int 1
+requires ABS_NAME ==K AbsSymbolName(L) 
+// andBool size(L) >Int 1
+[priority(45)]
 
 rule
 <setup>
@@ -165,13 +170,13 @@ rule
 => .K ~> "HW#NEW_INSTANCE"
 ...
 </setup>
-<hw-setup-inst> ListItem(S) </hw-setup-inst>
+<hw-setup-inst>  L:List  </hw-setup-inst>
 <hw-instance>
   <hw-id> ABS_NAME </hw-id>
   <hw-outports> .List => Abs(ABS_NAME, Args) </hw-outports>
   ...
 </hw-instance>
-requires ABS_NAME ==K AbsSymbolName(ListItem(S))
+requires ABS_NAME ==K AbsSymbolName(L) 
 ```
 
 ## hw.aggregate_constant
@@ -179,8 +184,8 @@ requires ABS_NAME ==K AbsSymbolName(ListItem(S))
 ```k
 rule
 <current> 
-   "hw.aggregate_constant" ( .List ) { "fields" |-> [AVL:AttributeValueList] _:Map} : _FT
-=> ListItem(BitsConcat(AttrValueList2List(AVL)))
+   "hw.aggregate_constant" ( .List ) { "fields" |-> [AVL:AttributeValueList] _:Map} : ( .Types ) -> ( !hw.array < _:SizeX T:Type > , _:Types ) 
+=> ListItem(BitsConcat(AttrValueList2List(AVL,T)))
 ... 
 </current>
 ```
@@ -190,18 +195,10 @@ rule
 ```k
 rule
 <current>
-   "hw.constant" ( .List ) { "value" |-> V : T _:Map } : ( .Types ) -> ( T:Type )
-=> ListItem(ToBits(V, T))
-...
-</current>
-
-rule
-<current>
    "hw.constant" ( .List ) { "value" |-> V:AttributeValue _:Map } : ( .Types ) -> ( T:Type )
 => ListItem(ToBits(V, T))
 ...
 </current>
-[owise]
 ```
 
 ## HW Operations for Array
@@ -210,10 +207,18 @@ rule
 
 ```k
 rule
-<current> "hw.array_get" ( ListItem(Array:Bits) ListItem(bits(Idx:Int, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) => ListItem(BitsSlice(Array, Idx *Int getWidth(T), (Idx +Int 1) *Int getWidth(T))) ... </current>
+<current> "hw.array_get" ( ListItem(Array:Bits) ListItem(bits(Idx:Int, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) 
+=> ListItem(BitsSlice(Array, Idx *Int getWidth(T), (Idx +Int 1) *Int getWidth(T))) ... </current>
+requires Idx >=Int 0
 
 rule
-<current> "hw.array_get" ( ListItem(_:Bits) ListItem(bits(_:XZValue, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) => ListItem(bits(#x, getWidth(T))) ... </current>
+<current> "hw.array_get" ( ListItem(Array:Bits) ListItem(bits(Idx:Int, W:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) 
+=> ListItem(BitsSlice(Array, (Idx +Int (2 ^Int W)) *Int getWidth(T), (Idx +Int 1 +Int (2 ^Int W)) *Int getWidth(T))) ... </current>
+requires Idx <Int 0
+
+rule
+<current> "hw.array_get" ( ListItem(_:Bits) ListItem(bits(_:XZValue, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( T:Type ) 
+=> ListItem(bits(#x, getWidth(T))) ... </current>
 ```
 
 ### `hw.array_create`
@@ -227,10 +232,18 @@ rule
 
 ```k
 rule
-<current> "hw.array_slice" ( ListItem(Arr:Bits) ListItem(bits(Idx:Int, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) => ListItem(BitsSlice(Arr, Idx *Int getWidth(T), (Idx +Int SizeX2Int(S)) *Int getWidth(T))) ... </current>
+<current> "hw.array_slice" ( ListItem(Arr:Bits) ListItem(bits(Idx:Int, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) 
+=> ListItem(BitsSlice(Arr, Idx *Int getWidth(T), (Idx +Int SizeX2Int(S)) *Int getWidth(T))) ... </current>
+requires Idx >=Int 0
 
 rule
-<current> "hw.array_slice" ( ListItem(_:Bits) ListItem(bits(_:XZValue, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) => ListItem(bits(#x, SizeX2Int(S) *Int getWidth(T))) ... </current>
+<current> "hw.array_slice" ( ListItem(Arr:Bits) ListItem(bits(Idx:Int, W:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) 
+=> ListItem(BitsSlice(Arr, (Idx +Int (2 ^Int W)) *Int getWidth(T), ((Idx +Int (2 ^Int W)) +Int SizeX2Int(S)) *Int getWidth(T))) ... </current>
+requires Idx <Int 0
+
+rule
+<current> "hw.array_slice" ( ListItem(_:Bits) ListItem(bits(_:XZValue, _:Int)) ) {_:Map} : ( !hw.array < _:SizeX T:Type > , _:IntegerType ) -> ( !hw.array < S:SizeX T > ) 
+=> ListItem(bits(#x, SizeX2Int(S) *Int getWidth(T))) ... </current>
 ```
 
 ### `hw.array_concat`

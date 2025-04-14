@@ -4,6 +4,6 @@ module Foo(	// comb/extract/extract.generic.mlir:3:3
   output [3:0] res	// comb/extract/extract.mlir:1:31
 );
 
-  assign res = a[3:0];	// comb/extract/extract.generic.mlir:5:10, :6:5
+  assign res = a[6:3];	// comb/extract/extract.generic.mlir:5:10, :6:5
 endmodule
 

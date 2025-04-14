@@ -1,0 +1,130 @@
+<teq>
+  <mlir>
+    <prog>
+      .K
+    </prog>
+    <types>
+      .Map
+    </types>
+    <attrs>
+      .Map
+    </attrs>
+    <table>
+      "Foo" |-> "hw.module" ( .List ) { ( "module_type" |-> !hw.modty < input clk : !seq.clock , input reset : i1 , output res : i8 , .ModulePortList > )
+      "parameters" |-> [ .AttributeValueList ]
+      ( "sym_name" |-> "Foo" ) } [ .Successors ] ( { ^bb0 ( ListItem ( "%clk" )
+      ListItem ( "%reset" ) ) : ListItem ( "%reg_port" ) = "seq.firreg" ( ListItem ( "%next" )
+      ListItem ( "%clk" )
+      ListItem ( "%reset" )
+      ListItem ( "%c0" ) ) { "name" |-> "counter" } : ( i8 , !seq.clock , i1 , i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%next" ) = "comb.add" ( ListItem ( "%reg_port" )
+      ListItem ( "%c1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  ListItem ( "%c0" ) = "hw.constant" ( .List ) { "value" |-> 0 : i8 } : ( .Types ) -> ( i8 , .Types )  ListItem ( "%c1" ) = "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%reg_port" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+    </table>
+    <symbols>
+      .List
+    </symbols>
+  </mlir>
+  <hardware>
+    <setup>
+      .K
+    </setup>
+    <connection>
+      "Foo/%c0" |-> "hw.constant" ( .List ) { "value" |-> 0 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Foo/%c1" |-> "hw.constant" ( .List ) { "value" |-> 1 : i8 } : ( .Types ) -> ( i8 , .Types )
+      "Foo/%next" |-> "comb.add" ( ListItem ( "Foo/%reg_port" )
+      ListItem ( "Foo/%c1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      "Foo/%reg_port" |-> "seq.firreg" ( ListItem ( "Foo/%next" )
+      ListItem ( "Foo/%clk" )
+      ListItem ( "Foo/%reset" )
+      ListItem ( "Foo/%c0" ) ) { "name" |-> "counter" } : ( i8 , !seq.clock , i1 , i8 , .Types ) -> ( i8 , .Types )
+    </connection>
+    <procedures>
+      .List
+    </procedures>
+    <signals>
+      "Foo/%c0" |-> bits ( 0 , 8 )
+      "Foo/%c1" |-> bits ( 1 , 8 )
+      "Foo/%clk" |-> bits ( 1 , 1 )
+      "Foo/%next" |-> bits ( 1 , 8 )
+      "Foo/%reg_port" |-> bits ( 0 , 8 )
+      "Foo/%reset" |-> bits ( 0 , 1 )
+    </signals>
+    <history>
+      "Foo/%c0" |-> bits ( 0 , 8 )
+      "Foo/%c1" |-> bits ( 1 , 8 )
+      "Foo/%clk" |-> bits ( 0 , 1 )
+      "Foo/%next" |-> bits ( 1 , 8 )
+      "Foo/%reg_port" |-> bits ( 0 , 8 )
+      "Foo/%reset" |-> bits ( 1 , 1 )
+    </history>
+    <currents>
+      <current-info>
+        <current-id>
+          10
+        </current-id>
+        <current>
+          ListItem ( bits ( 1 , 8 ) )
+          ListItem ( bits ( 1 , 1 ) )
+          ListItem ( bits ( 0 , 1 ) )
+          ListItem ( bits ( 0 , 8 ) ) ~> "HARDWARE#READ_DIRECT" ~> .List ~> "seq.firreg" ( ListItem ( "Foo/%next" )
+          ListItem ( "Foo/%clk" )
+          ListItem ( "Foo/%reset" )
+          ListItem ( "Foo/%c0" ) ) { "name" |-> "counter" } : ( i8 , !seq.clock , i1 , i8 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%reg_port" ) ~> ListItem ( "Foo/%c1" ) ~> .List ~> "HARDWARE#READ_DIRECT" ~> ListItem ( "Foo/%reg_port" )
+          ListItem ( "Foo/%c1" ) ~> "comb.add" ( ListItem ( "Foo/%reg_port" )
+          ListItem ( "Foo/%c1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types ) ~> "HARDWARE#WRITE" ~> ListItem ( "Foo/%next" ) ~> ListItem ( "Foo/%c1" )
+          ListItem ( "Foo/%reg_port" ) ~> .K
+        </current>
+      </current-info>
+    </currents>
+    <clock>
+      0
+    </clock>
+  </hardware>
+  <circt>
+    <cmd>
+      .K
+    </cmd>
+    <top-module>
+      "Foo"
+    </top-module>
+    <top-ins>
+      ListItem ( "Foo/%clk" )
+      ListItem ( "Foo/%reset" )
+    </top-ins>
+  </circt>
+  <hw>
+    <hw-instances>
+      <hw-instance>
+        <hw-id>
+          "Foo"
+        </hw-id>
+        <hw-module>
+          "Foo"
+        </hw-module>
+        <hw-inputs>
+          ListItem ( clk )
+          ListItem ( reset )
+        </hw-inputs>
+        <hw-inports>
+          ListItem ( "Foo/%clk" )
+          ListItem ( "Foo/%reset" )
+        </hw-inports>
+        <hw-in-types>
+          ListItem ( !seq.clock )
+          ListItem ( i1 )
+        </hw-in-types>
+        <hw-outputs>
+          ListItem ( res )
+        </hw-outputs>
+        <hw-outports>
+          ListItem ( "Foo/%reg_port" )
+        </hw-outports>
+        <hw-out-types>
+          ListItem ( i8 )
+        </hw-out-types>
+      </hw-instance>
+      <hw-setup-inst>
+        .List
+      </hw-setup-inst>
+    </hw-instances>
+  </hw>
+</teq>

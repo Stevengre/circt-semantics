@@ -15,18 +15,28 @@ module CIRCT
   imports CIRCT-CONFIG
   imports MLIR-HELPER
   imports BUILTIN
+  imports BOOL
 ```
 
 ## Attribute Value to Bits Value
 
 ```k
 syntax Bits ::= ToBits ( AttributeValue, Type ) [function]
-rule ToBits(V, T) => bits(ToInt(V), getWidth(T))
+rule ToBits(V, T) => ReplaceNegative( ToInt(V), getWidth(T) )
 
 syntax Int ::= ToInt ( AttributeValue ) [function]
 rule ToInt( V:Int ) => V
+rule ToInt( V:Int : T:Type) => V
 rule ToInt( true  ) => 1
 rule ToInt( false ) => 0
+```
+
+## Replace Negative To Positive
+
+```k
+syntax Bits ::= ReplaceNegative( Int, Int ) [function]
+rule ReplaceNegative( V:Int, T:Int ) => bits(((2 ^Int T) -Int ((0 -Int V) &Int ((2 ^Int T) -Int 1))), T) requires V <Int 0
+rule ReplaceNegative( V:Int, T:Int ) => bits(V &Int ((2 ^Int T) -Int 1) , T) requires V >=Int 0
 ```
 
 ## Specify Top Module
@@ -62,11 +72,32 @@ rule
     <current-id> !_:Int </current-id>
     <current> 
     STIMULI ~> "HARDWARE#WRITE" ~> INS 
-    ~> "HARDWARE#NEW_CURRENT" ~> PROCS
-    ~> keys_list(Conn)
+    ~> "HARDWARE#NEW_CURRENT" ~> NewCurrentString(keys_list(Conn)) PROCS
     </current>
    </current-info>
 )
+```
+
+```k
+syntax List ::= NewCurrentString(List) [function]
+rule NewCurrentString(ListItem(Str) L:List) => ListItem(ListItem(Str)) NewCurrentString(L)
+rule NewCurrentString(.List) => .List
+```
+
+```k
+// rule 
+// <current> 
+//    "HARDWARE#NEW_CURRENT" ~> ListItem(Port:String) L:List 
+// => "HARDWARE#NEW_CURRENT" ~> L 
+// ...
+// </current>
+// (  .Bag
+// => <current-info>
+//     <current-id> !_:Int </current-id>
+//     <current> ListItem(Port) </current>
+//    </current-info>
+// )
+// [priority(45)]
 ```
 
 ## Get Op
@@ -111,6 +142,7 @@ rule
 <current> 
    Op:String ( ListItem(Arg:String) Args:List ) { Attr:Map } : FT 
 => "HARDWARE#READ" ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} : FT
+// => .List ~> "HARDWARE#READ_DIRECT"  ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} : FT
 ... 
 </current>
 [priority(40)]
@@ -121,12 +153,14 @@ rule
 => Op (ListItem(Arg) Args) {Attr} : FT
 ... 
 </current>
+// requires CheckNotSeq(Op)
 [priority(40)]
 
 rule
 <current> 
    Op:String ( ListItem(Arg:String) Args:List ) { Attr:Map } SL:SuccessorList ( RS:StdRegions ) : FT 
 => "HARDWARE#READ" ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
+// => .List ~> "HARDWARE#READ_DIRECT"  ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
 ... 
 </current>
 [priority(40)]
@@ -137,9 +171,17 @@ rule
 => Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
 ... 
 </current>
+// requires CheckNotSeq(Op)
 [priority(40)]
 ```
 
+// ```k
+// syntax Bool ::= CheckNotSeq(String) [function]
+// rule CheckNotSeq("seq.firreg") => false 
+// rule CheckNotSeq("seq.firmem.write_port") => false
+// rule CheckNotSeq("seq.firmem.read_write_port") => false
+// rule CheckNotSeq(_) => true [owise]
+// ```
 
 ```k
 endmodule

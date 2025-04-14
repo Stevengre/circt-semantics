@@ -6,6 +6,6 @@ module Foo(	// hw/aggregate_constant2/aggregate_constant2.generic.mlir:3:3
 );
 
   wire [3:0][7:0] _GEN = '{8'hFF, 8'h0, 8'h1, 8'h2};	// hw/aggregate_constant2/aggregate_constant2.generic.mlir:5:10
-  assign res = _GEN[a] + b;	// hw/aggregate_constant2/aggregate_constant2.generic.mlir:5:10, :6:10, :7:10, :8:5
+  assign res = _GEN[a] + b;	// hw/aggregate_constant2/aggregate_constant2.generic.mlir:5:10, :7:10, :8:10, :9:5
 endmodule
 

@@ -4,6 +4,6 @@ module Foo(	// hw/constant/constant.generic.mlir:3:3
   output [7:0] res	// hw/constant/constant.mlir:1:31
 );
 
-  assign res = a + 8'h2A;	// hw/constant/constant.generic.mlir:5:10, :6:10, :7:5
+  assign res = a + 8'h29;	// hw/constant/constant.generic.mlir:9:10, :10:10, :11:5
 endmodule
 
