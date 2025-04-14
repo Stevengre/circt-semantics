@@ -58,6 +58,9 @@ clean:
 	find . -type f -name '*.vcd' -exec rm -f {} +
 	find . -type f -name 'state.json' -exec rm -f {} +
 	find . -type f -name 'V*' -exec rm -f {} +
+	find . -type f -name 't.txt' -exec rm -f {} +
+	find . -type f -name '*.sv' -exec rm -f {} +
+	find . -type f -name '*.pretty' -exec rm -f {} +
 
 # 帮助信息
 help:
