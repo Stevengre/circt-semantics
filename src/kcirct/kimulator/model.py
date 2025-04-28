@@ -83,7 +83,7 @@ class KimulatorModel:
         assert self.context.state is not None
         self.context.state = self.context.kcirct.run_simulate(self.context.state, args)
         # read outputs
-        outputs = self.context.kcirct.read_outputs(self.context.state)
+        outputs = self.context.kcirct.read_outputs(self.context.state)  # type: ignore
         index = 0
         for signal in self.signals.values():
             if not signal.is_input:

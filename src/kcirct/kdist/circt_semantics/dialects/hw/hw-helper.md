@@ -65,15 +65,6 @@ rule getModuleOutTypes(!hw.modty < input _:BareId : _:Type , L:ModulePortList >)
 rule getModuleOutTypes(!hw.modty < .ModulePortList >) => .List
 ```
 
-### AttributeValueList -> List
-
-```k
-syntax List ::= AttrValueList2List(AttributeValueList,Type) [function]
-rule AttrValueList2List(V:AttributeValue , AVL:AttributeValueList , T2:Type) => ListItem(ToBits(V, T2)) AttrValueList2List(AVL , T2)
-rule AttrValueList2List(V:AttributeValue , T2:Type) => ListItem(ToBits(V, T2))
-rule AttrValueList2List(.AttributeValueList , T2:Type) => .List
-```
-
 ```k
 endmodule
 ```

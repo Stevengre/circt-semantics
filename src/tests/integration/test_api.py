@@ -41,7 +41,9 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
     vcd.time = 0
     kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time}.kore', input)
-    kcirct.write_pretty(mlir_file.parent / f'simulated.{vcd.time}.kore', mlir_file.parent / f'simulated.{vcd.time}.pretty')
+    kcirct.write_pretty(
+        mlir_file.parent / f'simulated.{vcd.time}.kore', mlir_file.parent / f'simulated.{vcd.time}.pretty'
+    )
     vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time}.kore'))
     # for input in inputs[1:]:
     #     vcd.time += 1
@@ -50,6 +52,7 @@ def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List[List[tuple
     #     )
     #     kcirct.write_pretty(mlir_file.parent / f'simulated.{vcd.time}.kore', mlir_file.parent / f'simulated.{vcd.time}.pretty')
     #     vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time}.kore'))
+
 
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs',

@@ -16,11 +16,6 @@ $(FILE).generic.mlir:
 $(FILE).sv: $(FILE).generic.mlir
 	firtool --lowering-options=disallowLocalVariables  $< -o $@
 
-$(FILE)__main.cpp: $(FILE).sv
-	@verilator --cc --sv --exe --build $< --trace --main --Mdir $(FILE_PATH)obj_dir
-	@cp $(FILE_PATH)obj_dir/V$(FILE_NAME)__main.cpp $@
-	@echo "Please edit $(FILE)__main.cpp and build again"
-
 .PHONY: $(FILE_PATH)V$(FILE_NAME)
 $(FILE_PATH)V$(FILE_NAME): $(FILE)__main.cpp $(FILE).sv
 	@verilator -LDFLAGS "-ljsoncpp" --cc --sv --exe --build $(FILE_NAME)__main.cpp $(FILE).sv --trace --Mdir $(FILE_PATH)obj_dir
@@ -55,7 +50,7 @@ clean:
 	find . -type f -name 'simulated.*.kore' -exec rm -f {} +
 	find . -type f -name 'simulated.*.pretty' -exec rm -f {} +
 	find . -type f -name 'simulated.*.kore.prestate' -exec rm -f {} +
-	find . -type f -name '*.vcd' -exec rm -f {} +
+	find . -type f -name 'test.vcd' -exec rm -f {} +
 	find . -type f -name 'state.json' -exec rm -f {} +
 	find . -type f -name 'V*' -exec rm -f {} +
 	find . -type f -name 't.txt' -exec rm -f {} +

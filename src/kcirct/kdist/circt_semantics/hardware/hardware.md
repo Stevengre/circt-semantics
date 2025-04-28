@@ -22,30 +22,11 @@ imports STRING
 ```k
 rule
 <setup> 
-   "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem( "seq.firreg" ( L:List ) { Config:Map } : (T1:Types) -> (T:IntegerType) ) L1:List
-=> "HARDWARE#CONNECT" ~> L0 ~> L1
-...
-</setup>
-<connection> M => M [Out <- "seq.firreg" ( L ) { Config } : (T1) -> (T)] </connection>
-<register> REG => REG [Out <- (0, getWidth(T), 0, 0)] </register>
-
-rule
-<setup> 
-   "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem( "seq.firmem" ( L:List ) { Config:Map } : Ft:StdFT ) L1:List
-=> "HARDWARE#CONNECT" ~> L0 ~> L1
-...
-</setup>
-<connection> M => M [Out <- "seq.firmem" ( L ) { Config } : Ft] </connection>
-<register> REG => REG [Out <- (1, 0, ToInt({Config["readLatency"] orDefault 0}:>AttributeValue), ToInt({Config["writeLatency"] orDefault 0}:>AttributeValue))] </register>
-
-rule
-<setup> 
    "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem(In) L1:List
 => "HARDWARE#CONNECT" ~> L0 ~> L1
 ...
 </setup>
 <connection> M => M [Out <- In] </connection>
-[owise]
 
 rule
 <setup> "HARDWARE#CONNECT" ~> .List ~> .List => .K ... </setup>
