@@ -173,7 +173,6 @@ module BITS
     rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => BitsCast(bits(X >>Int X2, W)) requires isPos(X, W)
     rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => BitsCast(bits((X >>Int X2) |Int ((2 ^Int W -Int 1) <<Int (W -Int X2)), W)) requires (notBool isPos(X, W)) andBool (X2 <Int W)
     rule bits(X:Int, W:Int) >>Bits bits(X2:Int, _W2:Int) => BitsCast(bits(2 ^Int W -Int 1, W)) requires (notBool isPos(X, W)) andBool (X2 >=Int W)
-    // rule bits(X1:Int, W1:Int) >>Bits bits(X2:Int, _W2:Int) => bits(X1 >>Int X2, W1)
     rule bits(_:XZValue, W1:Int) >>Bits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) >>Bits bits(_:XZValue, _W2:Int) => bits(#x, W1)
     [owise]
@@ -203,8 +202,6 @@ module BITS
     rule Bits2BitList(bits(_:XZValue, _:Int)) => .List
 
     rule BitsParity(bits(X:Int, W:Int)) => BitsCast(BitsXor(Bits2BitList(bits(X, W))), 1)
-    // rule BitsParity(bits(X:Int, W:Int)) => BitsXor(Bits2BitList(bits(X, W)))
-    // rule BitsParity(bits(X:Int, W:Int)) => bits(X &Int 1, 1)
     rule BitsParity(bits(_:XZValue, _:Int)) => bits(#x, 1)
 
     rule Bool2Int(B:Bool) => #if B #then 1 #else 0 #fi
