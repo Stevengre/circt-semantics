@@ -244,7 +244,7 @@ if __name__ == '__main__':
 
     with open(PICK[1], 'r') as file:
         json_data = json.load(file)
-    test_evaluate_demo(PICK[0], 'RocketSystem', json_data['inin'])  #初始化第一阶段
+    test_evaluate_demo(PICK[0], 'RocketSystem', json_data['inin'])  # 初始化第一阶段
     # test_from_setup1(PICK[0], 'RocketSystem', json_data['inin'])  # 初始化第二阶段
     # test_from_main(PICK[0], 'RocketSystem', json_data['inin'])   #全部
     # test_evaluate_depth(PICK[1], 'RocketSystem')
