@@ -93,22 +93,6 @@ rule NewCurrentWarpList(ListItem(Str) L:List) => ListItem(ListItem(Str)) NewCurr
 rule NewCurrentWarpList(.List) => .List
 ```
 
-```k
-// rule 
-// <current> 
-//    "HARDWARE#NEW_CURRENT" ~> ListItem(Port:String) L:List 
-// => "HARDWARE#NEW_CURRENT" ~> L 
-// ...
-// </current>
-// (  .Bag
-// => <current-info>
-//     <current-id> !_:Int </current-id>
-//     <current> ListItem(Port) </current>
-//    </current-info>
-// )
-// [priority(45)]
-```
-
 ## Get Op
 
 ```k
@@ -151,7 +135,6 @@ rule
 <current> 
    Op:String ( ListItem(Arg:String) Args:List ) { Attr:Map } : FT 
 => "HARDWARE#READ" ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} : FT
-// => .List ~> "HARDWARE#READ_DIRECT"  ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} : FT
 ... 
 </current>
 [priority(40)]
@@ -162,14 +145,12 @@ rule
 => Op (ListItem(Arg) Args) {Attr} : FT
 ... 
 </current>
-// requires CheckNotSeq(Op)
 [priority(40)]
 
 rule
 <current> 
    Op:String ( ListItem(Arg:String) Args:List ) { Attr:Map } SL:SuccessorList ( RS:StdRegions ) : FT 
 => "HARDWARE#READ" ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
-// => .List ~> "HARDWARE#READ_DIRECT"  ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
 ... 
 </current>
 [priority(40)]
@@ -180,17 +161,8 @@ rule
 => Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
 ... 
 </current>
-// requires CheckNotSeq(Op)
 [priority(40)]
 ```
-
-// ```k
-// syntax Bool ::= CheckNotSeq(String) [function]
-// rule CheckNotSeq("seq.firreg") => false 
-// rule CheckNotSeq("seq.firmem.write_port") => false
-// rule CheckNotSeq("seq.firmem.read_write_port") => false
-// rule CheckNotSeq(_) => true [owise]
-// ```
 
 ```k
 endmodule

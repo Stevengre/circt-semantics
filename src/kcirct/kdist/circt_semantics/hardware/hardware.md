@@ -2,13 +2,11 @@
 
 ```k
 requires "hardware-config.md"
-requires "hardware-helper.md"
 requires "bits.md"
 requires "../mlir/builtin.md"
 requires "../circt/circt.md"
 module HARDWARE
 imports HARDWARE-CONFIG
-imports HARDWARE-HELPER
 imports BUILTIN-SYNTAX
 imports CIRCT
 imports BUILTIN

@@ -31,8 +31,6 @@ module HW
 ### `HW#NEW_INSTANCE`
 
 ```k
-// rule 
-// <setup> .StdOps => .K ...</setup>[owise]
 
 rule 
 <setup> .K ~> "HW#NEW_INSTANCE" => .K ... </setup>
@@ -159,7 +157,6 @@ rule
   ...
 </hw-instance>
 requires ABS_NAME ==K AbsSymbolName(L) 
-// andBool size(L) >Int 1
 [priority(45)]
 
 rule
