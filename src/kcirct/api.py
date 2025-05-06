@@ -6,10 +6,11 @@ It does not include:
 
 from __future__ import annotations
 
+import re
+import resource
 import subprocess
 import sys
 import time
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -35,9 +36,10 @@ PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 
 sys.setrecursionlimit(2**31 - 1)
+sys.set_int_max_str_digits(10000)
 
-# soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-# resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
+soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+resource.setrlimit(resource.RLIMIT_STACK, (128 * 1024 * 1024, hard))
 
 
 class KCIRCT:
@@ -59,7 +61,7 @@ class KCIRCT:
 
         self._kprint = KPrint(definition_dir=self.definition_dir)
 
-    def ensure_env(self):
+    def ensure_env(self) -> None:
         if not TOP_LEVEL_PARSER.exists():
             print('Generating TopLevelParser...')
             self.generate_parser(sort='TopLevel', parser=TOP_LEVEL_PARSER)
@@ -136,7 +138,7 @@ class KCIRCT:
         if not parser_path.exists():
             self.generate_parser(sort=sort, parser=parser_path)
 
-        expression_file = self.data_dir / f"expression.{sort}.kore"
+        expression_file = self.data_dir / f'expression.{sort}.kore'
         with open(expression_file, 'w') as file:
             file.write(expression)
         result = KCIRCT.run([str(parser_path), str(expression_file)])
@@ -197,7 +199,7 @@ class KCIRCT:
         """Step 2: Initialize the state with the initial state."""
         complied_pattern = KCIRCT.read_kore(compiled_pgm)
         state_initializer = self._init_state_pattern(complied_pattern, top_module, inputs)
-        state_initializer_path = compiled_pgm.parent / f"{compiled_pgm.name}.init.kore"
+        state_initializer_path = compiled_pgm.parent / f'{compiled_pgm.name}.init.kore'
         with open(state_initializer_path, 'w') as file:
             state_initializer.write(file)
         self.krun_fast(input_file=state_initializer_path, output_file=initial_state, depth=1)
@@ -213,14 +215,14 @@ class KCIRCT:
         """Run the CIRCT Semantics pipeline on Kore."""
 
         # write pattern to file
-        current_time = time.strftime("%Y%m%d%H%M%S")
-        input_path = self.data_dir / f"tmp{current_time}.{depth}.source.kore"
+        current_time = time.strftime('%Y%m%d%H%M%S')
+        input_path = self.data_dir / f'tmp{current_time}.{depth}.source.kore'
         input_path.parent.mkdir(parents=True, exist_ok=True)
         with open(input_path, 'w') as file:
             pattern.write(file)
 
         # run krun
-        output_path = self.data_dir / f"tmp{current_time}.{depth}.target.kore"
+        output_path = self.data_dir / f'tmp{current_time}.{depth}.target.kore'
         self.krun_fast(input_file=input_path, output_file=output_path, depth=depth)
 
         return KCIRCT.read_kore(output_path)
@@ -284,7 +286,7 @@ class KCIRCT:
         ports = {}
         for signal in signal_port_mapping:
             ports[signal_port_mapping[signal]] = signals[signal]
-        return ports
+        return ports  # type: ignore
 
     def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
         """Read the signal port mapping from the Kore pattern."""
@@ -300,13 +302,13 @@ class KCIRCT:
             idx3 = state.find("Lbl'-LT-'hw-outputs'-GT-'")
             idx4 = state.find("Lbl'-LT-'hw-outports'-GT-'")
             idx5 = state.find("Lbl'-LT-'hw-out-types'-GT-'")
-            
+
             hw_inputs_str = state[idx0:idx1]
             hw_inports_str = state[idx1:idx2]
             hw_outputs_str = state[idx3:idx4]
             hw_outports_str = state[idx4:idx5]
-            state = state[idx5+1:]
-            
+            state = state[idx5 + 1 :]
+
             def _find_names(str: str) -> list[str]:
                 names = []
                 while len(str):
@@ -314,10 +316,10 @@ class KCIRCT:
                     if pre_idx == -1:
                         break
                     end_idx = str.find('"', pre_idx + 1)
-                    names.append(str[pre_idx + 1:end_idx])
-                    str = str[end_idx + 1:]
+                    names.append(str[pre_idx + 1 : end_idx])
+                    str = str[end_idx + 1 :]
                 return names
-            
+
             hw_inputs = _find_names(hw_inputs_str)
             hw_inports = _find_names(hw_inports_str)
             hw_outputs = _find_names(hw_outputs_str)
@@ -327,29 +329,29 @@ class KCIRCT:
             for hw_outport, hw_output in zip(hw_outports, hw_outputs, strict=True):
                 signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
         return signal_port_mapping
-    
+
     def read_signals(self, state_file: Path) -> dict[str, tuple[int, int] | dict[tuple[int, int], tuple[int, int]]]:
         """Read the signals from the Kore pattern."""
         with open(state_file, 'r') as file:
             state = file.read()
-            
+
         start_index = state.find("Lbl'-LT-'signals'-GT-'{}")
         end_index = state.find("Lbl'-LT-'history'-GT-'{}")
         if start_index == -1 or end_index == -1:
-            raise ValueError(f"No signals found in {state_file}")
+            raise ValueError(f'No signals found in {state_file}')
         sub_str = state[start_index:end_index]
         pre_idx = 0
         end_idx = 0
-        ports: dict[str, tuple[int, int]] = {}
+        ports: dict[str, tuple[int, int] | dict[tuple[int, int], tuple[int, int]]] = {}
         while len(sub_str):
             # find port name
             pre_idx = sub_str.find('"')
             if pre_idx == -1:
                 break
             end_idx = sub_str.find('"', pre_idx + 1)
-            port_name = sub_str[pre_idx + 1:end_idx]
-            sub_str = sub_str[end_idx + 1:]
-            
+            port_name = sub_str[pre_idx + 1 : end_idx]
+            sub_str = sub_str[end_idx + 1 :]
+
             # find type
             pattern = r'inj\{Sort([^{}]*)\{\}'
             match = re.search(pattern, sub_str)
@@ -359,50 +361,56 @@ class KCIRCT:
                     # find port value
                     pre_idx = sub_str.find('"')
                     end_idx = sub_str.find('"', pre_idx + 1)
-                    port_value = int(sub_str[pre_idx + 1:end_idx])
-                    sub_str = sub_str[end_idx + 1:]
-                    
+                    port_value = int(sub_str[pre_idx + 1 : end_idx])
+                    sub_str = sub_str[end_idx + 1 :]
+
                     # find port size
                     pre_idx = sub_str.find('"')
                     end_idx = sub_str.find('"', pre_idx + 1)
-                    port_size = int(sub_str[pre_idx + 1:end_idx])
-                    sub_str = sub_str[end_idx + 1:]
-                    
+                    port_size = int(sub_str[pre_idx + 1 : end_idx])
+                    sub_str = sub_str[end_idx + 1 :]
+
                     ports[port_name] = (port_value, port_size)
                 elif type == 'Map':
-                    mp : dict[tuple[int, int], tuple[int, int]] = {}
+                    mp: dict[tuple[int, int], tuple[int, int]] = {}
+                    map_select = sub_str[:70]
+
+                    if map_select.find("'Lbl'Stop'Map{}())'") == -1:
+                        # empty map
+                        ports[port_name] = mp
+                        continue
                     map_end_idx = sub_str.find('"))))))))')
-                    map_str = sub_str[:map_end_idx+1]
-                    sub_str = sub_str[map_end_idx+1:]
+                    map_str = sub_str[: map_end_idx + 1]
+                    sub_str = sub_str[map_end_idx + 1 :]
 
                     while len(map_str):
                         # find Key value
                         pre_idx = map_str.find('"')
                         end_idx = map_str.find('"', pre_idx + 1)
-                        key_value = int(map_str[pre_idx + 1:end_idx])
-                        map_str = map_str[end_idx + 1:]
-                        
+                        key_value = int(map_str[pre_idx + 1 : end_idx])
+                        map_str = map_str[end_idx + 1 :]
+
                         # find Key size
                         pre_idx = map_str.find('"')
                         end_idx = map_str.find('"', pre_idx + 1)
-                        key_size = int(map_str[pre_idx + 1:end_idx])
-                        map_str = map_str[end_idx + 1:]
+                        key_size = int(map_str[pre_idx + 1 : end_idx])
+                        map_str = map_str[end_idx + 1 :]
 
                         # find Value value
                         pre_idx = map_str.find('"')
                         end_idx = map_str.find('"', pre_idx + 1)
-                        value_value = int(map_str[pre_idx + 1:end_idx])
-                        map_str = map_str[end_idx + 1:]
-                        
+                        value_value = int(map_str[pre_idx + 1 : end_idx])
+                        map_str = map_str[end_idx + 1 :]
+
                         # find Value size
                         pre_idx = map_str.find('"')
                         end_idx = map_str.find('"', pre_idx + 1)
-                        value_size = int(map_str[pre_idx + 1:end_idx])
-                        map_str = map_str[end_idx + 1:]
-                        mp[(key_value,key_size)] = (value_value,value_size)
-                    ports[port_name] = mp 
+                        value_size = int(map_str[pre_idx + 1 : end_idx])
+                        map_str = map_str[end_idx + 1 :]
+                        mp[(key_value, key_size)] = (value_value, value_size)
+                    ports[port_name] = mp
             else:
-                print("Error: No type found in " + port_name)
+                print('Error: No type found in ' + port_name)
                 sys.exit(1)
         return ports
 
@@ -466,7 +474,7 @@ class KCIRCT:
             return pattern
 
         for ckt in matched_ckts:
-            cid = ckt['cid'].args[0].value.value
+            cid = ckt['cid'].args[0].value.value  # type: ignore
 
             ckt['in-ports'].top_down(_find_names).top_down(_find_values)
             while names:
@@ -498,7 +506,7 @@ class KCIRCT:
                 init_pattern.write(file)
 
         # _print_correct_pattern(pgm, output_file)
-        template = """LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
+        template = r"""LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
         temp_file = output_file.parent / (output_file.name + '.prestate')
         with open(pgm, 'r') as file:
             pgm_pattern = file.read()
@@ -526,8 +534,8 @@ class KCIRCT:
             return input_str.replace(match_str, replace_str, 1)
         else:
             raise ValueError(
-                f"Input string does not finished preprocess. \n\
-                        Please check the pretty print of the input string."
+                'Input string does not finished preprocess. \n\
+                        Please check the pretty print of the input string.'
             )
 
     def run_setup_fast(self, input_file: Path, output_file: Path, top_module: str) -> None:
@@ -537,12 +545,12 @@ class KCIRCT:
         phase = "toStimulate" | "build"
         """
 
-        match_cmd = """Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
-        rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SETUP")), dotk{}()))"""
+        match_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
+        rewrite_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SETUP")), dotk{}()))"""
 
-        match_top_module = """Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("")"""
-        rewrite_top_module = """Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("{top_module}")"""
-        rewrite_top_module = rewrite_top_module.replace("{top_module}", top_module)
+        match_top_module = r"""Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("")"""
+        rewrite_top_module = r"""Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("{top_module}")"""
+        rewrite_top_module = rewrite_top_module.replace('{top_module}', top_module)
 
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
         rewritten_pattern = self._kore_replace(input_file, match_cmd, rewrite_cmd)
@@ -605,14 +613,17 @@ class KCIRCT:
         phase = "simulate"
         """
 
-        match_cmd = """Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
-        rewrite_cmd = """Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),kseq{}(inj{SortList{}, SortKItem{}}({inputs}),dotk{}())))"""
+        match_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(dotk{}())"""
+        rewrite_cmd = r"""Lbl'-LT-'cmd'-GT-'{}(kseq{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),kseq{}(inj{SortList{}, SortKItem{}}({inputs}),dotk{}())))"""
 
         def _bits(value: int, size: int) -> str:
-            bits_template = """inj{SortBits{}, SortKItem{}}(Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(inj{SortInt{}, SortBitsValue{}}(\dv{SortInt{}}("{value}")),\dv{SortInt{}}("{size}")))"""
-            return bits_template.replace("{value}", str(value)).replace("{size}", str(size))
+            # 将负数转换为补码
+            if value < 0:
+                value = 2**size + value
+            bits_template = r"""inj{SortBits{}, SortKItem{}}(Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(inj{SortInt{}, SortBitsValue{}}(\dv{SortInt{}}("{value}")),\dv{SortInt{}}("{size}")))"""
+            return bits_template.replace('{value}', str(value)).replace('{size}', str(size))
 
-        def _list_item(value: str, size: int) -> str:
+        def _list_item(value: int, size: int) -> str:
             content = _bits(value, size)
             return 'LblListItem{}(' + content + ')'
 
@@ -621,10 +632,10 @@ class KCIRCT:
             for value, size in inputs:
                 res += _list_item(value, size) + ','
             res = res[:-1]
-            res = "\left-assoc{}(Lbl'Unds'List'Unds'{}(" + res + "))"
+            res = r"\left-assoc{}(Lbl'Unds'List'Unds'{}(" + res + '))'
             return res
 
-        rewritten_cmd = rewrite_cmd.replace("{inputs}", _list(inputs))
+        rewritten_cmd = rewrite_cmd.replace('{inputs}', _list(inputs))
         rewritten_pattern = self._kore_replace(input_file, match_cmd, rewritten_cmd)
         rewritten_file = output_file.parent / (output_file.name + '.prestate')
         with open(rewritten_file, 'w') as file:
@@ -645,7 +656,7 @@ class KCIRCT:
         phase = "preprocess" | "canonicalized"
         """
         # TODO: this is wrong for current semantics
-        return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm)}))
+        return self.run(top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm)}))  # type: ignore
 
     def run_setup(self, state: Pattern, top_module: str) -> Pattern:
         """Run the hardware setup step on Kore.
@@ -667,7 +678,7 @@ class KCIRCT:
         # rewritten = state.top_down(_rewrite)
         # res = self.run(rewritten)
         # print(self.pretty(res))
-        return self.run(state.top_down(_rewrite))
+        return self.run(state.top_down(_rewrite))  # type: ignore
 
     def run_initialize(self, state: Pattern) -> Pattern:
         """Run the initialize step on Kore.
@@ -681,7 +692,7 @@ class KCIRCT:
                 return pattern.let_patterns([kseq([cmd('bootstrap'), cmd('initial')])])
             return pattern
 
-        return self.run(state.top_down(_rewrite))
+        return self.run(state.top_down(_rewrite))  # type: ignore
 
     def kore_input(self, inputs: list[tuple[int, int]]) -> Pattern:
         def _bits_list(inputs: list[tuple[int, int]]) -> str:

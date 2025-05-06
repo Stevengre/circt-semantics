@@ -19,6 +19,9 @@ configuration
   <setup> .K </setup>
   <connection> .Map </connection>
   <procedures> .List </procedures>
+  <register> .Map </register>
+  <register-proc> .Map </register-proc>
+  <register-current> .K </register-current>
 ```
 
 ## Hardware Activity

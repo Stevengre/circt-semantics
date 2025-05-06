@@ -19,42 +19,42 @@ imports BUILTIN
 
 ```k
 rule
-<current> "comb.add" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsAdd(ListItem(B) L)) ... </current>
+<current> "comb.add" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsAdd(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.and
 
 ```k
 rule
-<current> "comb.and" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsAnd(ListItem(B) L)) ... </current>
+<current> "comb.and" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsAnd(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.or
 
 ```k
 rule
-<current> "comb.or" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsOr(ListItem(B) L)) ... </current>
+<current> "comb.or" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsOr(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.xor
 
 ```k
 rule
-<current> "comb.xor" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsXor(ListItem(B) L)) ... </current>
+<current> "comb.xor" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsXor(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.mul
 
 ```k
 rule
-<current> "comb.mul" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsMul(ListItem(B) L)) ... </current>
+<current> "comb.mul" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsMul(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.extract
 
 ```k
 rule
-<current> "comb.extract" ( ListItem(bits(B1:Int, _W1:Int)) ) {_:Map} : (_:Types) -> (T:IntegerType) => ListItem(BitsCast(bits(B1, getWidth(T)))) ... </current>
+<current> "comb.extract" ( ListItem(bits(B1:Int, _W1:Int)) ) {"lowBit" |-> Lowbit:Int : _:IntegerType _:Map} : (_:Types) -> (T:IntegerType) => ListItem(BitsCast(bits(B1 >>Int Lowbit, getWidth(T)))) ... </current>
 ```
 
 ## comb.replicate
@@ -68,63 +68,63 @@ rule
 
 ```k
 rule
-<current> "comb.shrs" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsShrs(ListItem(B) L)) ... </current>
+<current> "comb.shrs" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsShrs(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.shru
 
 ```k
 rule
-<current> "comb.shru" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsShru(ListItem(B) L)) ... </current>
+<current> "comb.shru" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsShru(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.shl
 
 ```k
 rule
-<current> "comb.shl" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsShl(ListItem(B) L)) ... </current>
+<current> "comb.shl" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsShl(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.sub
 
 ```k
 rule
-<current> "comb.sub" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsSub(ListItem(B) L)) ... </current>
+<current> "comb.sub" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsSub(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.concat
 
 ```k
 rule
-<current> "comb.concat" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsConcat(ListItem(B) L)) ... </current>
+<current> "comb.concat" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsConcat(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.divs
 
 ```k
 rule
-<current> "comb.divs" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsDivs(ListItem(B) L)) ... </current>
+<current> "comb.divs" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsDivs(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.divu
 
 ```k
 rule
-<current> "comb.divu" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsDivu(ListItem(B) L)) ... </current>
+<current> "comb.divu" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsDivu(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.mods
 
 ```k
 rule
-<current> "comb.mods" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsMods(ListItem(B) L)) ... </current>
+<current> "comb.mods" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsMods(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.modu
 
 ```k
 rule
-<current> "comb.modu" ( ListItem(B:Bits) L:List ) {_:Map} : _ => ListItem(BitsModu(ListItem(B) L)) ... </current>
+<current> "comb.modu" ( ListItem(B:Bits) L:List ) {_:Map} : (_) -> (T:IntegerType) => ListItem(BitsCast(BitsModu(ListItem(B) L), getWidth(T))) ... </current>
 ```
 
 ## comb.parity
@@ -138,7 +138,7 @@ rule
 
 ```k
 rule
-<current> "comb.mux" ( ListItem(B1:Bits) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} : _ => #if notBool Bits2Bool(B1) #then B2 #else B3 #fi
+<current> "comb.mux" ( ListItem(B1:Bits) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) => #if Bits2Bool(B1) #then ListItem(BitsCast(B2, getWidth(T))) #else ListItem(BitsCast(B3, getWidth(T))) #fi
 ... </current>
 ```
 

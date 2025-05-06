@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import json
 import time
-from pathlib import Path
 from threading import Lock, Thread
+from typing import TYPE_CHECKING
 
 from kcirct.api import KCIRCT
 
 from ..resources import DATA_PATH
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 ROCKET_SMALL_MLIR_FILE = DATA_PATH / 'rocket-test' / 'rocket-small-master.generic.mlir'
 ROCKET_SMALL_KORE_FILE = DATA_PATH / 'rocket-test' / 'rocket-small-master.kore'
@@ -58,7 +63,7 @@ ROCKET_SMALL_OUT_DIR = DATA_PATH / 'rocket-test'
 
 def test_rocket_small() -> None:
     kcirct = KCIRCT()
-    kcirct_opt = KCIRCT(use_opt=True)
+    # kcirct_opt = KCIRCT(use_opt=True)
     # TODO: KoreParser 太太太太慢了，而且是递归的
     # kore = kcirct.compile(ROCKET_SMALL_MLIR_FILE, output_file=ROCKET_SMALL_KORE_FILE)
     # inputs = [
@@ -99,7 +104,7 @@ def test_rocket_small() -> None:
     # ]
     # kcirct.init_state(ROCKET_SMALL_MLIR_FILE, ROCKET_SMALL_INIT_STATE, 'RocketSystem', inputs)
 
-    def run_krun_fast(input: Path, output: Path, depth: int | None = None):
+    def run_krun_fast(input: Path, output: Path, depth: int | None = None) -> None:
         start = time.time()
         kcirct.krun_fast(input, output, depth)
         end = time.time()
@@ -116,7 +121,7 @@ def test_rocket_small() -> None:
     thread_count = 0
     lock = Lock()
 
-    def start_new_thread():
+    def start_new_thread() -> None:
         nonlocal thread_count
         depth = thread_count * 10000
         thread = Thread(

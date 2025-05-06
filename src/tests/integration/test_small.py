@@ -1,5 +1,6 @@
 import filecmp
 import time
+from typing import Any, Callable
 
 from kcirct.api import KCIRCT
 
@@ -83,18 +84,17 @@ INPUTS = inputs = [
 ]
 
 
-def measure_time(func, output_message: str):
+def measure_time(func: Callable[..., Any], output_message: str) -> None:
     """测量函数运行时间并打印消息。"""
     start_time = time.time()
-    result = func()
+    func()
     end_time = time.time()
     time_cost = end_time - start_time
     print(f'{output_message}: {time_cost * 1000} ms')
-    return result
 
 
 def test_step_run() -> None:
-    kcirct = KCIRCT(use_opt=True)
+    kcirct = KCIRCT()
     kcirct.ensure_env()
     # measure_time(
     #     lambda: kcirct.compile_fast(MLIR_FILE, MLIR_FILE.parent / 'pgm.kore'),
@@ -128,13 +128,13 @@ def test_step_run() -> None:
         if filecmp.cmp(input_kore, output_kore, shallow=False):
             print(f'find stuck at {current_depth}, but it might be a correct result')
             kcirct.write_pretty(output_kore, input_kore.parent / f'{kore_name}.{current_depth}.pretty')
-            print(f'pretty file generated!!!!')
+            print('pretty file generated!!!!')
             break
         input_kore = output_kore
 
 
-def test_small():
-    kcirct = KCIRCT(use_opt=True)
+def test_small() -> None:
+    kcirct = KCIRCT()
     kcirct.ensure_env()
     measure_time(lambda: kcirct.compile_fast(MLIR_FILE, MLIR_FILE.parent / 'pgm.kore'), 'KCIRCT Parse Time')
     measure_time(
@@ -168,7 +168,7 @@ def test_small():
 def test_pretty() -> None:
     kore_file = DATA_PATH / 'rocket-small' / 'simulated.0.kore.106000'
     pretty_file = kore_file.parent / f'{kore_file.name}.pretty'
-    kcirct = KCIRCT(use_opt=False)
+    kcirct = KCIRCT()
     kcirct.ensure_env()
     kcirct.write_pretty(kore_file, pretty_file)
     print('Finished pretty printing: ' + str(pretty_file))

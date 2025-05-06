@@ -20,7 +20,39 @@ MLIR_FILES = {}
 MLIR_GNERIC_FILES = {}
 EXPECTED_TOP_MODULES = {}
 INPUTS = {}
-
+DIALECT_OPERATIONS = {
+    "comb": [
+        "add",
+        "and",
+        "concat",
+        "divs",
+        "divu",
+        "extract",
+        "icmp",
+        "mods",
+        "modu",
+        "or",
+        "parity",
+        "replicate",
+        "shl",
+        "shrs",
+        "shru",
+        "sub",
+        "xor",
+        "mux",
+    ],
+    "hw": [
+        "aggregate_constant2",
+        "aggregate_constant3",
+        "array_get",
+        "constant",
+        "instance",
+        "module",
+        "output",
+        "array_create",
+    ],
+    "seq": ["from_clock", "firreg", "firreg2", "firmem_rl", "firmem_rw", "firmem_rwl", "firmem_x"],
+}
 
 for level1 in LEVEL1_DIRS:
     print(level1.name)

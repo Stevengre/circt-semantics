@@ -15,18 +15,37 @@ module CIRCT
   imports CIRCT-CONFIG
   imports MLIR-HELPER
   imports BUILTIN
+  imports BOOL
+```
+
+### AttributeValueList -> List
+
+```k
+syntax List ::= AttrValueList2List(AttributeValueList,Type) [function]
+rule AttrValueList2List(V:AttributeValue , AVL:AttributeValueList , T2:Type) => ListItem(ToBits(V, T2)) AttrValueList2List(AVL , T2)
+rule AttrValueList2List(V:AttributeValue , T2:Type) => ListItem(ToBits(V, T2))
+rule AttrValueList2List(.AttributeValueList , T2:Type) => .List
 ```
 
 ## Attribute Value to Bits Value
 
 ```k
 syntax Bits ::= ToBits ( AttributeValue, Type ) [function]
-rule ToBits(V, T) => bits(ToInt(V), getWidth(T))
+rule ToBits(V, T) => StdBits( ToInt(V), getWidth(T) )
 
 syntax Int ::= ToInt ( AttributeValue ) [function]
 rule ToInt( V:Int ) => V
+rule ToInt( V:Int : T:Type) => V
 rule ToInt( true  ) => 1
 rule ToInt( false ) => 0
+```
+
+## Replace Negative To Positive And Cast Positive
+
+```k
+syntax Bits ::= StdBits( Int, Int ) [function, concrete]
+rule StdBits( V:Int, T:Int ) => bits(((2 ^Int T) -Int ((0 -Int V) &Int ((2 ^Int T) -Int 1))), T) requires V <Int 0
+rule StdBits( V:Int, T:Int ) => bits(V &Int ((2 ^Int T) -Int 1) , T) requires V >=Int 0
 ```
 
 ## Specify Top Module
@@ -62,11 +81,16 @@ rule
     <current-id> !_:Int </current-id>
     <current> 
     STIMULI ~> "HARDWARE#WRITE" ~> INS 
-    ~> "HARDWARE#NEW_CURRENT" ~> PROCS
-    ~> keys_list(Conn)
+    ~> "HARDWARE#NEW_CURRENT" ~> NewCurrentWarpList(keys_list(Conn)) PROCS
     </current>
    </current-info>
 )
+```
+
+```k
+syntax List ::= NewCurrentWarpList(List) [function]
+rule NewCurrentWarpList(ListItem(Str) L:List) => ListItem(ListItem(Str)) NewCurrentWarpList(L)
+rule NewCurrentWarpList(.List) => .List
 ```
 
 ## Get Op
@@ -139,7 +163,6 @@ rule
 </current>
 [priority(40)]
 ```
-
 
 ```k
 endmodule

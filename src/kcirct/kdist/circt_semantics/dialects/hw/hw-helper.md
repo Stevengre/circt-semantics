@@ -5,6 +5,7 @@ requires "hw-syntax.md"
 module HW-HELPER
 imports HW-SYNTAX
 imports LIST
+imports CIRCT
 ```
 ## `!hw.modty` Helpers
 

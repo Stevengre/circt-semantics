@@ -48,7 +48,7 @@ __TARGETS__: Final = {
             'main_file': src_dir / 'circt_semantics/circt-core.k',
             'main_module': 'CIRCT-CORE',
             'syntax_module': 'CIRCT-CORE-SYNTAX',
-            # 'opt_level': 3,
+            'opt_level': 3,
             # 'ccopts': ['-g'],
             # 'gen_bison_parser': True,
             # 'gen_glr_bison_parser': True,

@@ -10,6 +10,16 @@
             "mode": 1000
         },
         {
+            "name": "mux",
+            "length":3,
+            "type": [
+                1,
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
             "name": "and",
             "length": 2,
             "type": [
@@ -124,6 +134,15 @@
             "mode": 1000
         },
         {
+            "name": "shl",
+            "length": 2,
+            "type": [
+                8,
+                8
+            ],
+            "mode": 1000
+        },
+        {
             "name": "shru",
             "length": 2,
             "type": [
@@ -164,6 +183,18 @@
             "length": 2,
             "type": [8,8],
             "mode": 10
+        },
+        {
+            "name": "aggregate_constant2",
+            "length": 2,
+            "type": [2,8],
+            "mode": 1000
+        },
+        {
+            "name": "aggregate_constant3",
+            "length": 2,
+            "type": [2,64],
+            "mode": 1000
         },
         {
             "name": "array_concat",

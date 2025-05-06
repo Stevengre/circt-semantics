@@ -14,6 +14,7 @@ kirct/
 .mypy_cache/
 __pycache__/
 dist/
+linshi/
 src/kcirct/kdist/circt_semantics/*.mlir
 src/kcirct/workingdir/kompiled
 nohup.out
@@ -21,3 +22,7 @@ nohup.out
 tmp.*
 src/kcirct/kdist/circt_semantics/test-syntax.kore
 src/kcirct/kdist/circt_semantics/test-syntax-no-drop.kore
+src/tests/resources/rocket-small/**
+!src/tests/resources/rocket-small/rocket-small-1.6-drop.mlir
+!src/tests/resources/rocket-small/rocket-small-1.4-drop.mlir
+!src/tests/resources/rocket-small/rocket-small-master-drop.mlir

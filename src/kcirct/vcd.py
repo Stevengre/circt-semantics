@@ -4,8 +4,10 @@ import json
 import subprocess
 from dataclasses import dataclass
 from functools import cached_property
-from pathlib import Path
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @dataclass
@@ -43,7 +45,7 @@ class Abbrev:
 class KVCD:
     __vcd_file: TextIO
     _mlir_path: Path
-    _state_json_path: Path
+    _state_json_path: Path | None
     abbrevs: dict[str, str]
     time: int
     time_scale: str
@@ -94,9 +96,12 @@ class KVCD:
                     prev_module.children.append(modules[module_name])
                 prev_module = modules[module_name]
                 idx += 1
-            assert signal not in prev_module.signals
+
+            if prev_module is None:
+                raise RuntimeError('Unexpected None module')
             prev_module.signals.append(signal)
 
+        assert self._state_json_path is not None
         with open(self._state_json_path, 'r') as f:
             state_json = json.load(f)
         assert len(state_json) == 1, 'state.json should only have one module'
