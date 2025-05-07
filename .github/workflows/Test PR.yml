@@ -53,8 +53,6 @@ jobs:
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
       - name: 'Set up Docker'
         uses: ./.github/actions/setup-kcirct-env
         with:
