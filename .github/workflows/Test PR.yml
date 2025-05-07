@@ -58,10 +58,10 @@ jobs:
         with:
           container-name: kcirct-ci-concrete-${{ github.sha }}
       - name: 'Test operations'
-        run: docker exec -u github-user kevm-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
+        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
 
       - name: 'Tear down Docker'
         if: always()
         run: |
-          docker stop --time=0 kevm-ci-concrete-${{ github.sha }}
+          docker stop --time=0 kcirct-ci-concrete-${{ github.sha }}
 
