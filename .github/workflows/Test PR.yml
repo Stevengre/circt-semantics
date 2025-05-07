@@ -48,7 +48,7 @@ jobs:
   test-integration:
     name: 'Conformance Tests'
     needs: code-quality
-    runs-on: [self-hosted, linux, normal]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: 'Check out code'
