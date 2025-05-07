@@ -49,7 +49,7 @@ jobs:
     name: 'Conformance Tests'
     needs: code-quality
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v4
@@ -57,6 +57,11 @@ jobs:
         uses: ./.github/actions/setup-kcirct-env
         with:
           container-name: kcirct-ci-concrete-${{ github.sha }}
+      - name: 'build circt-semantics.llvm'
+        run: |
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make kcirct'
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make circt-semantics'
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'poetry run kdist build'
       - name: 'Test operations'
         run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
 
