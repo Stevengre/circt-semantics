@@ -10,10 +10,7 @@ import pytest
 from kcirct.api import KCIRCT
 from kcirct.vcd import KVCD
 
-from ..resources import (
-    DATA_PATH
-)
-
+from ..resources import DATA_PATH
 from ..resources.operation import (
     DIALECT_OPERATIONS,
     DIRS,
@@ -33,6 +30,7 @@ for dialect, operations in DIALECT_OPERATIONS.items():
             TEST_MLIR_GNERIC_FILES.append(MLIR_GNERIC_FILES[dialect][i])
             TEST_EXPECTED_TOP_MODULES.append(EXPECTED_TOP_MODULES[dialect][i])
             TEST_INPUT.append(INPUTS[dialect][i])
+
 
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs',
@@ -90,17 +88,21 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
         print('runtime:' + str((end_time - start_time) / len(inputs)))
     diffvcd(mlir_file.parent)
 
+
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     kcirct = KCIRCT()
     file_name = 'setup.kore'
     pretty_name = file_name + '.pretty'
     kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / pretty_name)
+
+
 def test_pretty() -> None:
     nowtest = 'hw'
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
         if dir.name == 'instance':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i])
+
 
 def test_entry() -> None:
     nowtest = 'comb'
@@ -113,8 +115,9 @@ def test_entry() -> None:
 def test_diffvcd() -> None:
     now = DATA_PATH / Path('operation/seq/firmem_rwl')
     diffvcd(now)
-    
-def diffvcd(test_path: Path | None = None) -> None:
+
+
+def diffvcd(test_path: Path) -> None:
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
     vcd_file2 = test_path / 'trace_vtor.vcd'
@@ -130,7 +133,7 @@ def diffvcd(test_path: Path | None = None) -> None:
         print(f'diffvcd 失败，返回值为 {result.returncode}')
         print(f'标准输出: {result.stdout}')
         print(f'标准错误: {result.stderr}')
-        pytest.fail(f'diffvcd 失败: {result.stdout}\n 标准错误: {result.stderr}') 
+        pytest.fail(f'diffvcd 失败: {result.stdout}\n 标准错误: {result.stderr}')
 
 
 if __name__ == '__main__':
@@ -140,7 +143,9 @@ if __name__ == '__main__':
         for i, dir in enumerate(DIRS[nowtest]):
             # if dir.name not in ['parity','icmp'] :
             if dir.name == 'add':
-                test_evaluate_operation(MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i])
+                test_evaluate_operation(
+                    MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i]
+                )
     elif mode == 0:
         for dialect, operations in DIALECT_OPERATIONS.items():
             for i, dir in enumerate(DIRS[dialect]):
