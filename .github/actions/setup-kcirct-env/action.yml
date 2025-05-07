@@ -79,4 +79,3 @@ runs:
 
       docker cp . ${CONTAINER_NAME}:/home/${USER}/workspace
       docker exec ${CONTAINER_NAME} chown -R ${USER}:${GROUP} /home/${USER}
-      run: poetry install
