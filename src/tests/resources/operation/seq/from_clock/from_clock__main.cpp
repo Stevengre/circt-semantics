@@ -9,7 +9,6 @@
 #include "Vfrom_clock.h"
 #include <typeinfo>
 
-
 using namespace Json;
 //======================
 

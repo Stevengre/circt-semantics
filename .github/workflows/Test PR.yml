@@ -24,18 +24,19 @@ jobs:
       run:
         working-directory: .
     steps:
-      - name: 'Check out code'
-        uses: actions/checkout@v4
-      - name: 'Set up environment'
-        uses: ./.github/actions/setup-kcirct-env
+      - name: 'Setup Python 3.10'
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+      - name: 'Install Poetry'
+        uses: Gr1N/setup-poetry@v9
       - name: 'Run code quality checks'
         run: make check
       - name: 'Run pyupgrade'
         run: make pyupgrade
-
-
+  
   code-quality:
     name: 'Code Quality Checks'
     runs-on: ubuntu-latest
@@ -43,3 +44,26 @@ jobs:
       - kcirct-code-quality-checks
     steps:
       - run: true
+  
+  test-integration:
+    name: 'Conformance Tests'
+    needs: code-quality
+    runs-on: [self-hosted, linux, normal]
+    timeout-minutes: 60
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: 'Set up Docker'
+        uses: ./.github/actions/setup-kcirct-env
+        with:
+          container-name: kcirct-ci-concrete-${{ github.sha }}
+      - name: 'Test operations'
+        run: docker exec -u github-user kevm-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
+
+      - name: 'Tear down Docker'
+        if: always()
+        run: |
+          docker stop --time=0 kevm-ci-concrete-${{ github.sha }}
+

@@ -1,20 +1,83 @@
 name: 'Set Up kcirct Environment'
-description: 'Set up kcirct test environment'
+description: 'Set up kcirct test environment with Docker'
 inputs:
-  python-version:
-    description: 'Python version'
-    required: true
+  container-name:
+    description: 'Docker container name to use'
     type: string
-    default: '3.10'
+    required: true
+  tag-name:
+    description: 'Docker image tag to use'
+    type: string
+    required: false
+    default: runtimeverificationinc/kevm
+  subdir:
+    description: 'Subdirectory where code is cloned.'
+    required: false
+    type: string
+    default: './'
+  os: 
+    description: 'OS to setup Docker for.'
+    required: false
+    type: string
+    default: 'ubuntu'
+  distro:
+    description: 'Distribution to setup Docker for.'
+    required: false
+    type: string
+    default: 'jammy'
+  llvm:
+    description: 'LLVM version to use.'
+    required: false
+    type: number
+    default: 14
+  dockerfile:
+    description: 'Hardcode the path of the dockerfile to use.'
+    required: false
+    type: string
+    default: '.github/workflows/Dockerfile'
 runs:
   using: "composite"
   steps:
-    - name: 'Install Python'
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ inputs.python-version }}
-    - name: 'Install Poetry'
-      uses: Gr1N/setup-poetry@v9
-    - name: 'Install package'
-      shell: bash
-      run: poetry install
+    steps:
+    - name: 'Set up Docker'
+      shell: bash {0}
+      run: |
+        set -euxo pipefail
+
+        CONTAINER_NAME=${{ inputs.container-name }}
+        SUBDIR=${{ inputs.subdir }}
+        BASE_OS=${{ inputs.os }}
+        BASE_DISTRO=${{ inputs.distro }}
+        DOCKERFILE=${{ inputs.dockerfile }}
+        LLVM_VERSION=${{ inputs.llvm }}
+        TAG_NAME=${{ inputs.tag-name }}
+
+        USER=github-user
+        GROUP=${USER}
+        K_VERSION=$(cat deps/k_release)
+        USER_ID=1000
+        GROUP_ID=${USER_ID}
+
+        docker build . --file ${DOCKERFILE}        \
+          --tag ${TAG_NAME}                        \
+          --build-arg USER_ID=${USER_ID}           \
+          --build-arg GROUP_ID=${GROUP_ID}         \
+          --build-arg USER=${USER}                 \
+          --build-arg GROUP=${GROUP}               \
+          --build-arg BASE_DISTRO=${BASE_DISTRO}   \
+          --build-arg K_VERSION=${K_VERSION}       \
+          --build-arg LLVM_VERSION=${LLVM_VERSION}
+
+        docker run                          \
+          --name ${CONTAINER_NAME}          \
+          --rm                              \
+          --interactive                     \
+          --tty                             \
+          --detach                          \
+          --user root                       \
+          --workdir /home/${USER}/workspace \
+          ${TAG_NAME}
+
+        docker cp . ${CONTAINER_NAME}:/home/${USER}/workspace
+        docker exec ${CONTAINER_NAME} chown -R ${USER}:${GROUP} /home/${USER}
+        run: poetry install

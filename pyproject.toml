@@ -14,7 +14,7 @@ authors = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-kframework = "7.1.163"
+kframework = "7.1.249"
 vcdvcd = "^2.3.4"
 
 [tool.poetry.scripts]
