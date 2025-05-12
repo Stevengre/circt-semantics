@@ -62,8 +62,14 @@ jobs:
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make kcirct'
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make circt-semantics'
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'poetry run kdist build'
-      - name: 'Test operations'
+      - name: 'Test build parser Toplevel'
+        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_make_env"'
+
+      - name: 'build operations vcd by kcirct'
         run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
+      
+      - name: 'Compare operations vcd'
+        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_diffvcd_operatrion"'
 
       - name: 'Tear down Docker'
         if: always()

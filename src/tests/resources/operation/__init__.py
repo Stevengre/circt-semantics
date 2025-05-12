@@ -20,6 +20,7 @@ MLIR_FILES = {}
 MLIR_GNERIC_FILES = {}
 EXPECTED_TOP_MODULES = {}
 INPUTS = {}
+OPERATION_ONLY_CHECK_DOWN_EDGE = ['firmem_rwl', 'firmem_rl']
 DIALECT_OPERATIONS = {
     "comb": [
         "add",

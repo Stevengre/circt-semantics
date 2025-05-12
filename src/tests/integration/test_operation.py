@@ -17,11 +17,13 @@ from ..resources.operation import (
     EXPECTED_TOP_MODULES,
     INPUTS,
     MLIR_GNERIC_FILES,
+    OPERATION_ONLY_CHECK_DOWN_EDGE
 )
 
 TEST_MLIR_GNERIC_FILES = []
 TEST_EXPECTED_TOP_MODULES = []
 TEST_INPUT = []
+ONLY_CHECK_DOWN_EDGE = []
 
 for dialect, operations in DIALECT_OPERATIONS.items():
     for i, dir in enumerate(DIRS[dialect]):
@@ -30,14 +32,21 @@ for dialect, operations in DIALECT_OPERATIONS.items():
             TEST_MLIR_GNERIC_FILES.append(MLIR_GNERIC_FILES[dialect][i])
             TEST_EXPECTED_TOP_MODULES.append(EXPECTED_TOP_MODULES[dialect][i])
             TEST_INPUT.append(INPUTS[dialect][i])
+            if dir.name in OPERATION_ONLY_CHECK_DOWN_EDGE:
+                ONLY_CHECK_DOWN_EDGE.append(True)
+            else:
+                ONLY_CHECK_DOWN_EDGE.append(False)
 
+def test_make_env() -> None:
+    kcirct = KCIRCT()
+    kcirct.ensure_env()
 
 @pytest.mark.parametrize(
-    'mlir_file, top_module, inputs',
-    zip(TEST_MLIR_GNERIC_FILES, TEST_EXPECTED_TOP_MODULES, TEST_INPUT, strict=True),
+    'mlir_file, top_module, inputs, only_check_down_edge',
+    zip(TEST_MLIR_GNERIC_FILES, TEST_EXPECTED_TOP_MODULES, TEST_INPUT, ONLY_CHECK_DOWN_EDGE, strict=True),
     ids=[str(p) for p in TEST_MLIR_GNERIC_FILES],
 )
-def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], only_check_down_edge: bool) -> None:
 
     kcirct = KCIRCT()
     # kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
@@ -50,7 +59,11 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
     # KCIRCT Hardware Setup & Initialization
     kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
     # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
+
+    vcd_path = mlir_file.parent / 'test.vcd'
+    if vcd_path.exists():
+        vcd_path.unlink()
+    vcd = KVCD(vcd_path=vcd_path, mlir_path=mlir_file)
     vcd.time = 0
 
     if len(inputs) == 0:
@@ -69,7 +82,13 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
         )
         end_time = time.time()
         tot_time = end_time - start_time
-        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+
+        if only_check_down_edge:
+            if vcd.time % 2 == 1:
+                vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        else:
+            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        
         for input in inputs[1:]:
             vcd.time += 1
             start_time = time.time()
@@ -81,15 +100,22 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
             end_time = time.time()
             tot_time += end_time - start_time
             # print(str(vcd.time) + str(mlir_file))
-            # if vcd.time %2 == 1:
-            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-            # if vcd.time ==11:
-            # return
+            if only_check_down_edge:
+                if vcd.time % 2 == 1:
+                    vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+            else:
+                vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
         print('runtime:' + str((end_time - start_time) / len(inputs)))
+
+@pytest.mark.parametrize(
+    'mlir_file',
+    TEST_MLIR_GNERIC_FILES,
+    ids=[str(p) for p in TEST_MLIR_GNERIC_FILES],
+)
+def test_diffvcd_operatrion(mlir_file: Path) -> None:
     diffvcd(mlir_file.parent)
 
-
-def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+def test_print_pretty(mlir_file: Path) -> None:
     kcirct = KCIRCT()
     file_name = 'setup.kore'
     pretty_name = file_name + '.pretty'

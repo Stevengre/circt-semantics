@@ -8,6 +8,7 @@
 #include <verilated_vcd_c.h>
 #include "Vfrom_clock.h"
 #include <typeinfo>
+#include <chrono>
 
 using namespace Json;
 //======================
