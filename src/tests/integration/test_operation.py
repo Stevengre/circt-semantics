@@ -49,7 +49,7 @@ def test_make_env() -> None:
     ids=[str(p) for p in TEST_MLIR_GNERIC_FILES],
 )
 def test_evaluate_operation(
-    mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], only_check_down_edge: bool = False
+    mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], only_check_down_edge: bool
 ) -> None:
 
     kcirct = KCIRCT()
@@ -141,7 +141,7 @@ def test_entry() -> None:
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
         if dir.name == 'mux':
-            test_evaluate_operation(MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i])
+            test_evaluate_operation(MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], False)
 
 
 def test_diffvcd() -> None:
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             # if dir.name not in ['parity','icmp'] :
             if dir.name == 'add':
                 test_evaluate_operation(
-                    MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i]
+                    MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], False
                 )
     elif mode == 0:
         for dialect, operations in DIALECT_OPERATIONS.items():
@@ -184,5 +184,5 @@ if __name__ == '__main__':
                 print(f'{dialect}.{dir.name}')
                 if dir.name in operations:
                     test_evaluate_operation(
-                        MLIR_GNERIC_FILES[dialect][i], EXPECTED_TOP_MODULES[dialect][i], INPUTS[dialect][i]
+                        MLIR_GNERIC_FILES[dialect][i], EXPECTED_TOP_MODULES[dialect][i], INPUTS[dialect][i], False
                     )
