@@ -141,7 +141,9 @@ def test_entry() -> None:
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
         if dir.name == 'mux':
-            test_evaluate_operation(MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], False)
+            test_evaluate_operation(
+                MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], False
+            )
 
 
 def test_diffvcd() -> None:
