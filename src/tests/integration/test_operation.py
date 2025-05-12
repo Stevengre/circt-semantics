@@ -17,7 +17,7 @@ from ..resources.operation import (
     EXPECTED_TOP_MODULES,
     INPUTS,
     MLIR_GNERIC_FILES,
-    OPERATION_ONLY_CHECK_DOWN_EDGE
+    OPERATION_ONLY_CHECK_DOWN_EDGE,
 )
 
 TEST_MLIR_GNERIC_FILES = []
@@ -37,16 +37,20 @@ for dialect, operations in DIALECT_OPERATIONS.items():
             else:
                 ONLY_CHECK_DOWN_EDGE.append(False)
 
+
 def test_make_env() -> None:
     kcirct = KCIRCT()
     kcirct.ensure_env()
+
 
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs, only_check_down_edge',
     zip(TEST_MLIR_GNERIC_FILES, TEST_EXPECTED_TOP_MODULES, TEST_INPUT, ONLY_CHECK_DOWN_EDGE, strict=True),
     ids=[str(p) for p in TEST_MLIR_GNERIC_FILES],
 )
-def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], only_check_down_edge: bool) -> None:
+def test_evaluate_operation(
+    mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], only_check_down_edge: bool = False
+) -> None:
 
     kcirct = KCIRCT()
     # kcirct.write_pretty(mlir_file.parent / f'simulated.0.kore', mlir_file.parent / f'simulated.0.kore.pretty')
@@ -88,7 +92,7 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
                 vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
         else:
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        
+
         for input in inputs[1:]:
             vcd.time += 1
             start_time = time.time()
@@ -107,6 +111,7 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
                 vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
         print('runtime:' + str((end_time - start_time) / len(inputs)))
 
+
 @pytest.mark.parametrize(
     'mlir_file',
     TEST_MLIR_GNERIC_FILES,
@@ -114,6 +119,7 @@ def test_evaluate_operation(mlir_file: Path, top_module: str, inputs: List[List[
 )
 def test_diffvcd_operatrion(mlir_file: Path) -> None:
     diffvcd(mlir_file.parent)
+
 
 def test_print_pretty(mlir_file: Path) -> None:
     kcirct = KCIRCT()
@@ -127,7 +133,7 @@ def test_pretty() -> None:
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
         if dir.name == 'instance':
-            test_print_pretty(MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i])
+            test_print_pretty(MLIR_GNERIC_FILES[nowtest][i])
 
 
 def test_entry() -> None:
