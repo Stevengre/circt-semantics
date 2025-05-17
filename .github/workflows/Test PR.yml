@@ -72,6 +72,9 @@ jobs:
           file src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
           ldd src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX || true
           '
+          
+      - name: 'Give parser executable permission'
+        run: docker exec -u root kcirct-ci-concrete-${{ github.sha }} chown github-user src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
 
       - name: 'build operations vcd by kcirct'
         run: |
