@@ -68,7 +68,9 @@ jobs:
       - name: 'DEBUG: show directory and contents'
         run: |
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c '
-            /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+            file /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+            ldd /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+            head -n 1 /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
           '
           
       - name: 'Give parser executable permission'
