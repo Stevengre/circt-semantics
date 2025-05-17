@@ -18,7 +18,7 @@ ROCKET_SMALL_MLIR_FILE_MASTER = DATA_PATH / 'rocket-small' / 'rocket-small-maste
 
 ROCKET_INPUT_V14 = DATA_PATH / 'rocket-small' / 'input_1.4twoedge.json'
 ROCKET_INPUT_MASTER = DATA_PATH / 'rocket-small' / 'input_twoedge.json'
-ROCKET_INPUT_V16 = DATA_PATH / 'rocket-small' / 'input_1.6twoedge.json'
+ROCKET_INPUT_V16 = DATA_PATH / 'rocket-small' / 'input_v1.6.json'
 ROCKET_INPUT_V16_MAIN = DATA_PATH / 'rocket-small' / 'input_v1.6start.json'
 
 PACK_MASTER = [ROCKET_SMALL_MLIR_FILE_MASTER, ROCKET_INPUT_MASTER]
@@ -244,7 +244,7 @@ if __name__ == '__main__':
 
     with open(PICK[1], 'r') as file:
         json_data = json.load(file)
-    test_evaluate_demo(PICK[0], 'RocketSystem', json_data['inin'])  # 初始化第一阶段
+    # test_evaluate_demo(PICK[0], 'RocketSystem', json_data['inin'])  # 初始化第一阶段
     # test_from_setup1(PICK[0], 'RocketSystem', json_data['inin'])  # 初始化第二阶段
-    # test_from_main(PICK[0], 'RocketSystem', json_data['inin'])   #全部
+    test_from_main(PICK[0], 'RocketSystem', json_data['inin'])   #全部
     # test_evaluate_depth(PICK[1], 'RocketSystem')
