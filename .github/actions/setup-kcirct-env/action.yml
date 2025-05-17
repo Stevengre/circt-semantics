@@ -85,7 +85,8 @@ runs:
     run: |
       wget https://github.com/llvm/circt/releases/download/firtool-1.71.0/circt-full-static-linux-x64.tar.gz
       tar -xf circt-full-static-linux-x64.tar.gz
-      echo "$(pwd)/firtool-bin" >> $GITHUB_PATH
+      ls -l
+      echo "$(pwd)/circt/bin" >> $GITHUB_PATH
   
   - name: 'Check firtool  --version'
     shell: bash
