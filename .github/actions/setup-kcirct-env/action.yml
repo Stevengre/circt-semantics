@@ -46,9 +46,9 @@ runs:
       ls -l
       echo "$(pwd)/firtool-1.71.0/bin" >> $GITHUB_PATH
 
-  - name: 'Check firtool  --version'
+  - name: 'Check version'
     shell: bash
-    run: firtool --version
+    run: arcilator --version
 
   - name: 'Set up Docker'
     shell: bash {0}
