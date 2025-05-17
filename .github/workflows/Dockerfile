@@ -36,6 +36,8 @@ RUN mkdir /home/${USER}/workspace
 WORKDIR /home/${USER}/workspace
 
 ENV PATH=/home/${USER}/.local/bin:${PATH}
+COPY --from=builder /workspace/firtool-1.71.0 /opt/firtool
+ENV PATH="/opt/firtool/bin:${PATH}"
 
 RUN    curl -sSL https://install.python-poetry.org | python3 - --version 1.8.3 \
     && poetry --version
