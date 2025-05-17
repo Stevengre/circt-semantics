@@ -41,6 +41,7 @@ for dialect, operations in DIALECT_OPERATIONS.items():
 def test_make_env() -> None:
     kcirct = KCIRCT()
     kcirct.ensure_env()
+    print(f'TOP_LEVEL_PARSER absolute path: {TOP_LEVEL_PARSER.resolve()}')
 
 
 @pytest.mark.parametrize(
