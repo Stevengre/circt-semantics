@@ -69,7 +69,6 @@ class KCIRCT:
         else:
             print(f'TopLevelParser exists: {TOP_LEVEL_PARSER}')
             print('If you want to re-generate, please delete the existing file.')
-        print(f'TOP_LEVEL_PARSER absolute path: {TOP_LEVEL_PARSER.resolve()}')
 
     @dataclass
     class Result:

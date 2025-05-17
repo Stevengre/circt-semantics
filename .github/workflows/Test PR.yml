@@ -63,7 +63,9 @@ jobs:
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make circt-semantics'
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'poetry run kdist build'
       - name: 'Test build parser Toplevel'
-        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_make_env -s"'
+        run: |
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'rm -f /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX'
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_make_env -s"'
 
       - name: 'DEBUG: show directory and contents'
         run: |
@@ -73,9 +75,6 @@ jobs:
             head -n 1 /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
           '
           
-      - name: 'Give parser executable permission'
-        run: docker exec -u root kcirct-ci-concrete-${{ github.sha }} chown github-user src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
-
       - name: 'build operations vcd by kcirct'
         run: |
           docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} chmod +x /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
