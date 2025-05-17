@@ -65,6 +65,9 @@ jobs:
       - name: 'Test build parser Toplevel'
         run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_make_env"'
 
+      - name: 'Debug: ls parser dir after build'
+        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'ls -lh /home/github-user/workspace/src/kcirct/workingdir/parsers/'
+
       - name: 'Check parser existence and permissions'
         run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c '
           set -euxo pipefail
