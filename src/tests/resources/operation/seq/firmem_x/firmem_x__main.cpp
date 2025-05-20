@@ -10,8 +10,6 @@
 #include <typeinfo>
 #include <chrono>
 
-
-
 using namespace Json;
 //======================
 
@@ -63,7 +61,8 @@ int main(int argc, char** argv, char**) {
         topp->eval();
         auto t_after = std::chrono::high_resolution_clock::now();
         duration += t_after - t_before;
-        tfp->dump(main_time);
+        if(main_time%2 == 1)
+            tfp->dump(main_time);
         ++main_time;
         // std::cout<<int(topp->res) <<std::endl;
     }

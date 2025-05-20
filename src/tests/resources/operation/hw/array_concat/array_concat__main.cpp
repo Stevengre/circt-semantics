@@ -8,7 +8,7 @@
 #include <verilated_vcd_c.h>
 #include "Varray_concat.h"
 #include <typeinfo>
-
+#include <chrono>
 
 using namespace Json;
 //======================

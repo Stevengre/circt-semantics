@@ -24,18 +24,19 @@ jobs:
       run:
         working-directory: .
     steps:
-      - name: 'Check out code'
-        uses: actions/checkout@v4
-      - name: 'Set up environment'
-        uses: ./.github/actions/setup-kcirct-env
+      - name: 'Setup Python 3.10'
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+      - name: 'Install Poetry'
+        uses: Gr1N/setup-poetry@v9
       - name: 'Run code quality checks'
         run: make check
       - name: 'Run pyupgrade'
         run: make pyupgrade
-
-
+  
   code-quality:
     name: 'Code Quality Checks'
     runs-on: ubuntu-latest
@@ -43,3 +44,47 @@ jobs:
       - kcirct-code-quality-checks
     steps:
       - run: true
+  
+  test-integration:
+    name: 'Conformance Tests'
+    needs: code-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+      - name: 'Set up Docker'
+        uses: ./.github/actions/setup-kcirct-env
+        with:
+          container-name: kcirct-ci-concrete-${{ github.sha }}
+      - name: 'build circt-semantics.llvm'
+        run: |
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make kcirct'
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make circt-semantics'
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'poetry run kdist build'
+      - name: 'Test build parser Toplevel'
+        run: |
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'rm -f /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX'
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_make_env -s"'
+
+      - name: 'DEBUG: show directory and contents'
+        run: |
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c '
+            file /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+            ldd /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+            head -n 1 /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+          '
+          
+      - name: 'build operations vcd by kcirct'
+        run: |
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} chmod +x /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
+          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
+      
+      - name: 'Compare operations vcd'
+        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_diffvcd_operatrion"'
+
+      - name: 'Tear down Docker'
+        if: always()
+        run: |
+          docker stop --time=0 kcirct-ci-concrete-${{ github.sha }}
+

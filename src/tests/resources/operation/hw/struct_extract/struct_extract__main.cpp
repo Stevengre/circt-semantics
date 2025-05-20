@@ -8,7 +8,7 @@
 #include <verilated_vcd_c.h>
 #include "Vstruct_extract.h"
 #include <typeinfo>
-
+#include <chrono>
 
 using namespace Json;
 //======================
