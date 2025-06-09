@@ -23,7 +23,7 @@ from ..resources.operation import (
 TEST_MLIR_GNERIC_FILES = []
 TEST_EXPECTED_TOP_MODULES = []
 TEST_INPUT = []
-ONLY_CHECK_DOWN_EDGE = []
+REPLAY_POSEDGE = []
 
 for dialect, operations in DIALECT_OPERATIONS.items():
     for i, dir in enumerate(DIRS[dialect]):
@@ -33,9 +33,9 @@ for dialect, operations in DIALECT_OPERATIONS.items():
             TEST_EXPECTED_TOP_MODULES.append(EXPECTED_TOP_MODULES[dialect][i])
             TEST_INPUT.append(INPUTS[dialect][i])
             if dir.name in OPERATION_ONLY_CHECK_DOWN_EDGE:
-                ONLY_CHECK_DOWN_EDGE.append(True)
+                REPLAY_POSEDGE.append(True)
             else:
-                ONLY_CHECK_DOWN_EDGE.append(False)
+                REPLAY_POSEDGE.append(False)
 
 
 def test_make_env() -> None:
@@ -44,12 +44,12 @@ def test_make_env() -> None:
 
 
 @pytest.mark.parametrize(
-    'mlir_file, top_module, inputs, only_check_down_edge',
-    zip(TEST_MLIR_GNERIC_FILES, TEST_EXPECTED_TOP_MODULES, TEST_INPUT, ONLY_CHECK_DOWN_EDGE, strict=True),
+    'mlir_file, top_module, inputs, replay_posedge',
+    zip(TEST_MLIR_GNERIC_FILES, TEST_EXPECTED_TOP_MODULES, TEST_INPUT, REPLAY_POSEDGE, strict=True),
     ids=[str(p) for p in TEST_MLIR_GNERIC_FILES],
 )
 def test_evaluate_operation(
-    mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], only_check_down_edge: bool
+    mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]], replay_posedge: bool
 ) -> None:
 
     kcirct = KCIRCT()
@@ -69,46 +69,57 @@ def test_evaluate_operation(
         vcd_path.unlink()
     vcd = KVCD(vcd_path=vcd_path, mlir_path=mlir_file)
     vcd.time = 0
-
+    rounds = 0
     if len(inputs) == 0:
         input = None
         start_time = time.time()
-        kcirct.krun_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore')
+        kcirct.krun_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{rounds&1}.kore')
         end_time = time.time()
-        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{rounds&1}.kore'))
+        rounds += 1 
         print(str(vcd.time) + str(mlir_file))
         print('runtime:' + str(end_time - start_time))
     else:
         input = inputs[0]
         start_time = time.time()
         kcirct.run_simulate_fast(
-            mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore', input
+            mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{rounds&1}.kore', input
         )
         end_time = time.time()
+        rounds += 1
         tot_time = end_time - start_time
 
-        if only_check_down_edge:
-            if vcd.time % 2 == 1:
-                vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        else:
-            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+        if replay_posedge:
+            if vcd.time % 2 == 0:
+                kcirct.run_simulate_fast(
+                    mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
+                    mlir_file.parent / f'simulated.{rounds&1}.kore',
+                    input,
+                )
+                rounds += 1
+        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore'))
 
         for input in inputs[1:]:
             vcd.time += 1
             start_time = time.time()
             kcirct.run_simulate_fast(
-                mlir_file.parent / f'simulated.{(vcd.time-1)&1}.kore',
-                mlir_file.parent / f'simulated.{vcd.time&1}.kore',
+                mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
+                mlir_file.parent / f'simulated.{rounds&1}.kore',
                 input,
             )
+            rounds += 1
+            if replay_posedge:
+                if vcd.time % 2 == 0:
+                    kcirct.run_simulate_fast(
+                        mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
+                        mlir_file.parent / f'simulated.{rounds&1}.kore',
+                        input,
+                    )
+                    rounds += 1
             end_time = time.time()
             tot_time += end_time - start_time
             # print(str(vcd.time) + str(mlir_file))
-            if only_check_down_edge:
-                if vcd.time % 2 == 1:
-                    vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-            else:
-                vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
+            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore'))
         print('runtime:' + str((end_time - start_time) / len(inputs)))
 
 
@@ -147,7 +158,7 @@ def test_entry() -> None:
 
 
 def test_diffvcd() -> None:
-    now = DATA_PATH / Path('operation/seq/firmem_rl')
+    now = DATA_PATH / Path('operation/seq/firmem_mask')
     diffvcd(now)
 
 
@@ -176,7 +187,7 @@ if __name__ == '__main__':
         nowtest = 'seq'
         for i, dir in enumerate(DIRS[nowtest]):
             # if dir.name not in ['parity','icmp'] :
-            if dir.name == 'firmem_rl':
+            if dir.name == 'firmem_mask':
                 test_evaluate_operation(
                     MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], True
                 )

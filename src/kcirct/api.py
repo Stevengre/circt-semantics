@@ -294,7 +294,8 @@ class KCIRCT:
                 ports[signal_port_mapping[signal]] = value
         return ports  # type: ignore
 
-    def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
+    @staticmethod
+    def read_signal_port_mapping(state_file: Path) -> dict[str, str]:
         """Read the signal port mapping from the Kore pattern."""
         with open(state_file, 'r') as file:
             state = file.read()

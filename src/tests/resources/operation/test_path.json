@@ -106,6 +106,7 @@
                 "firmem",
                 "from_clock",
                 "firmem_mask"
+                "firmem_rx"
             ]
         }
     ]

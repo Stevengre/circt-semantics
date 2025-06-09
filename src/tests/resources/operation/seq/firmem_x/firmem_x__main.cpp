@@ -61,7 +61,7 @@ int main(int argc, char** argv, char**) {
         topp->eval();
         auto t_after = std::chrono::high_resolution_clock::now();
         duration += t_after - t_before;
-        if(main_time%2 == 1)
+        // if(main_time%2 == 1)
             tfp->dump(main_time);
         ++main_time;
         // std::cout<<int(topp->res) <<std::endl;
