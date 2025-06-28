@@ -50,6 +50,7 @@ class KVCD:
     time: int
     time_scale: str
     filename: str
+    firmem: dict[str, list[int, int]]   #name -> (data_size, addr)
 
     def __init__(
         self,
@@ -67,6 +68,7 @@ class KVCD:
         self.time = 0
         self.time_scale = time_scale
         self.abbrevs = {}
+        self.firmem = {}
         self._init()
         return
 
@@ -120,6 +122,28 @@ class KVCD:
                 type=state['type'],
             )
             _add_to_module(signal, modules)
+            # 暂且规定firmem的module名字规则为***_ext
+            module_names = signal_name.rsplit('/', 2)
+            if len(module_names) > 1 and module_names[1].endswith('_ext'):
+                firmem_name = signal_name.rsplit('/', 1)[0]
+                if firmem_name not in self.firmem:
+                    self.firmem[firmem_name] = [-1, -1]
+                if module_names[2].endswith('addr'):
+                    self.firmem[firmem_name][1] = 2**signal.num_bits
+                elif module_names[2].endswith('data'):
+                    self.firmem[firmem_name][0] = signal.num_bits
+        for firmem_name, (databits, addr) in self.firmem.items():
+            for i in range(addr):
+                signal_name = f'{firmem_name}/Memory[{i}]'
+                signal_abbrev = Abbrev.gen()
+                self.abbrevs[signal_name] = signal_abbrev
+                signal = Signal(
+                    name=signal_name,
+                    abbrev=signal_abbrev,
+                    num_bits=databits,
+                    type='wire',
+                )
+                _add_to_module(signal, modules)
 
         return modules[top_module_name], modules
 

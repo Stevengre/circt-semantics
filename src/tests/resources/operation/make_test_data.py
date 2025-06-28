@@ -3,6 +3,7 @@ import json
 import os
 import random
 from pathlib import Path
+from typing import Annotated
 
 DATA_PATH = Path(__file__).parent
 RANDOM_COFIG_FILE = DATA_PATH / 'random_config.json'
@@ -92,7 +93,12 @@ class test_data:
         with open(self.output_file, 'w', encoding='utf-8') as file:
             json.dump(output_dict, file, indent=4)
 
-    def mk_firmem(self):
+    @staticmethod
+    def random_data(data_size: int) -> Annotated[list[int], "length=2"]:
+        box_size = 2**data_size
+        data = int(random.randint(0, box_size-1))
+        return [data, data_size]
+    def mk_firmem(self, withmask: bool):
         mode = 0
         # 0的时候是写，1的时候是读
         wirte_mode = 1
@@ -102,15 +108,15 @@ class test_data:
             now_data = []
             now_data.append([clk, 1])
             if clk == 0:
-                now_data.append([0, 8])
-                now_data.append([0, 8])
-                now_data.append([0, 2])
-                now_data.append([0, 2])
-                now_data.append([0, 2])
-                now_data.append([0, 1])
-                now_data.append([0, 1])
-                now_data.append([0, 1])
-                now_data.append([0, 1])
+                now_data.append(self.random_data(8))
+                now_data.append(self.random_data(8))
+                now_data.append(self.random_data(2))
+                now_data.append(self.random_data(2))
+                now_data.append(self.random_data(2))
+                now_data.append(self.random_data(1))
+                now_data.append(self.random_data(1))
+                now_data.append(self.random_data(1))
+                now_data.append(self.random_data(1))
             else:
                 if mode == 0:
                     data_in_w = random.randint(0, 2**8 - 1)
@@ -139,6 +145,8 @@ class test_data:
                     now_data.append([0, 1])
                     now_data.append([1, 1])
                 mode ^= 1
+            if withmask:
+                now_data.append(self.random_data(2))
             self.output_data.append(copy.deepcopy(now_data))
 
 
@@ -156,7 +164,9 @@ def make_test_data(random_config, test_path):
                 misson = test_data(config=config, output_file=output_filr[config['name']])
                 # 全枚举 &随机
                 if config['name'] == 'firmem':
-                    misson.mk_firmem()
+                    misson.mk_firmem(withmask = False)
+                elif config['name'] == 'firmem_mask':
+                    misson.mk_firmem(withmask = True)
                 elif config['length'] == 0:
                     misson.output_data = []
                 elif config['mode'] > 0:
