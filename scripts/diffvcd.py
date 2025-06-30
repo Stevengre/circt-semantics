@@ -127,7 +127,6 @@ for signal, signame1, signame2 in common_signals:
         break
 
 for t, sig1, sig2, name in earliest_mismatches:
-    print(f"{t}  {sig1}  {sig2}  {name}")
-    # print(f"{t}  {binary_string_to_hex(sig1)}  {binary_string_to_hex(sig2)}  {name}")
+    print(f"{t}  {binary_string_to_hex(sig1)}  {binary_string_to_hex(sig2)}  {name}")
 if earliest_mismatches:
     sys.exit(1)
