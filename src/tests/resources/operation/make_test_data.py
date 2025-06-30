@@ -96,8 +96,9 @@ class test_data:
     @staticmethod
     def random_data(data_size: int) -> Annotated[list[int], "length=2"]:
         box_size = 2**data_size
-        data = int(random.randint(0, box_size-1))
+        data = int(random.randint(0, box_size - 1))
         return [data, data_size]
+
     def mk_firmem(self, withmask: bool):
         mode = 0
         # 0的时候是写，1的时候是读
@@ -164,9 +165,9 @@ def make_test_data(random_config, test_path):
                 misson = test_data(config=config, output_file=output_filr[config['name']])
                 # 全枚举 &随机
                 if config['name'] == 'firmem':
-                    misson.mk_firmem(withmask = False)
+                    misson.mk_firmem(withmask=False)
                 elif config['name'] == 'firmem_mask':
-                    misson.mk_firmem(withmask = True)
+                    misson.mk_firmem(withmask=True)
                 elif config['length'] == 0:
                     misson.output_data = []
                 elif config['mode'] > 0:

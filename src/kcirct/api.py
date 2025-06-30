@@ -285,12 +285,13 @@ class KCIRCT:
         signal_port_mapping = self.read_signal_port_mapping(state_file)
         ports = {}
         for signal in signal_port_mapping:
-            if isinstance(signals[signal], dict):
-                for key, value in signals[signal].items():
+            value = signals[signal]
+            if isinstance(value, dict):
+                for key, v in value.items():
                     port_name = signal_port_mapping[signal] + '/' + f'Memory[{key[0]}]'
-                    ports[port_name] = value
+                    ports[port_name] = v
             else:
-                ports[signal_port_mapping[signal]] = signals[signal]
+                ports[signal_port_mapping[signal]] = value
         return ports  # type: ignore
 
     def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
@@ -338,10 +339,10 @@ class KCIRCT:
             for hw_outport, hw_output in zip(hw_outports, hw_outputs, strict=True):
                 signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
             i = 0
-            while(i < len(reg_ports)):
+            while i < len(reg_ports):
                 reg_port = reg_ports[i]
-                firmem_flag = reg_ports[i+1]
-                reg_name = reg_ports[i+5]
+                firmem_flag = reg_ports[i + 1]
+                reg_name = reg_ports[i + 5]
                 if firmem_flag == '1':
                     assert reg_name != 'default_firmem' 'firmem should have name'
                     signal_port_mapping[reg_port] = '/'.join(reg_port.split('/')[:-1] + [reg_name]) + '_ext'
@@ -721,7 +722,6 @@ class KCIRCT:
             return res
 
         return self.compile_expression(expression=_bits_list(inputs), sort='List')
-    
 
     # APIs for VCD
 

@@ -50,7 +50,7 @@ class KVCD:
     time: int
     time_scale: str
     filename: str
-    firmem: dict[str, list[int, int]]   #name -> (data_size, addr)
+    firmem: dict[str, list[int]]  # name -> (data_size, addr)
 
     def __init__(
         self,
