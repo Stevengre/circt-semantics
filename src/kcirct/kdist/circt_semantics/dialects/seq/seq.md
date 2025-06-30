@@ -96,7 +96,6 @@ rule
 ## `seq.firmem`
 
 
-//TODO:  firmem may have mask type like !seq.firmem<512 x 64, mask 8>
 ### build register
 
 0 is used as a placeholder if not otherwise specified.
