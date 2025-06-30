@@ -129,10 +129,10 @@ def test_print_pretty(mlir_file: Path) -> None:
 
 
 def test_pretty() -> None:
-    nowtest = 'hw'
+    nowtest = 'seq'
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'instance':
+        if dir.name == 'firmem_rl':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i])
 
 
@@ -147,7 +147,7 @@ def test_entry() -> None:
 
 
 def test_diffvcd() -> None:
-    now = DATA_PATH / Path('operation/seq/firmem_mask')
+    now = DATA_PATH / Path('operation/seq/firmem_rl')
     diffvcd(now)
 
 
@@ -176,7 +176,7 @@ if __name__ == '__main__':
         nowtest = 'seq'
         for i, dir in enumerate(DIRS[nowtest]):
             # if dir.name not in ['parity','icmp'] :
-            if dir.name == 'firmem_mask':
+            if dir.name == 'firmem_rl':
                 test_evaluate_operation(
                     MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], True
                 )

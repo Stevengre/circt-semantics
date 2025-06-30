@@ -107,7 +107,7 @@ rule
 ...
 </setup>
 <connection> M => M [Out <- "seq.firreg" ( L ) { Config } : (T1) -> (T)] </connection>
-<register> REG => REG [Out <- (0, getWidth(T), 0, 0)] </register>
+<register> REG => REG [Out <- (0, getWidth(T), 0, 0, {Config["name"] orDefault "default_firreg"}:>String)] </register>
 [priority(40)]
 
 rule
@@ -117,7 +117,8 @@ rule
 ...
 </setup>
 <connection> M => M [Out <- "seq.firmem" ( L ) { Config } : Ft] </connection>
-<register> REG => REG [Out <- (1, 0, ToInt({Config["readLatency"] orDefault 0}:>AttributeValue), ToInt({Config["writeLatency"] orDefault 0}:>AttributeValue))] </register>
+<register> REG => REG [Out <- (1, 0, ToInt({Config["readLatency"] orDefault 0}:>AttributeValue), 
+ToInt({Config["writeLatency"] orDefault 0}:>AttributeValue), {Config["name"] orDefault "default_firmem"}:>String)] </register>
 [priority(40)]
 ```
 
@@ -206,7 +207,7 @@ rule
 ...
 </current>
 <signals> Signals:Map </signals>
-<register> ... MemId |-> (_:Int, _:Int, 0:Int, _:Int) ... </register>
+<register> ... MemId |-> (_:Int, _:Int, 0:Int, _:Int, _:String) ... </register>
 <history> H:Map </history>
 [priority(30)]
 ```
@@ -254,7 +255,7 @@ rule
 ...
 </current>
 <signals> Signals:Map </signals>
-<register> ... MemId |-> (_:Int, _:Int, RL:Int, _:Int) ... </register>
+<register> ... MemId |-> (_:Int, _:Int, RL:Int, _:Int, _:String) ... </register>
 <register-proc> RegProc:Map => RegProc [Port <- buildRLList(RL, Addr)] </register-proc>
 <history> H:Map </history>
 [priority(35)]
