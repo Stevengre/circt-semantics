@@ -123,7 +123,7 @@ def test_diffvcd_operatrion(mlir_file: Path) -> None:
 
 def test_print_pretty(mlir_file: Path) -> None:
     kcirct = KCIRCT()
-    file_name = 'setup.kore'
+    file_name = 'simulated.0.kore'
     pretty_name = file_name + '.pretty'
     kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / pretty_name)
 

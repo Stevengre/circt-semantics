@@ -394,7 +394,7 @@ class KCIRCT:
                     mp: dict[tuple[int, int], tuple[int, int]] = {}
                     map_select = sub_str[:70]
 
-                    if map_select.find("'Lbl'Stop'Map{}())'") == -1:
+                    if map_select.find("'Lbl'Stop'Map{}())'") != -1:
                         # empty map
                         ports[port_name] = mp
                         continue
