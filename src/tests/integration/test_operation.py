@@ -143,7 +143,7 @@ def test_pretty() -> None:
     nowtest = 'seq'
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem_rl':
+        if dir.name == 'firmem_mask':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i])
 
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
         nowtest = 'seq'
         for i, dir in enumerate(DIRS[nowtest]):
             # if dir.name not in ['parity','icmp'] :
-            if dir.name == 'firmem_mask':
+            if dir.name == 'firreg2':
                 test_evaluate_operation(
                     MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], True
                 )

@@ -248,6 +248,7 @@ rule
 ```
 
 build RL processList
+第一次进行read_port时RL processList没有在<register-proc>中，先初始化创建
 
 ```k
 rule

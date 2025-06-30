@@ -29,7 +29,7 @@ PACK_V16_2EDGE = [ROCKET_SMALL_MLIR_FILE_V16, ROCKET_INPUT_V16_2EDGE] # 有用
 PACK_V16_MAIN = [ROCKET_SMALL_MLIR_FILE_V16, ROCKET_INPUT_V16_MAIN]
 
 NowPick =  []
-NowPick = PACK_V16
+NowPick = PACK_V16_2EDGE
 
 
 def test_diffvcd(now: Path | None = None) -> None:
@@ -62,7 +62,7 @@ def test_diffvcd(now: Path | None = None) -> None:
 
 def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
     kcirct = KCIRCT()
-    file_name = 'setup.kore'
+    file_name = '2esimulated.1.kore.prestate'
     kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / f'{file_name}.pretty')
 
 
@@ -299,9 +299,6 @@ def test_from_main_two_edge(mlir_file: Path, top_module: str, inputs: List) -> N
 
 
 if __name__ == '__main__':
-
-
-
     with open(NowPick[1], 'r') as file:
         json_data = json.load(file)
     # test_evaluate_demo(PICK[0], 'RocketSystem', json_data['inin'])  # 初始化第一阶段
