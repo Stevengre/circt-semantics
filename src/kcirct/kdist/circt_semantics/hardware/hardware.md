@@ -69,7 +69,7 @@ rule
 ... 
 </current>
 <history> H:Map </history>
-<register> ... Port |-> (RegType:Int, T:Int, RL:Int, _:Int) ... </register>
+<register> ... Port |-> (RegType:Int, T:Int, RL:Int, _:Int, _:String) ... </register>
 requires RegType ==Int 0
 
 rule
@@ -79,7 +79,7 @@ rule
 ... 
 </current>
 <history> H:Map </history>
-<register> ... Port |-> (RegType:Int, T:Int, RL:Int, _:Int) ... </register>
+<register> ... Port |-> (RegType:Int, T:Int, RL:Int, _:Int, _:String) ... </register>
 requires RegType ==Int 1
 
 ```

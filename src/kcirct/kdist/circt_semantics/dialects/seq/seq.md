@@ -96,8 +96,16 @@ rule
 ## `seq.firmem`
 
 
-//TODO:  firmem may have mask type like !seq.firmem<512 x 64, mask 8>
 ### build register
+
+0 is used as a placeholder if not otherwise specified.
+The structure of reg is a mapping from port to a tuple:
+port |->
+({1 indicates firmem, 0 indicates firreg}, 
+{if firreg, this is its size},
+{if firmem, this is the readlatency}, 
+{if firmem, this is the writelatency}, 
+{name})
 
 ```k
 rule
@@ -107,7 +115,7 @@ rule
 ...
 </setup>
 <connection> M => M [Out <- "seq.firreg" ( L ) { Config } : (T1) -> (T)] </connection>
-<register> REG => REG [Out <- (0, getWidth(T), 0, 0)] </register>
+<register> REG => REG [Out <- (0, getWidth(T), 0, 0, {Config["name"] orDefault "default_firreg"}:>String)] </register>
 [priority(40)]
 
 rule
@@ -117,7 +125,8 @@ rule
 ...
 </setup>
 <connection> M => M [Out <- "seq.firmem" ( L ) { Config } : Ft] </connection>
-<register> REG => REG [Out <- (1, 0, ToInt({Config["readLatency"] orDefault 0}:>AttributeValue), ToInt({Config["writeLatency"] orDefault 0}:>AttributeValue))] </register>
+<register> REG => REG [Out <- (1, 0, ToInt({Config["readLatency"] orDefault 0}:>AttributeValue), 
+ToInt({Config["writeLatency"] orDefault 0}:>AttributeValue), {Config["name"] orDefault "default_firmem"}:>String)] </register>
 [priority(40)]
 ```
 
@@ -206,7 +215,7 @@ rule
 ...
 </current>
 <signals> Signals:Map </signals>
-<register> ... MemId |-> (_:Int, _:Int, 0:Int, _:Int) ... </register>
+<register> ... MemId |-> (_:Int, _:Int, 0:Int, _:Int, _:String) ... </register>
 <history> H:Map </history>
 [priority(30)]
 ```
@@ -254,7 +263,7 @@ rule
 ...
 </current>
 <signals> Signals:Map </signals>
-<register> ... MemId |-> (_:Int, _:Int, RL:Int, _:Int) ... </register>
+<register> ... MemId |-> (_:Int, _:Int, RL:Int, _:Int, _:String) ... </register>
 <register-proc> RegProc:Map => RegProc [Port <- buildRLList(RL, Addr)] </register-proc>
 <history> H:Map </history>
 [priority(35)]

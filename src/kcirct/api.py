@@ -285,7 +285,13 @@ class KCIRCT:
         signal_port_mapping = self.read_signal_port_mapping(state_file)
         ports = {}
         for signal in signal_port_mapping:
-            ports[signal_port_mapping[signal]] = signals[signal]
+            value = signals[signal]
+            if isinstance(value, dict):
+                for key, v in value.items():
+                    port_name = signal_port_mapping[signal] + '/' + f'Memory[{key[0]}]'
+                    ports[port_name] = v
+            else:
+                ports[signal_port_mapping[signal]] = value
         return ports  # type: ignore
 
     def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
@@ -302,11 +308,14 @@ class KCIRCT:
             idx3 = state.find("Lbl'-LT-'hw-outputs'-GT-'")
             idx4 = state.find("Lbl'-LT-'hw-outports'-GT-'")
             idx5 = state.find("Lbl'-LT-'hw-out-types'-GT-'")
+            idx6 = state.find("Lbl'-LT-'register'-GT-'")
+            idx7 = state.find("Lbl'-LT-'register-proc'-GT-'")
 
             hw_inputs_str = state[idx0:idx1]
             hw_inports_str = state[idx1:idx2]
             hw_outputs_str = state[idx3:idx4]
             hw_outports_str = state[idx4:idx5]
+            register_str = state[idx6:idx7]
             state = state[idx5 + 1 :]
 
             def _find_names(str: str) -> list[str]:
@@ -324,10 +333,21 @@ class KCIRCT:
             hw_inports = _find_names(hw_inports_str)
             hw_outputs = _find_names(hw_outputs_str)
             hw_outports = _find_names(hw_outports_str)
+            reg_ports = _find_names(register_str)
             for hw_inport, hw_input in zip(hw_inports, hw_inputs, strict=True):
                 signal_port_mapping[hw_inport] = '/'.join(hw_inport.split('/')[:-1] + [hw_input])
             for hw_outport, hw_output in zip(hw_outports, hw_outputs, strict=True):
                 signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
+            i = 0
+            while i < len(reg_ports):
+                reg_port = reg_ports[i]
+                firmem_flag = reg_ports[i + 1]
+                reg_name = reg_ports[i + 5]
+                if firmem_flag == '1':
+                    assert reg_name != 'default_firmem' 'firmem should have name'
+                    signal_port_mapping[reg_port] = '/'.join(reg_port.split('/')[:-1] + [reg_name]) + '_ext'
+                i += 6
+
         return signal_port_mapping
 
     def read_signals(self, state_file: Path) -> dict[str, tuple[int, int] | dict[tuple[int, int], tuple[int, int]]]:
@@ -375,7 +395,7 @@ class KCIRCT:
                     mp: dict[tuple[int, int], tuple[int, int]] = {}
                     map_select = sub_str[:70]
 
-                    if map_select.find("'Lbl'Stop'Map{}())'") == -1:
+                    if map_select.find("'Lbl'Stop'Map{}())'") != -1:
                         # empty map
                         ports[port_name] = mp
                         continue
