@@ -99,6 +99,15 @@ rule
 //TODO:  firmem may have mask type like !seq.firmem<512 x 64, mask 8>
 ### build register
 
+0 is used as a placeholder if not otherwise specified.
+The structure of reg is a mapping from port to a tuple:
+port |->
+({1 indicates firmem, 0 indicates firreg}, 
+{if firreg, this is its size},
+{if firmem, this is the readlatency}, 
+{if firmem, this is the writelatency}, 
+{name})
+
 ```k
 rule
 <setup> 
