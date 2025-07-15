@@ -1,0 +1,6 @@
+Foo/i0/%arg0 size: 4
+is defferenes : 
+depth:0   Foo/i0/%arg0
+is constant :depth:1   Foo/i0/%0
+depth:1   Foo/%arg1
+depth:2   Foo/%arg2

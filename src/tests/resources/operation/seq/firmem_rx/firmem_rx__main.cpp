@@ -49,7 +49,10 @@ int main(int argc, char** argv, char**) {
         // Evaluate model
         topp->clk = inputs[int(main_time)][0][0].asInt();
         topp->data_in_w = inputs[int(main_time)][1][0].asInt();
-
+        topp->enbale1 = inputs[int(main_time)][2][0].asInt();
+        topp->enbale2 = inputs[int(main_time)][3][0].asInt();
+        topp->enbale3 = inputs[int(main_time)][4][0].asInt();
+        topp->enbale4 = inputs[int(main_time)][5][0].asInt();
         auto t_before = std::chrono::high_resolution_clock::now();
         topp->eval();
         auto t_after = std::chrono::high_resolution_clock::now();

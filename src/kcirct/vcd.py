@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from dataclasses import dataclass
 from functools import cached_property
@@ -50,6 +51,7 @@ class KVCD:
     time: int
     time_scale: str
     filename: str
+    memory_dump: bool
     firmem: dict[str, list[int]]  # name -> (data_size, addr)
 
     def __init__(
@@ -58,8 +60,10 @@ class KVCD:
         mlir_path: Path,
         state_json_path: Path | None = None,
         time_scale: str = '1s',
+        memory_dump: bool = False,
     ):
         self.__vcd_file = open(vcd_path, 'w')
+        self.memory_dump = memory_dump
         self._mlir_path = mlir_path
         self._state_json_path = state_json_path
         if self._state_json_path is None:
@@ -123,27 +127,29 @@ class KVCD:
             )
             _add_to_module(signal, modules)
             # 暂且规定firmem的module名字规则为***_ext
-            module_names = signal_name.rsplit('/', 2)
-            if len(module_names) > 1 and module_names[1].endswith('_ext'):
-                firmem_name = signal_name.rsplit('/', 1)[0]
-                if firmem_name not in self.firmem:
-                    self.firmem[firmem_name] = [-1, -1]
-                if module_names[2].endswith('addr'):
-                    self.firmem[firmem_name][1] = 2**signal.num_bits
-                elif module_names[2].endswith('data'):
-                    self.firmem[firmem_name][0] = signal.num_bits
-        for firmem_name, (databits, addr) in self.firmem.items():
-            for i in range(addr):
-                signal_name = f'{firmem_name}/Memory[{i}]'
-                signal_abbrev = Abbrev.gen()
-                self.abbrevs[signal_name] = signal_abbrev
-                signal = Signal(
-                    name=signal_name,
-                    abbrev=signal_abbrev,
-                    num_bits=databits,
-                    type='wire',
-                )
-                _add_to_module(signal, modules)
+            if self.memory_dump:
+                module_names = signal_name.rsplit('/', 2)
+                if len(module_names) > 1 and module_names[1].endswith('_ext'):
+                    firmem_name = signal_name.rsplit('/', 1)[0]
+                    if firmem_name not in self.firmem:
+                        self.firmem[firmem_name] = [-1, -1]
+                    if module_names[2].endswith('addr'):
+                        self.firmem[firmem_name][1] = 2**signal.num_bits
+                    elif module_names[2].endswith('data'):
+                        self.firmem[firmem_name][0] = signal.num_bits
+        if self.memory_dump:
+            for firmem_name, (databits, addr) in self.firmem.items():
+                for i in range(addr):
+                    signal_name = f'{firmem_name}/Memory[{i}]'
+                    signal_abbrev = Abbrev.gen()
+                    self.abbrevs[signal_name] = signal_abbrev
+                    signal = Signal(
+                        name=signal_name,
+                        abbrev=signal_abbrev,
+                        num_bits=databits,
+                        type='wire',
+                    )
+                    _add_to_module(signal, modules)
 
         return modules[top_module_name], modules
 
@@ -200,6 +206,10 @@ class KVCD:
 
     def write_values(self, ports: dict[str, tuple[int, int]]) -> None:
         for signal_name, signal_values in ports.items():
+            memory_check_name = signal_name.rsplit('/', 1)[1]
+            pattern = r'Memory\[\d+\]$'
+            if bool(re.search(pattern, memory_check_name)) and (not self.memory_dump):
+                continue
             if signal_values[1] == 1:
                 self.__vcd_file.write(f'{signal_values[0]}{self.abbrevs[signal_name]}\n')
             else:

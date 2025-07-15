@@ -76,7 +76,7 @@ def test_evaluate_operation(
         kcirct.krun_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{rounds&1}.kore')
         end_time = time.time()
         vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{rounds&1}.kore'))
-        rounds += 1 
+        rounds += 1
         print(str(vcd.time) + str(mlir_file))
         print('runtime:' + str(end_time - start_time))
     else:
@@ -134,7 +134,7 @@ def test_diffvcd_operatrion(mlir_file: Path) -> None:
 
 def test_print_pretty(mlir_file: Path) -> None:
     kcirct = KCIRCT()
-    file_name = 'simulated.0.kore'
+    file_name = 'simulated.1.kore'
     pretty_name = file_name + '.pretty'
     kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / pretty_name)
 
@@ -143,7 +143,7 @@ def test_pretty() -> None:
     nowtest = 'seq'
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem_mask':
+        if dir.name == 'firmem_rwl':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i])
 
 
@@ -158,7 +158,7 @@ def test_entry() -> None:
 
 
 def test_diffvcd() -> None:
-    now = DATA_PATH / Path('operation/seq/firmem_mask')
+    now = DATA_PATH / Path('operation/seq/firmem_rwl')
     diffvcd(now)
 
 
@@ -184,12 +184,12 @@ def diffvcd(test_path: Path) -> None:
 if __name__ == '__main__':
     mode = 1
     if mode == 1:
-        nowtest = 'seq'
+        nowtest = 'hw'
         for i, dir in enumerate(DIRS[nowtest]):
             # if dir.name not in ['parity','icmp'] :
-            if dir.name == 'firreg2':
+            if dir.name == 'instance':
                 test_evaluate_operation(
-                    MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], True
+                    MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], False
                 )
     elif mode == 0:
         for dialect, operations in DIALECT_OPERATIONS.items():

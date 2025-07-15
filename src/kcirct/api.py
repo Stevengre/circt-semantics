@@ -396,14 +396,14 @@ class KCIRCT:
                     mp: dict[tuple[int, int], tuple[int, int]] = {}
                     map_select = sub_str[:70]
 
-                    if map_select.find("'Lbl'Stop'Map{}())'") != -1:
+                    if map_select.find("Lbl'Stop'Map{}())") != -1:
                         # empty map
                         ports[port_name] = mp
                         continue
                     map_end_idx = sub_str.find('"))))))))')
                     map_str = sub_str[: map_end_idx + 1]
                     sub_str = sub_str[map_end_idx + 1 :]
-
+                    # print('name:' +port_name+'\n'+map_select)
                     while len(map_str):
                         # find Key value
                         pre_idx = map_str.find('"')

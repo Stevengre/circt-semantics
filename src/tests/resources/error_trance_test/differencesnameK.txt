@@ -1,0 +1,2 @@
+Foo/i0/%arg0
+Foo/%8

@@ -209,7 +209,7 @@ if Rl == 0 missing checkEdge
 rule
 <current> 
    (ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) ListItem(Enable:Bits) ListItem(Mode:Bits)
-~> "seq.firmem.read_port" ( ListItem(_) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } :  (_) -> (T:IntegerType)
+~> "seq.firmem.read_port" ( ListItem(MemId:String) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } :  (_) -> (T:IntegerType)
  => "seq.firmem.read_port.RL0" ( ListItem(Mem) ListItem(Addr) ListItem(Enable) ListItem(Mode) ) { .Map } : (.Types) -> (T) 
  ) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
@@ -262,8 +262,8 @@ rule
 <register> ... MemId |-> (_:Int, _:Int, RL:Int, _:Int, _:String) ... </register>
 <register-proc> RegProc:Map => RegProc [Port <- buildRLList(RL, Addr)] </register-proc>
 <history> H:Map </history>
-// requires notBool (Port in_keys(RegProc))
-[priority(35)]
+requires notBool (Port in_keys(RegProc))
+[priority(34)]
 ```
 
 

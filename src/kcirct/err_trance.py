@@ -5,10 +5,11 @@ from collections import deque
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Union
-from .api import KCIRCT
 
 import pyk.kore.syntax
 from pyk.kore.parser import KoreParser
+
+from .api import KCIRCT
 
 sys.setrecursionlimit(1000000)
 
@@ -80,6 +81,7 @@ class KErrTrance:
     logger: logging.Logger
     differenes: list[str] = []
     signal_port_mapping: dict[str, str] = {}
+
     def __init__(self) -> None:
         self.logger = logging.getLogger('test_koreparser')
         self.logger.propagate = False
@@ -89,7 +91,7 @@ class KErrTrance:
         self.logger.addHandler(file_handler)
 
     def set_signal_port_mapping(self, sate_file: Path) -> None:
-        par:dict[str, str] = KCIRCT.read_signal_port_mapping(sate_file)
+        par: dict[str, str] = KCIRCT.read_signal_port_mapping(sate_file)
         self.signal_port_mapping = {v: k for k, v in par.items()}
 
     @staticmethod
@@ -289,7 +291,7 @@ class KErrTrance:
                 if self.edge_map[father_edge].attr != 'direct':
                     break
                 que.append(self.edge_map[father_edge].to)
-            for i in range(len(que)-1):
+            for i in range(len(que) - 1):
                 self.edge_map[self.node_map[que[i]].edges_in[0]].to = que[-1]
 
     def save_to_json(self, filename: Path) -> None:
@@ -307,38 +309,40 @@ class KErrTrance:
         self.node_map = {name: PathNode.from_dict(node_data) for name, node_data in data["nodes"].items()}
         self.edge_map = [PathEdge.from_dict(edge_data) for edge_data in data["edges"]]
 
-    def search_path(self, target: str, output_file: Path) -> None:
-        flag_map: dict[str, list[int, str, str]] = {target: [0, 'target', 'target']}
-        q: deque[tuple[str, int]] = deque()
+    def search_path_kname(self, target: str, output_file: Path) -> None:
+        flag_map: dict[str, tuple[int, str, str]] = {target: (0, 'target', 'target')}
+        q: deque[str] = deque()
         q.append(str(target))
         while q:
             node = q.popleft()
-            [now_dep, _, _] = flag_map[node]
+            (now_dep, _, _) = flag_map[node]
             for edge_name in self.node_map[node].edges_in:
                 to_name = self.edge_map[edge_name].to
                 if to_name not in flag_map:
                     new_dep = now_dep + 1
-                    flag_map[to_name] = [new_dep, self.edge_map[edge_name].attr, node]
+                    flag_map[to_name] = (new_dep, self.edge_map[edge_name].attr, node)
                     if self.node_map[to_name].is_firmem or self.node_map[to_name].is_firreg:
                         continue
                     q.append(to_name)
         with open(output_file, 'w') as f:
             f.write(f'{target} size: {len(flag_map)}\n')
-            for name, dep in flag_map.items():
+            for name, attr in flag_map.items():
                 if name in self.differenes:
-                    f.write(f'is defferenes : \n')
+                    f.write('is defferenes : \n')
                 if self.node_map[name].is_firmem:
                     f.write('is firmem :')
                 elif self.node_map[name].is_firreg:
                     f.write('is firreg :')
                 elif self.node_map[name].is_constant:
                     f.write('is constant :')
-                f.write('depth:' + str(dep) + '   ' +  name + '\n')
+                f.write('depth:' + str(attr[0]) + '   ' + name + '\n')
 
     def change_vcdname2kname(self, vcdname: str) -> str:
         vcdname = vcdname.replace('.', '/')
         return self.signal_port_mapping[vcdname]
+
     def search_path_vcdname(self, target: str, output_file: Path) -> None:
+        target = target.replace('.', '/')
         new_target = self.signal_port_mapping[target]
         print(new_target)
-        self.search_path(new_target, output_file)
+        self.search_path_kname(new_target, output_file)

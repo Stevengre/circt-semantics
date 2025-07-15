@@ -49,7 +49,8 @@ int main(int argc, char** argv, char**) {
     while (!Verilated::gotFinish() && main_time < inputs.size()) {
         // Evaluate model
         topp->clk = inputs[int(main_time)][0][0].asInt();
-        topp->reset = inputs[int(main_time)][1][0].asInt();
+        topp->a = inputs[int(main_time)][1][0].asInt();
+        topp->b = inputs[int(main_time)][2][0].asInt();
         auto t_before = std::chrono::high_resolution_clock::now();
         topp->eval();
         auto t_after = std::chrono::high_resolution_clock::now();

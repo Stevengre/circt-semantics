@@ -1,0 +1,1028 @@
+{
+  "nodes": {
+    "Foo/%14": {
+      "edges_in": [
+        0,
+        14
+      ],
+      "edges_out": [
+        11
+      ],
+      "edge_id": 2,
+      "name": "Foo/%14",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%arg1": {
+      "edges_in": [
+        6,
+        20,
+        36,
+        56,
+        94
+      ],
+      "edges_out": [
+        1,
+        3,
+        17,
+        25,
+        29,
+        33,
+        39,
+        41,
+        53,
+        65,
+        91,
+        97
+      ],
+      "edge_id": 9,
+      "name": "Foo/%arg1",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%6": {
+      "edges_in": [
+        2,
+        4
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%6",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%arg2": {
+      "edges_in": [],
+      "edges_out": [
+        5,
+        7,
+        19,
+        21,
+        27,
+        31,
+        35,
+        37,
+        43,
+        55,
+        57,
+        93,
+        95
+      ],
+      "edge_id": 1,
+      "name": "Foo/%arg2",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%18": {
+      "edges_in": [
+        8
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%18",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/i0/%1": {
+      "edges_in": [
+        58,
+        60
+      ],
+      "edges_out": [
+        9
+      ],
+      "edge_id": 1,
+      "name": "Foo/i0/%1",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%13": {
+      "edges_in": [],
+      "edges_out": [],
+      "edge_id": 0,
+      "name": "Foo/%13",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": true
+    },
+    "Foo/%16": {
+      "edges_in": [
+        10,
+        12,
+        50
+      ],
+      "edges_out": [
+        47
+      ],
+      "edge_id": 2,
+      "name": "Foo/%16",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%15": {
+      "edges_in": [
+        42
+      ],
+      "edges_out": [
+        13,
+        15
+      ],
+      "edge_id": 1,
+      "name": "Foo/%15",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%5": {
+      "edges_in": [
+        16,
+        18,
+        74,
+        76,
+        78
+      ],
+      "edges_out": [
+        67,
+        105
+      ],
+      "edge_id": 2,
+      "name": "Foo/%5",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%10": {
+      "edges_in": [
+        22,
+        24,
+        26
+      ],
+      "edges_out": [
+        113
+      ],
+      "edge_id": 1,
+      "name": "Foo/%10",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%0": {
+      "edges_in": [
+        28,
+        30
+      ],
+      "edges_out": [
+        23,
+        49,
+        51,
+        71,
+        77
+      ],
+      "edge_id": 1,
+      "name": "Foo/%0",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": true
+    },
+    "Foo/%7": {
+      "edges_in": [
+        32,
+        34
+      ],
+      "edges_out": [
+        73,
+        79
+      ],
+      "edge_id": 1,
+      "name": "Foo/%7",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%8": {
+      "edges_in": [
+        38
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%8",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/i0/%0": {
+      "edges_in": [],
+      "edges_out": [
+        61,
+        63
+      ],
+      "edge_id": 0,
+      "name": "Foo/i0/%0",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": true
+    },
+    "Foo/%12": {
+      "edges_in": [
+        40
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%12",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%19": {
+      "edges_in": [
+        44
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%19",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%arg0": {
+      "edges_in": [],
+      "edges_out": [
+        45,
+        69,
+        75,
+        85,
+        89,
+        101,
+        109
+      ],
+      "edge_id": 1,
+      "name": "Foo/%arg0",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%17": {
+      "edges_in": [
+        46,
+        48
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%17",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%9": {
+      "edges_in": [
+        52,
+        54
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%9",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/i0/%arg0": {
+      "edges_in": [
+        62,
+        96
+      ],
+      "edges_out": [
+        59
+      ],
+      "edge_id": 2,
+      "name": "Foo/i0/%arg0",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%11": {
+      "edges_in": [
+        64
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%11",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%20": {
+      "edges_in": [
+        66,
+        68,
+        70,
+        72
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%20",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": true,
+      "is_constant": false
+    },
+    "Foo/%22": {
+      "edges_in": [
+        80,
+        82,
+        84
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%22",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%21": {
+      "edges_in": [
+        86,
+        88,
+        98,
+        100,
+        102,
+        104,
+        106,
+        108,
+        110,
+        112
+      ],
+      "edges_out": [
+        81
+      ],
+      "edge_id": 3,
+      "name": "Foo/%21",
+      "depth": -1,
+      "is_firmem": true,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%2": {
+      "edges_in": [],
+      "edges_out": [
+        83,
+        87,
+        99,
+        107
+      ],
+      "edge_id": 0,
+      "name": "Foo/%2",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": true
+    },
+    "Foo/%1": {
+      "edges_in": [],
+      "edges_out": [
+        103,
+        111
+      ],
+      "edge_id": 0,
+      "name": "Foo/%1",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": true
+    },
+    "Foo/%23": {
+      "edges_in": [],
+      "edges_out": [],
+      "edge_id": 0,
+      "name": "Foo/%23",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    },
+    "Foo/%3": {
+      "edges_in": [],
+      "edges_out": [],
+      "edge_id": 0,
+      "name": "Foo/%3",
+      "depth": 0,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": true
+    },
+    "Foo/%4": {
+      "edges_in": [
+        90,
+        92
+      ],
+      "edges_out": [],
+      "edge_id": 1,
+      "name": "Foo/%4",
+      "depth": -1,
+      "is_firmem": false,
+      "is_firreg": false,
+      "is_constant": false
+    }
+  },
+  "edges": [
+    {
+      "to": "Foo/%arg1",
+      "attr": "hw.array_create",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%14",
+      "attr": "hw.array_create",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%6",
+      "attr": "comb.concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%6",
+      "attr": "comb.concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.concat",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.concat",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/i0/%1",
+      "attr": "direct",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%18",
+      "attr": "direct",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%14",
+      "attr": "hw.array_concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%16",
+      "attr": "hw.array_concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%15",
+      "attr": "hw.array_concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%16",
+      "attr": "hw.array_concat",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%15",
+      "attr": "hw.array_concat",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%14",
+      "attr": "hw.array_concat",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.and",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "comb.and",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.and",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "comb.and",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.and",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.and",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%10",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%10",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%10",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "comb.mux",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.divs",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%7",
+      "attr": "comb.divs",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.divs",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%7",
+      "attr": "comb.divs",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.divs",
+      "edge_id": 3
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.divs",
+      "edge_id": 3
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.extract",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%8",
+      "attr": "comb.extract",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.replicate",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%12",
+      "attr": "comb.replicate",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "hw.array_create",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%15",
+      "attr": "hw.array_create",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.from_clock",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%19",
+      "attr": "seq.from_clock",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%16",
+      "attr": "hw.array_get",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%17",
+      "attr": "hw.array_get",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "hw.array_get",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%17",
+      "attr": "hw.array_get",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "hw.array_get",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%16",
+      "attr": "hw.array_get",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.icmp",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%9",
+      "attr": "comb.icmp",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.icmp",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%9",
+      "attr": "comb.icmp",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.icmp",
+      "edge_id": 6
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.icmp",
+      "edge_id": 6
+    },
+    {
+      "to": "Foo/i0/%arg0",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/i0/%1",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/i0/%0",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/i0/%1",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/i0/%0",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/i0/%arg0",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.parity",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%11",
+      "attr": "comb.parity",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%20",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%20",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%20",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%7",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%20",
+      "attr": "seq.firreg",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.firreg",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "seq.firreg",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%0",
+      "attr": "seq.firreg",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "seq.firreg",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%7",
+      "attr": "seq.firreg",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "seq.firreg",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%22",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%2",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%22",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%22",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%2",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.read_port",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%4",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%4",
+      "attr": "comb.add",
+      "edge_id": 0
+    },
+    {
+      "to": "Foo/%arg2",
+      "attr": "comb.add",
+      "edge_id": 8
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "comb.add",
+      "edge_id": 8
+    },
+    {
+      "to": "Foo/%arg1",
+      "attr": "direct",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/i0/%arg0",
+      "attr": "direct",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%2",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%1",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%5",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 1
+    },
+    {
+      "to": "Foo/%2",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%arg0",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%1",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%10",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    },
+    {
+      "to": "Foo/%21",
+      "attr": "seq.firmem.write_port",
+      "edge_id": 2
+    }
+  ]
+}
