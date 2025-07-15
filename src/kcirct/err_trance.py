@@ -220,7 +220,6 @@ class KErrTrance:
                     self.node_map[op_target_name].is_firreg = True
 
                 _list_parttern = _rhs_pattern.patterns[1]
-                # print(type(_list_parttern))
                 assert isinstance(_list_parttern, pyk.kore.syntax.LeftAssoc)
                 if op_name != "seq.firmem.read_write_port":
                     self.build_op_edge(op_target_name, _list_parttern, op_name)

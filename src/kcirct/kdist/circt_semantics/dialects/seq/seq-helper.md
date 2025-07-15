@@ -19,6 +19,8 @@ imports MLIR-HELPER
 ### `maskWrite`
 
 mask corresponds to each block of W/maskSize 
+The data width is evenly divided into blocks, one for each mask bit.
+A block is written only if the corresponding mask bit is 1.
 
 ```k
 syntax Bits ::= maskWrite(Map, Bits, Bits, Bits, Int) [function]

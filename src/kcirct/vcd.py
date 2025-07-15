@@ -61,6 +61,7 @@ class KVCD:
         state_json_path: Path | None = None,
         time_scale: str = '1s',
         memory_dump: bool = False,
+        # If True, the VCD output will include map entries related to firmem.
     ):
         self.__vcd_file = open(vcd_path, 'w')
         self.memory_dump = memory_dump

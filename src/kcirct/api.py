@@ -403,7 +403,6 @@ class KCIRCT:
                     map_end_idx = sub_str.find('"))))))))')
                     map_str = sub_str[: map_end_idx + 1]
                     sub_str = sub_str[map_end_idx + 1 :]
-                    # print('name:' +port_name+'\n'+map_select)
                     while len(map_str):
                         # find Key value
                         pre_idx = map_str.find('"')
