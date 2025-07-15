@@ -245,6 +245,7 @@ class KErrTrance:
             self.build_firmem_write_edge(_write_list_parttern, _op_name)
 
     def build_grapth(self, source_file: Path, target_file: Path) -> None:
+        # 从这里开始构建
         # 解析kore
         with open(source_file, "r", encoding="utf-8") as f:
             kore_text = f.read()
@@ -267,18 +268,18 @@ class KErrTrance:
 
         _map_of_connection_parttern = _connection_parttern.patterns[0]
         assert _map_of_connection_parttern.symbol == "Lbl'Unds'Map'Unds'"  # type: ignore
-
+        #前面是定位到<connection>
         self.build_conncetion_path(_map_of_connection_parttern)
 
         _procedure_parttern = self.find_with_symbol_name(_hardware_parttern, "Lbl'-LT-'procedures'-GT-'")
         assert _procedure_parttern.symbol == "Lbl'-LT-'procedures'-GT-'"
 
         self.build_procedure_path(_procedure_parttern)
-        print("1")
-        self.path_compression()
+        self.path_compression() #压缩direct路径
         self.save_to_json(target_file)
 
     def path_compression(self) -> None:
+        #压缩direct路径
         for node_name, node in self.node_map.items():
             if node.is_firmem or len(node.edges_in) != 1:
                 continue
@@ -321,6 +322,8 @@ class KErrTrance:
                     new_dep = now_dep + 1
                     flag_map[to_name] = (new_dep, self.edge_map[edge_name].attr, node)
                     if self.node_map[to_name].is_firmem or self.node_map[to_name].is_firreg:
+                        #如果是firreg或者firmem，因为其内容来自于上一个周期或着更早周期，
+                        #所以在单个周期具体查询节点的依赖关系中，已经算是起点。
                         continue
                     q.append(to_name)
         with open(output_file, 'w') as f:
