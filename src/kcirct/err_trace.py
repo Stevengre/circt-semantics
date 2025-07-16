@@ -75,7 +75,7 @@ class PathNode:
         return node
 
 
-class KErrTrance:
+class KErrTrace:
     node_map: dict[str, PathNode] = {}
     edge_map: list[PathEdge] = []
     logger: logging.Logger
