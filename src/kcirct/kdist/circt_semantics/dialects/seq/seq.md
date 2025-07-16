@@ -174,6 +174,7 @@ rule
 ### `seq.firmem.read_port`
 
 add enable
+
 ```k
 rule
 <current> 
@@ -202,15 +203,14 @@ rule
 [priority(30)]
 ```
 
-if Rl == 0
+if Rl == 0 missing checkEdge
 
 ```k
 rule
 <current> 
    (ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) ListItem(Enable:Bits) ListItem(Mode:Bits)
-~> "seq.firmem.read_port" ( ListItem(_) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } :  (_) -> (T:IntegerType)
- => "seq.firmem.read_port.RL0" ( ListItem(Mem) ListItem(Addr) 
-   ListItem(checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits)) ListItem(Enable) ListItem(Mode) ) { .Map } : (.Types) -> (T) 
+~> "seq.firmem.read_port" ( ListItem(MemId:String) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } :  (_) -> (T:IntegerType)
+ => "seq.firmem.read_port.RL0" ( ListItem(Mem) ListItem(Addr) ListItem(Enable) ListItem(Mode) ) { .Map } : (.Types) -> (T) 
  ) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
@@ -225,12 +225,10 @@ rule
 ```k
 rule
 <current>
-   ("seq.firmem.read_port.RL0" ( ListItem(_:Map) ListItem(_:Bits) 
-   ListItem(_:Bool) ListItem(Enable:Bits) ListItem(Mode:Bits)) { _:Map } : (_) -> (T:IntegerType) 
+   ("seq.firmem.read_port.RL0" ( ListItem(_:Map) ListItem(_:Bits) ListItem(Enable:Bits) ListItem(Mode:Bits)) { _:Map } : (_) -> (T:IntegerType) 
    => ListItem(bits(0, getWidth(T)))) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
-<signals> Signals:Map </signals>
 <history> H:Map </history>
 requires (notBool Bits2Bool(Enable)) orBool Bits2Bool(Mode)
 [priority(30)]
@@ -241,11 +239,8 @@ requires (notBool Bits2Bool(Enable)) orBool Bits2Bool(Mode)
 ```k
 rule
 <current> 
-  ("seq.firmem.read_port.RL0" ( ListItem(Mem:Map) ListItem(Addr:Bits) 
-   ListItem(EdgeType:Bool) ListItem(_Enable:Bits) ListItem(_Mode:Bits)) { _:Map } : (_) -> (T:IntegerType) 
-=> #if EdgeType
-   #then ListItem(Mem[Addr] orDefault bits(0, getWidth(T)))
-   #else ListItem(H[Port] orDefault bits(0, getWidth(T))) #fi) ~> "HARDWARE#WRITE" ~> ListItem(Port) 
+  ("seq.firmem.read_port.RL0" ( ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(_Enable:Bits) ListItem(_Mode:Bits)) { _:Map } : (_) -> (T:IntegerType) 
+=> ListItem(Mem[Addr] orDefault bits(0, getWidth(T)))) ~> "HARDWARE#WRITE" ~> ListItem(Port) 
 ...
 </current>
 <history> H:Map </history>
@@ -253,6 +248,8 @@ rule
 ```
 
 build RL processList
+When accessing the read_port for the first time, the RL processList is not present in <register-proc>,
+ so it should be initialized and created first
 
 ```k
 rule
@@ -266,7 +263,8 @@ rule
 <register> ... MemId |-> (_:Int, _:Int, RL:Int, _:Int, _:String) ... </register>
 <register-proc> RegProc:Map => RegProc [Port <- buildRLList(RL, Addr)] </register-proc>
 <history> H:Map </history>
-[priority(35)]
+requires notBool (Port in_keys(RegProc))
+[priority(34)]
 ```
 
 
@@ -276,12 +274,10 @@ rule
    (ListItem(Mem:Map) ListItem(Addr:Bits) ListItem(Clk:Bits) ListItem(Enable:Bits) ListItem(Mode:Bits)
 ~> "seq.firmem.read_port" ( ListItem(_) ListItem(_) ListItem(ClkId:String) _:List ) { _:Map } :  (_) -> (T:IntegerType)
  => "seq.firmem.read_port.stage2" ( ListItem(Mem) ListItem(checkEdge(0, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits)) 
- ListItem(checkEdge(1, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits))
  ListItem(Enable) ListItem(Addr) ListItem(Mode) ) { .Map } : (.Types) -> (T) 
  ) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
-<signals> Signals:Map </signals>
 <register-proc> ... Port |-> _:List ... </register-proc>
 <history> H:Map </history>
 [priority(35)]
@@ -291,19 +287,15 @@ rule
 use proprocessList Head to read
 after 
 if postive edge clk, write now aggr to processList tail and pop head
-if negtive edge clk, keep processList
 
 ```k
 rule
 <current> 
-   ("seq.firmem.read_port.stage2" ( ListItem(Mem:Map) ListItem(PosEdge:Bool) ListItem(NegEdge:Bool) ListItem(EnableNew:Bits)
+   ("seq.firmem.read_port.stage2" ( ListItem(Mem:Map) ListItem(PosEdge:Bool) ListItem(EnableNew:Bits)
    ListItem(AddrNew:Bits) ListItem(ModeNew:Bits) ) { _:Map } : (_) -> (T:IntegerType)
- => #if NegEdge
-   #then ListItem(Mem[Addr] orDefault bits(0, getWidth(T)))
-   #else ListItem(H[Port] orDefault bits(0, getWidth(T))) #fi) ~> "HARDWARE#WRITE" ~> ListItem(Port)
+ => ListItem(Mem[Addr] orDefault bits(0, getWidth(T)))) ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
-<signals> Signals:Map </signals>
 <register-proc> ... ( Port |-> ListItem(Enable:Bits) ListItem(Addr:Bits) ListItem(Mode:Bits) L1:List => 
 #if PosEdge #then Port |-> L1 ListItem(EnableNew) ListItem(AddrNew) ListItem(ModeNew)
 #else  Port |-> ListItem(Enable) ListItem(Addr) ListItem(Mode) L1 #fi)
@@ -317,12 +309,11 @@ requires (Bits2Bool(Enable)) andBool (notBool Bits2Bool(Mode))
 ```k
 rule
 <current> 
-   ("seq.firmem.read_port.stage2" ( ListItem(Mem:Map) ListItem(PosEdge:Bool) ListItem(NegEdge:Bool) ListItem(EnableNew:Bits) 
+   ("seq.firmem.read_port.stage2" ( ListItem(Mem:Map) ListItem(PosEdge:Bool)  ListItem(EnableNew:Bits) 
    ListItem(AddrNew:Bits) ListItem(ModeNew:Bits) ) { _:Map } : (_) -> (T:IntegerType)
  => ListItem(bits(0, getWidth(T))))~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
-<signals> Signals:Map </signals>
 <register-proc> ... ( Port |-> ListItem(Enable:Bits) ListItem(Addr:Bits) ListItem(Mode:Bits) L1:List => 
 #if PosEdge #then Port |-> L1 ListItem(EnableNew) ListItem(AddrNew) ListItem(ModeNew)
 #else  Port |-> ListItem(Enable) ListItem(Addr) ListItem(Mode) L1 #fi)

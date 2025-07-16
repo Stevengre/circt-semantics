@@ -1,0 +1,2 @@
+Foo.res
+Foo.i0.io_a

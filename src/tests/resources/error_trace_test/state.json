@@ -1,0 +1,152 @@
+[
+  {
+    "name": "Foo",
+    "numStateBytes": 33,
+    "states": [
+      {
+        "name": "clock",
+        "offset": 0,
+        "numBits": 1,
+        "type": "input"
+      },
+      {
+        "name": "a",
+        "offset": 1,
+        "numBits": 8,
+        "type": "input"
+      },
+      {
+        "name": "b",
+        "offset": 2,
+        "numBits": 8,
+        "type": "input"
+      },
+      {
+        "name": "res",
+        "offset": 3,
+        "numBits": 8,
+        "type": "output"
+      },
+      {
+        "name": "clock",
+        "offset": 4,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "a",
+        "offset": 5,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "b",
+        "offset": 6,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i0/io_a",
+        "offset": 7,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "i0/res2",
+        "offset": 8,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/R0_addr",
+        "offset": 16,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/R0_en",
+        "offset": 17,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/R0_data",
+        "offset": 18,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/RW0_addr",
+        "offset": 19,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/RW0_en",
+        "offset": 20,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/RW0_wmode",
+        "offset": 21,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/RW0_wdata",
+        "offset": 22,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/RW0_rdata",
+        "offset": 23,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/W0_addr",
+        "offset": 24,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/W0_en",
+        "offset": 25,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/W0_data",
+        "offset": 26,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/W1_addr",
+        "offset": 27,
+        "numBits": 2,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/W1_en",
+        "offset": 28,
+        "numBits": 1,
+        "type": "wire"
+      },
+      {
+        "name": "ram_ext/W1_data",
+        "offset": 29,
+        "numBits": 8,
+        "type": "wire"
+      },
+      {
+        "name": "res",
+        "offset": 31,
+        "numBits": 8,
+        "type": "wire"
+      }
+    ]
+  }
+]

@@ -6,21 +6,21 @@
 #include <fstream>
 #include "verilated.h"
 #include <verilated_vcd_c.h>
-#include "Vfirmem_x.h"
+#include "Vfirmem_rx.h"
 #include <typeinfo>
 #include <chrono>
 
 using namespace Json;
 //======================
 
-Vfirmem_x* topp;
+Vfirmem_rx* topp;
 
 // Requires -DVL_TIME_STAMP64
 vluint64_t main_time = 0;
 Value inputs;
 
 void getInput(){
-    std::ifstream ifs("./seq/firmem_x/test_data.json");
+    std::ifstream ifs("./seq/firmem_rx/test_data.json");
     Value root;
     Reader r;
     r.parse(ifs, root);
@@ -32,11 +32,11 @@ int main(int argc, char** argv, char**) {
     Verilated::debug(0);
     Verilated::commandArgs(argc, argv);
     // Construct the Verilated model, from Vtop.h generated from Verilating
-    topp = new Vfirmem_x("Foo");
+    topp = new Vfirmem_rx("Foo");
     VerilatedVcdC* tfp = new VerilatedVcdC; // 创建 VCD 对象
     Verilated::traceEverOn(true);
     topp->trace(tfp, 99); // 设置波形跟踪深度
-    tfp->open("./seq/firmem_x/trace_vtor.vcd"); // 打开 VCD 文件 ,这里写相对路径的话，我可以在operation目录下
+    tfp->open("./seq/firmem_rx/trace_vtor.vcd"); // 打开 VCD 文件 ,这里写相对路径的话，我可以在operation目录下
     // Evaluate initials
     topp->eval();  // Evaluate
     // Simulate until $finish
@@ -49,14 +49,10 @@ int main(int argc, char** argv, char**) {
         // Evaluate model
         topp->clk = inputs[int(main_time)][0][0].asInt();
         topp->data_in_w = inputs[int(main_time)][1][0].asInt();
-        topp->data_in_rw = inputs[int(main_time)][2][0].asInt();
-        topp->addr_r = inputs[int(main_time)][3][0].asInt();
-        topp->addr_w = inputs[int(main_time)][4][0].asInt();
-        topp->addr_rw = inputs[int(main_time)][5][0].asInt();
-        topp->mode = inputs[int(main_time)][6][0].asInt();
-        topp->enable_r = inputs[int(main_time)][7][0].asInt();
-        topp->enable_w = inputs[int(main_time)][8][0].asInt();
-        topp->enable_rw = inputs[int(main_time)][9][0].asInt();
+        topp->enbale1 = inputs[int(main_time)][2][0].asInt();
+        topp->enbale2 = inputs[int(main_time)][3][0].asInt();
+        topp->enbale3 = inputs[int(main_time)][4][0].asInt();
+        topp->enbale4 = inputs[int(main_time)][5][0].asInt();
         auto t_before = std::chrono::high_resolution_clock::now();
         topp->eval();
         auto t_after = std::chrono::high_resolution_clock::now();

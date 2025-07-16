@@ -1,0 +1,2850 @@
+Type: LeftAssoc
+Symbol: Lbl'Unds'Map'Unds'
+Child 0:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%19')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='seq.from_clock')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg0')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'seq'Stop'clock'Unds'SEQ-SYNTAX'Unds'SeqClockType
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 1:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/i0/%arg0')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%arg1')
+Child 2:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%22')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='seq.firmem.read_port')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%21')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%2')
+        Child 2:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg0')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'seq'Stop'firmem'-LT-Unds'x'Unds-GT-Unds'SEQ-SYNTAX'Unds'SeqFirmemType'Unds'Int'Unds'Int
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortInt', sorts=())
+                Value: String(value='4')
+              Child 1:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortInt', sorts=())
+                Value: String(value='8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i2')
+            Child 1:
+              Type: App
+              Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: App
+                  Symbol: Lbl'Bang'seq'Stop'clock'Unds'SEQ-SYNTAX'Unds'SeqClockType
+              Child 1:
+                Type: App
+                Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 3:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/i0/%1')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.add')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/i0/%arg0')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/i0/%0')
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='sv.namehint')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='_out_T')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 4:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%18')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/i0/%1')
+Child 5:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%23')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='seq.firmem.read_write_port')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%21')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%2')
+        Child 2:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg0')
+        Child 3:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%1')
+        Child 4:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%4')
+        Child 5:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%3')
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='operandSegmentSizes')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lblarray'-LT-UndsColnUnds-GT-Unds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'Type'Unds'AttributeValueList
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i32')
+              Child 1:
+                Type: App
+                Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                Child 0:
+                  Type: App
+                  Symbol: inj
+                  Child 0:
+                    Type: DV
+                    Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                    Sort: SortApp(name='SortInt', sorts=())
+                    Value: String(value='1')
+                Child 1:
+                  Type: App
+                  Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                  Child 0:
+                    Type: App
+                    Symbol: inj
+                    Child 0:
+                      Type: DV
+                      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                      Sort: SortApp(name='SortInt', sorts=())
+                      Value: String(value='1')
+                  Child 1:
+                    Type: App
+                    Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                    Child 0:
+                      Type: App
+                      Symbol: inj
+                      Child 0:
+                        Type: DV
+                        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                        Sort: SortApp(name='SortInt', sorts=())
+                        Value: String(value='1')
+                    Child 1:
+                      Type: App
+                      Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                      Child 0:
+                        Type: App
+                        Symbol: inj
+                        Child 0:
+                          Type: DV
+                          Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                          Sort: SortApp(name='SortInt', sorts=())
+                          Value: String(value='1')
+                      Child 1:
+                        Type: App
+                        Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                        Child 0:
+                          Type: App
+                          Symbol: inj
+                          Child 0:
+                            Type: DV
+                            Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                            Sort: SortApp(name='SortInt', sorts=())
+                            Value: String(value='1')
+                        Child 1:
+                          Type: App
+                          Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                          Child 0:
+                            Type: App
+                            Symbol: inj
+                            Child 0:
+                              Type: DV
+                              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                              Sort: SortApp(name='SortInt', sorts=())
+                              Value: String(value='1')
+                          Child 1:
+                            Type: App
+                            Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                            Child 0:
+                              Type: App
+                              Symbol: inj
+                              Child 0:
+                                Type: DV
+                                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                                Sort: SortApp(name='SortInt', sorts=())
+                                Value: String(value='0')
+                            Child 1:
+                              Type: App
+                              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList'QuotRBraUnds'AttributeValueList
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='sv.namehint')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='data11111')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'seq'Stop'firmem'-LT-Unds'x'Unds-GT-Unds'SEQ-SYNTAX'Unds'SeqFirmemType'Unds'Int'Unds'Int
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortInt', sorts=())
+                Value: String(value='4')
+              Child 1:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortInt', sorts=())
+                Value: String(value='8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i2')
+            Child 1:
+              Type: App
+              Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: App
+                  Symbol: Lbl'Bang'seq'Stop'clock'Unds'SEQ-SYNTAX'Unds'SeqClockType
+              Child 1:
+                Type: App
+                Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+                Child 0:
+                  Type: App
+                  Symbol: inj
+                  Child 0:
+                    Type: DV
+                    Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                    Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                    Value: String(value='i1')
+                Child 1:
+                  Type: App
+                  Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+                  Child 0:
+                    Type: App
+                    Symbol: inj
+                    Child 0:
+                      Type: DV
+                      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                      Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                      Value: String(value='i8')
+                  Child 1:
+                    Type: App
+                    Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+                    Child 0:
+                      Type: App
+                      Symbol: inj
+                      Child 0:
+                        Type: DV
+                        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                        Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                        Value: String(value='i1')
+                    Child 1:
+                      Type: App
+                      Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 6:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/i0/%0')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.constant')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='value')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='1')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 7:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%1')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.constant')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='value')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortBool', sorts=())
+              Value: String(value='true')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 8:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%14')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.array_create')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSizeX', sorts=())
+                Value: String(value='1x')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 9:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%6')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.concat')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i16')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 10:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%13')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.aggregate_constant')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='fields')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'LSqBUndsRSqBUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValueList
+              Child 0:
+                Type: App
+                Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                Child 0:
+                  Type: App
+                  Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+                  Child 0:
+                    Type: App
+                    Symbol: inj
+                    Child 0:
+                      Type: DV
+                      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                      Sort: SortApp(name='SortInt', sorts=())
+                      Value: String(value='-1')
+                  Child 1:
+                    Type: App
+                    Symbol: inj
+                    Child 0:
+                      Type: DV
+                      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                      Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                      Value: String(value='i8')
+                Child 1:
+                  Type: App
+                  Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                  Child 0:
+                    Type: App
+                    Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+                    Child 0:
+                      Type: App
+                      Symbol: inj
+                      Child 0:
+                        Type: DV
+                        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                        Sort: SortApp(name='SortInt', sorts=())
+                        Value: String(value='0')
+                    Child 1:
+                      Type: App
+                      Symbol: inj
+                      Child 0:
+                        Type: DV
+                        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                        Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                        Value: String(value='i8')
+                  Child 1:
+                    Type: App
+                    Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                    Child 0:
+                      Type: App
+                      Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+                      Child 0:
+                        Type: App
+                        Symbol: inj
+                        Child 0:
+                          Type: DV
+                          Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                          Sort: SortApp(name='SortInt', sorts=())
+                          Value: String(value='1')
+                      Child 1:
+                        Type: App
+                        Symbol: inj
+                        Child 0:
+                          Type: DV
+                          Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                          Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                          Value: String(value='i8')
+                    Child 1:
+                      Type: App
+                      Symbol: Lbl'UndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList
+                      Child 0:
+                        Type: App
+                        Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+                        Child 0:
+                          Type: App
+                          Symbol: inj
+                          Child 0:
+                            Type: DV
+                            Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                            Sort: SortApp(name='SortInt', sorts=())
+                            Value: String(value='2')
+                        Child 1:
+                          Type: App
+                          Symbol: inj
+                          Child 0:
+                            Type: DV
+                            Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                            Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                            Value: String(value='i8')
+                      Child 1:
+                        Type: App
+                        Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList'Unds'AttributeValue'Unds'AttributeValueList'QuotRBraUnds'AttributeValueList
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSizeX', sorts=())
+                Value: String(value='4x')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 11:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%4')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.add')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 12:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%11')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.parity')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 13:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%20')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='seq.firreg')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%5')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg0')
+        Child 2:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%0')
+        Child 3:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%7')
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='firrtl.random_init_start')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='0')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortUnsignedIntegerType', sorts=())
+                  Value: String(value='ui64')
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='name')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='a_first_counter')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: App
+                Symbol: Lbl'Bang'seq'Stop'clock'Unds'SEQ-SYNTAX'Unds'SeqClockType
+            Child 1:
+              Type: App
+              Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i1')
+              Child 1:
+                Type: App
+                Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+                Child 0:
+                  Type: App
+                  Symbol: inj
+                  Child 0:
+                    Type: DV
+                    Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                    Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                    Value: String(value='i8')
+                Child 1:
+                  Type: App
+                  Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 14:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%8')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.extract')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='lowBit')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='3')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i32')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i4')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 15:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%2')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.constant')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='value')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='1')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i2')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i2')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 16:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%17')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.array_get')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%16')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%0')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSizeX', sorts=())
+                Value: String(value='2x')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i1')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 17:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%12')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.replicate')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i16')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 18:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%7')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.divs')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 19:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%15')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.array_create')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSizeX', sorts=())
+                Value: String(value='1x')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 20:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%0')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.constant')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='value')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortBool', sorts=())
+              Value: String(value='false')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 21:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%5')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.and')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 22:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%10')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.mux')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%0')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+        Child 2:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+              Child 1:
+                Type: App
+                Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 23:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%21')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='seq.firmem')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='ruw')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='0')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i32')
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='readLatency')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='0')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i32')
+        Child 2:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='prefix')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='')
+        Child 3:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='wuw')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='1')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i32')
+        Child 4:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='name')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='ram')
+        Child 5:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='writeLatency')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='1')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i32')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'seq'Stop'firmem'-LT-Unds'x'Unds-GT-Unds'SEQ-SYNTAX'Unds'SeqFirmemType'Unds'Int'Unds'Int
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortInt', sorts=())
+                Value: String(value='4')
+              Child 1:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortInt', sorts=())
+                Value: String(value='8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 24:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%9')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='comb.icmp')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg1')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%arg2')
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='predicate')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'UndsColnUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValue'Unds'AttributeValue'Unds'Type
+              Child 0:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortInt', sorts=())
+                  Value: String(value='0')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i64')
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='twoState')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 25:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%3')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.constant')
+      Child 1:
+        Type: App
+        Symbol: Lbl'Stop'List
+      Child 2:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'Map'Unds'
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsPipe'-'-GT-Unds'
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='value')
+          Child 1:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortBool', sorts=())
+              Value: String(value='true')
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+              Value: String(value='i1')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+Child 26:
+  Type: App
+  Symbol: Lbl'UndsPipe'-'-GT-Unds'
+  Child 0:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: DV
+      Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+      Sort: SortApp(name='SortString', sorts=())
+      Value: String(value='Foo/%16')
+  Child 1:
+    Type: App
+    Symbol: inj
+    Child 0:
+      Type: App
+      Symbol: Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT
+      Child 0:
+        Type: DV
+        Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+        Sort: SortApp(name='SortString', sorts=())
+        Value: String(value='hw.array_concat')
+      Child 1:
+        Type: LeftAssoc
+        Symbol: Lbl'Unds'List'Unds'
+        Child 0:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%14')
+        Child 1:
+          Type: App
+          Symbol: LblListItem
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: DV
+              Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+              Sort: SortApp(name='SortString', sorts=())
+              Value: String(value='Foo/%15')
+      Child 2:
+        Type: App
+        Symbol: Lbl'Stop'Map
+      Child 3:
+        Type: App
+        Symbol: Lbl'LParUndsRPar'-'-GT-LParUndsRParUnds'MLIR-SYNTAX'Unds'StdFT'Unds'Types'Unds'Types
+        Child 0:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSizeX', sorts=())
+                Value: String(value='1x')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+            Child 0:
+              Type: App
+              Symbol: inj
+              Child 0:
+                Type: App
+                Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSizeX', sorts=())
+                  Value: String(value='1x')
+                Child 1:
+                  Type: App
+                  Symbol: inj
+                  Child 0:
+                    Type: DV
+                    Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                    Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                    Value: String(value='i8')
+            Child 1:
+              Type: App
+              Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types
+        Child 1:
+          Type: App
+          Symbol: Lbl'UndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types
+          Child 0:
+            Type: App
+            Symbol: inj
+            Child 0:
+              Type: App
+              Symbol: Lbl'Bang'hw'Stop'array'-LT-UndsUnds-GT-Unds'HW-SYNTAX'Unds'HwArrayType'Unds'SizeX'Unds'Type
+              Child 0:
+                Type: DV
+                Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                Sort: SortApp(name='SortSizeX', sorts=())
+                Value: String(value='2x')
+              Child 1:
+                Type: App
+                Symbol: inj
+                Child 0:
+                  Type: DV
+                  Symbol: <bound method DV.symbol of <class 'pyk.kore.syntax.DV'>>
+                  Sort: SortApp(name='SortSignlessIntegerType', sorts=())
+                  Value: String(value='i8')
+          Child 1:
+            Type: App
+            Symbol: Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types

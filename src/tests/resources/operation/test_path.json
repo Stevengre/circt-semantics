@@ -105,7 +105,14 @@
                 "firreg",
                 "firmem",
                 "from_clock",
-                "firmem_mask"
+                "firmem_mask",
+                "firmem_rx",
+                "firreg2"
+            ]
+        },{
+            "name": "simple",
+            "operation": [
+                "fibo"
             ]
         }
     ]

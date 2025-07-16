@@ -294,7 +294,8 @@ class KCIRCT:
                 ports[signal_port_mapping[signal]] = value
         return ports  # type: ignore
 
-    def read_signal_port_mapping(self, state_file: Path) -> dict[str, str]:
+    @staticmethod
+    def read_signal_port_mapping(state_file: Path) -> dict[str, str]:
         """Read the signal port mapping from the Kore pattern."""
         with open(state_file, 'r') as file:
             state = file.read()
@@ -395,14 +396,13 @@ class KCIRCT:
                     mp: dict[tuple[int, int], tuple[int, int]] = {}
                     map_select = sub_str[:70]
 
-                    if map_select.find("'Lbl'Stop'Map{}())'") != -1:
+                    if map_select.find("Lbl'Stop'Map{}())") != -1:
                         # empty map
                         ports[port_name] = mp
                         continue
                     map_end_idx = sub_str.find('"))))))))')
                     map_str = sub_str[: map_end_idx + 1]
                     sub_str = sub_str[map_end_idx + 1 :]
-
                     while len(map_str):
                         # find Key value
                         pre_idx = map_str.find('"')

@@ -1,0 +1,5 @@
+Foo/%8 size: 3
+is defferenes : 
+depth:0   Foo/%8
+depth:1   Foo/%arg1
+depth:2   Foo/%arg2

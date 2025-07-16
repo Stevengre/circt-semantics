@@ -20,7 +20,16 @@ MLIR_FILES = {}
 MLIR_GNERIC_FILES = {}
 EXPECTED_TOP_MODULES = {}
 INPUTS = {}
-OPERATION_ONLY_CHECK_DOWN_EDGE = ['firmem_rwl', 'firmem_rl', 'firreg2', 'firmem_x', 'firmem_mask']
+OPERATION_ONLY_CHECK_DOWN_EDGE = [
+    'fibo',
+    'firmem_rwl',
+    'firmem_rl',
+    'firreg2',
+    'firreg',
+    'firmem_x',
+    'firmem_rx',
+    'firmem_mask',
+]
 DIALECT_OPERATIONS = {
     "comb": [
         "add",
@@ -52,7 +61,17 @@ DIALECT_OPERATIONS = {
         "output",
         "array_create",
     ],
-    "seq": ["from_clock", "firreg", "firreg2", "firmem_rl", "firmem_rw", "firmem_rwl", "firmem_x", "firmem_mask"],
+    "seq": [
+        "from_clock",
+        "firreg",
+        "firreg2",
+        "firmem_rl",
+        "firmem_rw",
+        "firmem_rwl",
+        "firmem_rx",
+        "firmem_x",
+        "firmem_mask",
+    ],
 }
 
 for level1 in LEVEL1_DIRS:
