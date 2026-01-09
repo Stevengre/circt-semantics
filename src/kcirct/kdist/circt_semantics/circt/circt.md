@@ -46,6 +46,7 @@ rule ToInt( false ) => 0
 syntax Bits ::= StdBits( Int, Int ) [function, concrete]
 rule StdBits( V:Int, T:Int ) => bits(((2 ^Int T) -Int ((0 -Int V) &Int ((2 ^Int T) -Int 1))), T) requires V <Int 0
 rule StdBits( V:Int, T:Int ) => bits(V &Int ((2 ^Int T) -Int 1) , T) requires V >=Int 0
+rule StdBits( V:Int, T:Int ) => bits(V, T) requires (V >=Int 0) andBool (V <Int (2 ^Int T)) [simplification]
 ```
 
 ## Specify Top Module

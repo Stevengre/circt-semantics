@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from pyk.kbuild.utils import k_version
 from pyk.kdist.api import Target
-from pyk.ktool.kompile import PykBackend, kompile
+from pyk.ktool.kompile import LLVMKompileType, PykBackend, kompile
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -54,6 +54,24 @@ __TARGETS__: Final = {
             # 'gen_glr_bison_parser': True,
             # 'bison-stack-max-depth': 10000000,
             # 'coverage': True,
+        },
+    ),
+    'haskell': KompileTarget(
+        lambda src_dir: {
+            'backend': PykBackend.HASKELL,
+            'main_file': src_dir / 'circt_semantics/circt-core.k',
+            'main_module': 'CIRCT-CORE',
+            'syntax_module': 'CIRCT-CORE-SYNTAX',
+        },
+    ),
+    'llvm-lib': KompileTarget(
+        lambda src_dir: {
+            'main_file': src_dir / 'circt_semantics/circt-core.k',
+            'include_dirs': [src_dir],
+            'syntax_module': 'CIRCT-CORE-SYNTAX',
+            'main_module': 'CIRCT-CORE',
+            'llvm_kompile_type': LLVMKompileType.C,
+            # 'warnings_to_errors': True,
         },
     ),
     # 'coverage': KompileTarget(
