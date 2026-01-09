@@ -1,0 +1,331 @@
+
+┌─ 1 (root)
+│
+│  (22 steps)
+└─ 3 (stuck, leaf)
+
+
+┌─ 2 (root, leaf)
+
+
+Node 1:
+
+<generatedTop>
+  <teq>
+    <mlir>
+      <prog>
+        .K
+      </prog>
+      <types>
+        .Map
+      </types>
+      <attrs>
+        #loc |-> loc ( "comb/add/add.mlir" : 1 : 42 )
+      </attrs>
+      <table>
+        "Foo" |-> "hw.module" ( .List ) { "sym_name" |-> "Foo" "module_type" |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList > "result_locs" |-> [ #loc , .AttributeValueList ] "parameters" |-> [ .AttributeValueList ] } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" ) ListItem ( "%arg1" ) ) : ListItem ( "%0" ) = "comb.add" ( ListItem ( "%arg0" ) ListItem ( "%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      </table>
+      <symbols>
+        .List
+      </symbols>
+    </mlir>
+    <hardware>
+      <setup>
+        .K
+      </setup>
+      <connection>
+        "Foo/%0" |-> "comb.add" ( ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      </connection>
+      <procedures>
+        .List
+      </procedures>
+      <register>
+        .Map
+      </register>
+      <register-proc>
+        .Map
+      </register-proc>
+      <signals>
+        "Foo/%0" |-> bits ( 20 , 8 ) "Foo/%arg1" |-> bits ( 28 , 8 ) "Foo/%arg0" |-> bits ( 248 , 8 )
+      </signals>
+      <history>
+        .Map
+      </history>
+      <currents>
+        .CurrentInfoCellMap
+      </currents>
+      <clock>
+        0
+      </clock>
+    </hardware>
+    <circt>
+      <cmd>
+        "CIRCT#SIMULATE"
+        ~> ListItem ( bits ( X0:Int , 8 ) ) ListItem ( bits ( Y0:Int , 8 ) ) .List
+      </cmd>
+      <top-module>
+        "Foo"
+      </top-module>
+      <top-ins>
+        ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" )
+      </top-ins>
+    </circt>
+    <hw>
+      <hw-instances>
+        <hw-instance>
+          <hw-id>
+            "Foo"
+          </hw-id>
+          <hw-module>
+            "Foo"
+          </hw-module>
+          <hw-inputs>
+            ListItem ( a ) ListItem ( b )
+          </hw-inputs>
+          <hw-inports>
+            ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" )
+          </hw-inports>
+          <hw-in-types>
+            ListItem ( i8 ) ListItem ( i8 )
+          </hw-in-types>
+          <hw-outputs>
+            ListItem ( res )
+          </hw-outputs>
+          <hw-outports>
+            ListItem ( "Foo/%0" )
+          </hw-outports>
+          <hw-out-types>
+            ListItem ( i8 )
+          </hw-out-types>
+        </hw-instance>
+        <hw-setup-inst>
+          .List
+        </hw-setup-inst>
+      </hw-instances>
+    </hw>
+  </teq>
+  <generatedCounter>
+    0
+  </generatedCounter>
+</generatedTop>
+#And { true #Equals 0 <=Int X0:Int }
+#And { true #Equals 0 <=Int Y0:Int }
+#And { true #Equals X0:Int <Int 256 }
+#And { true #Equals Y0:Int <Int 256 }
+
+
+
+Node 2:
+
+<generatedTop>
+  <teq>
+    <mlir>
+      <prog>
+        .K
+      </prog>
+      <types>
+        .Map
+      </types>
+      <attrs>
+        #loc |-> loc ( "comb/add/add.mlir" : 1 : 42 )
+      </attrs>
+      <table>
+        "Foo" |-> "hw.module" ( .List ) { "sym_name" |-> "Foo" "module_type" |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList > "result_locs" |-> [ #loc , .AttributeValueList ] "parameters" |-> [ .AttributeValueList ] } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" ) ListItem ( "%arg1" ) ) : ListItem ( "%0" ) = "comb.add" ( ListItem ( "%arg0" ) ListItem ( "%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      </table>
+      <symbols>
+        .List
+      </symbols>
+    </mlir>
+    <hardware>
+      <setup>
+        .K
+      </setup>
+      <connection>
+        "Foo/%0" |-> "comb.add" ( ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      </connection>
+      <procedures>
+        .List
+      </procedures>
+      <register>
+        .Map
+      </register>
+      <register-proc>
+        .Map
+      </register-proc>
+      <signals>
+        "Foo/%0" |-> bits ( ?Z1:Int , 8 ) "Foo/%arg1" |-> bits ( ?Y1:Int , 8 ) "Foo/%arg0" |-> bits ( ?X1:Int , 8 )
+      </signals>
+      <history>
+        "Foo/%0" |-> bits ( 20 , 8 ) "Foo/%arg1" |-> bits ( 28 , 8 ) "Foo/%arg0" |-> bits ( 248 , 8 )
+      </history>
+      <currents>
+        .CurrentInfoCellMap
+      </currents>
+      <clock>
+        0
+      </clock>
+    </hardware>
+    <circt>
+      <cmd>
+        .K
+      </cmd>
+      <top-module>
+        "Foo"
+      </top-module>
+      <top-ins>
+        ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" )
+      </top-ins>
+    </circt>
+    <hw>
+      <hw-instances>
+        <hw-instance>
+          <hw-id>
+            "Foo"
+          </hw-id>
+          <hw-module>
+            "Foo"
+          </hw-module>
+          <hw-inputs>
+            ListItem ( a ) ListItem ( b )
+          </hw-inputs>
+          <hw-inports>
+            ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" )
+          </hw-inports>
+          <hw-in-types>
+            ListItem ( i8 ) ListItem ( i8 )
+          </hw-in-types>
+          <hw-outputs>
+            ListItem ( res )
+          </hw-outputs>
+          <hw-outports>
+            ListItem ( "Foo/%0" )
+          </hw-outports>
+          <hw-out-types>
+            ListItem ( i8 )
+          </hw-out-types>
+        </hw-instance>
+        <hw-setup-inst>
+          .List
+        </hw-setup-inst>
+      </hw-instances>
+    </hw>
+  </teq>
+  <generatedCounter>
+    0
+  </generatedCounter>
+</generatedTop>
+#And { true #Equals 0 <=Int X0:Int }
+#And { true #Equals 0 <=Int Y0:Int }
+#And { true #Equals X0:Int <Int 256 }
+#And { true #Equals Y0:Int <Int 256 }
+#And { true #Equals ?X1:Int ==Int X0:Int }
+#And { true #Equals ?Y1:Int ==Int Y0:Int }
+#And { true #Equals ?Z1:Int ==Int X0:Int +Int Y0:Int modInt 256 }
+
+
+
+Node 3:
+
+<generatedTop>
+  <teq>
+    <mlir>
+      <prog>
+        .K
+      </prog>
+      <types>
+        .Map
+      </types>
+      <attrs>
+        #loc |-> loc ( "comb/add/add.mlir" : 1 : 42 )
+      </attrs>
+      <table>
+        "Foo" |-> "hw.module" ( .List ) { "module_type" |-> !hw.modty < input a : i8 , input b : i8 , output res : i8 , .ModulePortList > "parameters" |-> [ .AttributeValueList ] "result_locs" |-> [ #loc , .AttributeValueList ] "sym_name" |-> "Foo" } [ .Successors ] ( { ^bb0 ( ListItem ( "%arg0" ) ListItem ( "%arg1" ) ) : ListItem ( "%0" ) = "comb.add" ( ListItem ( "%arg0" ) ListItem ( "%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )  "hw.output" ( ListItem ( "%0" ) ) { .Map } : ( i8 , .Types ) -> ( .Types )  .StdOps  .StdBlocks } , .StdRegions ) : ( .Types ) -> ( .Types )
+      </table>
+      <symbols>
+        .List
+      </symbols>
+    </mlir>
+    <hardware>
+      <setup>
+        .K
+      </setup>
+      <connection>
+        "Foo/%0" |-> "comb.add" ( ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" ) ) { .Map } : ( i8 , i8 , .Types ) -> ( i8 , .Types )
+      </connection>
+      <procedures>
+        .List
+      </procedures>
+      <register>
+        .Map
+      </register>
+      <register-proc>
+        .Map
+      </register-proc>
+      <signals>
+        "Foo/%arg1" |-> bits ( Y0:Int , 8 ) "Foo/%0" |-> bits ( X0:Int +Int Y0:Int modInt 256 , 8 ) "Foo/%arg0" |-> bits ( X0:Int , 8 )
+      </signals>
+      <history>
+        "Foo/%arg1" |-> bits ( 28 , 8 ) "Foo/%0" |-> bits ( 20 , 8 ) "Foo/%arg0" |-> bits ( 248 , 8 )
+      </history>
+      <currents>
+        .CurrentInfoCellMap
+      </currents>
+      <clock>
+        0
+      </clock>
+    </hardware>
+    <circt>
+      <cmd>
+        .K
+      </cmd>
+      <top-module>
+        "Foo"
+      </top-module>
+      <top-ins>
+        ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" )
+      </top-ins>
+    </circt>
+    <hw>
+      <hw-instances>
+        <hw-instance>
+          <hw-id>
+            "Foo"
+          </hw-id>
+          <hw-module>
+            "Foo"
+          </hw-module>
+          <hw-inputs>
+            ListItem ( a ) ListItem ( b )
+          </hw-inputs>
+          <hw-inports>
+            ListItem ( "Foo/%arg0" ) ListItem ( "Foo/%arg1" )
+          </hw-inports>
+          <hw-in-types>
+            ListItem ( i8 ) ListItem ( i8 )
+          </hw-in-types>
+          <hw-outputs>
+            ListItem ( res )
+          </hw-outputs>
+          <hw-outports>
+            ListItem ( "Foo/%0" )
+          </hw-outports>
+          <hw-out-types>
+            ListItem ( i8 )
+          </hw-out-types>
+        </hw-instance>
+        <hw-setup-inst>
+          .List
+        </hw-setup-inst>
+      </hw-instances>
+    </hw>
+  </teq>
+  <generatedCounter>
+    2
+  </generatedCounter>
+</generatedTop>
+#And { true #Equals 0 <=Int X0:Int }
+#And { true #Equals 0 <=Int Y0:Int }
+#And { true #Equals X0:Int <Int 256 }
+#And { true #Equals Y0:Int <Int 256 }
+
+

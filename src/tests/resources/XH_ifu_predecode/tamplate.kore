@@ -1,0 +1,286 @@
+Lbl'Unds'Map'Unds'{}(
+  Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg0")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX0 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("Pre0ecode/%arg1")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX1 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg2")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX2 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg3")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX3 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg4")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX4 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg5")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX5 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg6")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX6 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg7")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX7 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg8")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX8 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg9")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX9 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg10")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX10 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg11")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX11 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg12")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX12 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg13")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX13 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg14")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX14 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg15")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX15 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+Lbl'UndsPipe'-'-GT-Unds'{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("PreDecode/%arg16")),
+  inj{SortBits{}, SortKItem{}}(
+    Lblbits'LParUndsCommUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+      inj{SortInt{}, SortBitsValue{}}(VarX16 : SortInt{}),
+      \dv{SortInt{}}("16")
+    )
+  )
+),
+
+  VarRest : SortMap{} 
+)
+
+
+
+(Lbl'-LT-'cmd'-GT-'{}(
+  kseq{}(
+  inj{SortString{}, SortKItem{}}(\dv{SortString{}}("CIRCT#SIMULATE")),
+  kseq{}(
+    inj{SortList{}, SortKItem{}}(
+      \left-assoc{}(
+        Lbl'Unds'List'Unds'{}(
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarX0 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY0 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY1 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY2 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY3 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY4 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY5 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY6 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY7 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY8 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY9 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY10 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY11 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY12 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY13 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY14 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY15 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          )),
+          LblListItem{}(inj{SortBits{}, SortKItem{}}(
+            Lblbits'LParUndsCommUndsRParUnds'BITS-SYNTAX'Unds'Bits'Unds'BitsValue'Unds'Int{}(
+              inj{SortInt{}, SortBitsValue{}}(VarY16 : SortInt{}),
+              \dv{SortInt{}}("16")
+            )
+          ))
+        )
+      )
+    ),
+    dotk{}()
+  )
+))
+
+  Lbl'-LT-'top-module'-GT-'{}(\dv{SortString{}}("Foo")),
+  Lbl'-LT-'top-ins'-GT-'{}(\left-assoc{}(Lbl'Unds'List'Unds'{}(
+    LblListItem{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("Foo/%arg0"))),
+    LblListItem{}(inj{SortString{}, SortKItem{}}(\dv{SortString{}}("Foo/%arg1")))))))

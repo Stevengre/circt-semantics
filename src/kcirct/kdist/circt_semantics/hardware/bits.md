@@ -75,11 +75,14 @@ module BITS
     imports BOOL-COMMON
     imports K-EQUAL
 
+    rule X &Int (2 ^Int W -Int 1) => X modInt (2 ^Int W)  [simplification]
+    rule X &Int 255 => X modInt 256 [simplification]
+
     rule BitsAdd(ListItem(B:Bits) L:List) => B +Bits BitsAdd(L)
     rule BitsAdd(.List) => bits(0, 0)
 
     // bits binary add
-    rule bits(X1:Int, W1:Int)   +Bits bits(X2:Int, W2:Int)  => BitsCast(bits((X1 +Int X2) &Int (2 ^Int maxInt(W1, W2) -Int 1), maxInt(W1, W2)))
+    rule bits(X1:Int, W1:Int)   +Bits bits(X2:Int, W2:Int)  => BitsCast(bits((X1 +Int X2), maxInt(W1, W2)))
     // TODO: optimize
     rule bits(_:XZValue, W1)  +Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
     rule bits(_, W1) +Bits bits(_:XZValue, W2) => bits(#x, maxInt(W1, W2))
@@ -130,6 +133,8 @@ module BITS
     rule BitsCast(bits(X:XZValue, W:Int)) => bits(X, W)
 
     rule BitsCast(bits(X:Int, _W:Int), W1:Int) => BitsCast(bits(X, W1))
+
+    rule BitsCast(bits(X:Int, W:Int)) => bits(X, W) requires X <Int (2 ^Int W)  [simplification]
 
     rule BitsMul(ListItem(B:Bits) L:List) => B *Bits BitsMul(L)
     rule BitsMul(ListItem(B:Bits)) => B

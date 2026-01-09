@@ -134,16 +134,16 @@ def test_diffvcd_operatrion(mlir_file: Path) -> None:
 
 def test_print_pretty(mlir_file: Path) -> None:
     kcirct = KCIRCT()
-    file_name = 'simulated.1.kore'
+    file_name = 'setup.kore'
     pretty_name = file_name + '.pretty'
     kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / pretty_name)
 
 
 def test_pretty() -> None:
-    nowtest = 'seq'
+    nowtest = 'comb'
     for i, dir in enumerate(DIRS[nowtest]):
         # if dir.name not in ['parity','icmp'] :
-        if dir.name == 'firmem_rwl':
+        if dir.name == 'add':
             test_print_pretty(MLIR_GNERIC_FILES[nowtest][i])
 
 
@@ -184,10 +184,10 @@ def diffvcd(test_path: Path) -> None:
 if __name__ == '__main__':
     mode = 1
     if mode == 1:
-        nowtest = 'hw'
+        nowtest = 'comb'
         for i, dir in enumerate(DIRS[nowtest]):
             # if dir.name not in ['parity','icmp'] :
-            if dir.name == 'instance':
+            if dir.name == 'add':
                 test_evaluate_operation(
                     MLIR_GNERIC_FILES[nowtest][i], EXPECTED_TOP_MODULES[nowtest][i], INPUTS[nowtest][i], False
                 )
