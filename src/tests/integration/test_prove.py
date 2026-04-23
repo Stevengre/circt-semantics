@@ -224,6 +224,44 @@ def test_build_struct_in_py(start_kore_file: Path, target_kore_file: Path) -> No
     print(proof.status)
 
 
+def rods() -> None:
+    init_subst = CSubst(
+        constraints=[
+            mlEqualsTrue(equals(KVariable('CLKH', sort=INT), 0)),
+            mlEqualsTrue(equals(KVariable('CLK0', sort=INT), 1)),
+            mlEqualsTrue(ge_constraint(KVariable('RESET0', sort=INT), 0)),
+            mlEqualsTrue(le_constraint(KVariable('RESET0', sort=INT), 2)),
+        ]
+    )
+    final_subst = CSubst(
+        constraints=[
+            mlEqualsTrue(
+                KApply(
+                    '_andBool_',
+                    equals(
+                        KVariable('REG1', sort=INT),
+                        KApply(
+                            '_modInt_',
+                            KApply('_+Int_', KVariable('REGH', sort=INT), intToken(1)),
+                            intToken(256),
+                        ),
+                    ),
+                    equals(KVariable('RESET0', sort=INT), intToken(0)),
+                )
+            ),
+            mlEqualsTrue(
+                KApply(
+                    '_andBool_',
+                    equals(
+                        KVariable('REG1', sort=INT),
+                        intToken(0),
+                    ),
+                    equals(KVariable('RESET0', sort=INT), intToken(1)),
+                )
+            ),
+        ]
+    )
+
 def test_read_kore_to_kinner(start_kore_file: Path, target_kore_file: Path, out_file: Path) -> None:
     k_definition = kdist.get('circt-semantics.haskell')
     kprint = KPrint(k_definition)
@@ -251,7 +289,7 @@ def test_read_kore_to_kinner(start_kore_file: Path, target_kore_file: Path, out_
     )
     final_subst = CSubst(
         constraints=[
-            # mlEqualsTrue(equals(KVariable('X1', sort=INT), KVariable('X0', sort=INT))),
+            mlEqualsTrue(equals(KVariable('X1', sort=INT), KVariable('X0', sort=INT))),
             mlEqualsTrue(equals(KVariable('Y1', sort=INT), KVariable('Y0', sort=INT))),
             mlEqualsTrue(
                 equals(
