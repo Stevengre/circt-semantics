@@ -67,6 +67,7 @@ try:
 except (ValueError, OSError):
     pass
 
+
 class KCIRCT:
     working_dir: Path
     data_dir: Path
