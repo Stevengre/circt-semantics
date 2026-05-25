@@ -27,3 +27,4 @@ src/tests/resources/rocket-small/**
 !src/tests/resources/rocket-small/rocket-small-1.4-drop.mlir
 !src/tests/resources/rocket-small/rocket-small-master-drop.mlir
 src/tests/resources/modules/host/
+src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
