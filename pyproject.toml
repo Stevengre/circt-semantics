@@ -47,6 +47,10 @@ name = "tuna"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 priority = "primary"
 
+[[tool.poetry.source]]
+name = "pypi"
+priority = "primary"
+
 [tool.isort]
 profile = "black"
 line_length = 120
