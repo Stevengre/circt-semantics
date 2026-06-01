@@ -53,7 +53,7 @@ try:
 except (ValueError, OSError):
     pass
 
-#根据运行环境动态分配调用栈至目标或平台最大值
+# 根据运行环境动态分配调用栈至目标或平台最大值
 soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
 target = 128 * 1024 * 1024
 try:
