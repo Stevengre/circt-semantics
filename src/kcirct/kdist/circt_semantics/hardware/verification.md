@@ -21,16 +21,23 @@ syntax KItem ::= CIRCTError
 
 syntax KItem ::= #verifyAssert ( /* COND */ KItem, /* MSG */ String ) 
 
-rule <current> #verifyAssert(true, _MSG) => .K ... </current>
-rule <current> #verifyAssert(false, MSG) => assertionError(MSG) ... </current>
-<sv-logs> 
-   ... .List => ListItem("ASSERT: " +String MSG)
-</sv-logs>
-rule <current> #verifyAssert(bits(1, _:Int), _MSG) => .K ... </current>
-rule <current> #verifyAssert(bits(0, _:Int), MSG) => assertionError(MSG) ... </current>
-<sv-logs> 
-   ... .List => ListItem("ASSERT: " +String MSG)
-</sv-logs>
+rule <current> #verifyAssert(COND:Bool, _MSG) => .K ... </current>
+  requires COND ==Bool true
+
+rule <current> #verifyAssert(COND:Bool, MSG) => assertionError(MSG) ... </current>
+     <sv-logs>
+       ... .List => ListItem("ASSERT: " +String MSG)
+     </sv-logs>
+  requires COND ==Bool false
+
+rule <current> #verifyAssert(bits(V:Int, _W:Int), _MSG) => .K ... </current>
+  requires V ==Int 1
+
+rule <current> #verifyAssert(bits(V:Int, _W:Int), MSG) => assertionError(MSG) ... </current>
+     <sv-logs>
+       ... .List => ListItem("ASSERT: " +String MSG)
+     </sv-logs>
+  requires V ==Int 0
 ```
 
 ```k
