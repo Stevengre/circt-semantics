@@ -5,8 +5,10 @@ FILE_PATH := $(dir $(FILE_MLIR))
 FILE_NAME := $(basename $(notdir $(FILE_MLIR)))
 FILE := $(FILE_PATH)$(FILE_NAME)
 
+all: rebuild
+
 # 定义伪目标
-.PHONY: rebuild buildVcd buildExe cleanProcess clean cleanObj cleanAll cleanVcd build help cleanTestVcd
+.PHONY: all rebuild buildVcd buildExe cleanProcess clean cleanObj cleanAll cleanVcd build help cleanTestVcd
 
 # 定义默认目标
 

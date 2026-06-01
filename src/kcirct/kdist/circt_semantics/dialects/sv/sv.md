@@ -3,8 +3,10 @@
 ```k
 requires "sv-syntax.md"
 requires "../../circt/circt.md"
+requires "../../hardware/verification.md"
 requires "../../hardware/hardware.md"
 module SV
+imports VERIFICATION
 imports SV-SYNTAX
 imports HARDWARE
 imports CIRCT
@@ -48,6 +50,19 @@ rule
 => #if checkEdge(Event, Clk, {H[ClkId] orDefault bits(#x, 1)}:>Bits) 
    #then R
    #else .K #fi
+... 
+</current>
+<history> H:Map </history>
+[priority(30)]
+```
+
+## sv.alwayscomb
+
+```k
+rule
+<current> 
+   "sv.alwayscomb" ( .List ) {_Attrs:Map} _SL:SuccessorList ( R:StdRegion ) : _FT
+=>  R
 ... 
 </current>
 <history> H:Map </history>
@@ -109,24 +124,33 @@ not found in rocket-small-master.generic.mlir
 ```k
 rule
 <current>
-   "sv.error" ( .List ) { "message" |-> _E:String _:Map} : _FT
-=> .K
+   "sv.error" ( .List ) { "message" |-> Msg:String _:Map} : _FT
+=> svError(Msg)
 ... 
 </current>
+<sv-logs> 
+   ... .List => ListItem("FATAL ERROR: " +String Msg) 
+</sv-logs>
 
 rule
 <current>
-   "sv.info" ( .List ) { "message" |-> _E:String _:Map} : _FT
+   "sv.info" ( .List ) { "message" |-> Msg:String _:Map} : _FT
 => .K
 ... 
 </current>
+<sv-logs> 
+   ... .List => ListItem("INFO: " +String Msg)
+</sv-logs>
 
 rule
 <current>
-   "sv.warning" ( .List ) { "message" |-> _E:String _:Map} : _FT
+   "sv.warning" ( .List ) { "message" |-> Msg:String _:Map} : _FT
 => .K
 ... 
 </current>
+<sv-logs> 
+   ... .List => ListItem("WARNING: " +String Msg)
+</sv-logs>
 
 rule
 <current>
@@ -166,8 +190,8 @@ rule
 ```k
 rule
 <current>
-   "sv.assert" ( ListItem(_Cond:Bits) ) { "defer" |-> _D _:Map} : _FT
-=> .K
+   "sv.assert" ( ListItem(Cond:Bits) ) { ("defer" |-> _D) ("label" |-> L:String) _:Map} : _FT
+=> #verifyAssert(Cond, L)
 ... 
 </current>
 ```

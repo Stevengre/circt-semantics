@@ -3,7 +3,7 @@
   "hw.module"() ({
   ^bb0(%arg0: i1, %arg1: i8, %arg2: i8):
     "sv.alwayscomb"() ({
-      "sv.error"() {message = "hello"} : () -> ()
+      "sv.info"() {message = "hello"} : () -> ()
     }) : () -> ()
     %0 = "comb.add"(%arg1, %arg2) : (i8, i8) -> i8
     "hw.output"(%0) : (i8) -> ()

@@ -37,6 +37,7 @@ port |-> enable1, addr1, mode1, ... , enbalex, addrx, modex
 Each time a read_port operation occurs, the current parameters (enable, address, mode) are appended to the end of the list,
 and the parameters at the head of the list are popped.
 The return value of the current read is determined by the parameters at the head of the list (i.e., those x cycles ago).
+- `<sv-logs>`: SV logs
 
 ```k
   <setup> .K </setup>
@@ -44,6 +45,7 @@ The return value of the current read is determined by the parameters at the head
   <procedures> .List </procedures>
   <register> .Map </register>
   <register-proc> .Map </register-proc>
+  <sv-logs> .List </sv-logs>
 ```
 
 ## Hardware Activity
