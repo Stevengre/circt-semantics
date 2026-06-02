@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import logging
 from argparse import ArgumentParser
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
+from .api import KCIRCT
 from .utils import file_path
 
 if TYPE_CHECKING:
@@ -214,6 +216,35 @@ def _add_verify_args(verify_parser: ArgumentParser) -> None:
         action='store_true',
         help='Compatibility flag reserved for future alternate verification inputs.',
     )
+    verify_parser.add_argument(
+        '--inputs',
+        dest='input_steps',
+        action='append',
+        default=None,
+        metavar='VALUES',
+        help='Concrete input step as comma-separated value:width pairs, e.g. 1:8,2:8. Repeat for cycles.',
+    )
+    verify_parser.add_argument(
+        '--work-dir',
+        dest='work_dir',
+        type=str,
+        default=None,
+        help='Directory for intermediate verification artifacts.',
+    )
+    verify_parser.add_argument(
+        '--symbolic',
+        dest='symbolic',
+        action='store_true',
+        help='Run APR/KCFG symbolic assertion proof instead of concrete trace checking.',
+    )
+    verify_parser.add_argument(
+        '--symbolic-input-widths',
+        dest='symbolic_input_widths',
+        type=str,
+        default=None,
+        metavar='WIDTHS',
+        help='Comma-separated input bit widths for symbolic proof, e.g. 8,8.',
+    )
 
 
 def create_arg_parser() -> ArgumentParser:
@@ -256,12 +287,85 @@ def create_arg_parser() -> ArgumentParser:
 def exec_generate(input: str, output: str = 'none', **kwargs: Any) -> None: ...
 
 
+def _parse_input_steps(raw_steps: list[str] | None) -> list[list[tuple[int, int]]]:
+    if raw_steps is None:
+        return [[]]
+
+    steps: list[list[tuple[int, int]]] = []
+    for raw_step in raw_steps:
+        step: list[tuple[int, int]] = []
+        raw_step = raw_step.strip()
+        if raw_step:
+            for raw_item in raw_step.split(','):
+                value, width = raw_item.split(':', 1)
+                step.append((int(value, 0), int(width, 0)))
+        steps.append(step)
+    return steps
+
+
+def _parse_symbolic_widths(raw_widths: str | None, input_steps: list[list[tuple[int, int]]]) -> list[int]:
+    if raw_widths:
+        return [int(width, 0) for width in raw_widths.split(',') if width.strip()]
+    if input_steps and input_steps[0]:
+        return [width for _value, width in input_steps[0]]
+    raise ValueError('Symbolic proof needs --symbolic-input-widths, or --inputs with value:width pairs.')
+
+
 def exec_verify(**kwargs: Any) -> None:
-    raise NotImplementedError(
-        'Verification command entry and compatibility arguments have been registered, '
-        'but the concrete verification workflow is not implemented yet. '
-        f'args={kwargs}'
+    input_file = Path(kwargs['input'])
+    input_steps = _parse_input_steps(kwargs.get('input_steps'))
+    work_dir = Path(kwargs['work_dir']) if kwargs.get('work_dir') else None
+
+    if kwargs.get('symbolic'):
+        result = KCIRCT().prove_assertions(
+            input_file,
+            top_module=kwargs['top_module'],
+            symbolic_widths=_parse_symbolic_widths(kwargs.get('symbolic_input_widths'), input_steps),
+            proof_dir=Path(kwargs['proof_dir']) if kwargs.get('proof_dir') else None,
+            work_dir=work_dir,
+            haskell_target=Path(kwargs['haskell_target']) if kwargs.get('haskell_target') else None,
+            llvm_lib_target=Path(kwargs['llvm_lib_target']) if kwargs.get('llvm_lib_target') else None,
+            max_depth=kwargs.get('max_depth'),
+            max_iterations=kwargs.get('max_iterations'),
+            fail_fast=kwargs.get('fail_fast', False),
+            maintenance_rate=kwargs.get('maintenance_rate', 1),
+        )
+
+        print(f'input: {result.input_file}')
+        print(f'top-module: {result.top_module}')
+        print(f'work-dir: {result.work_dir}')
+        print(f'setup-state: {result.setup_state}')
+        print(f'symbolic-widths: {result.symbolic_widths}')
+        print(f'proof-id: {result.proof.id}')
+        print(f'passed: {result.proof.passed}')
+        print(f'failed: {result.proof.failed}')
+        print(f'note: {result.note}')
+
+        if not result.proof.passed:
+            raise SystemExit(1)
+        return
+
+    result = KCIRCT().verify_assertions_fast(
+        input_file,
+        top_module=kwargs['top_module'],
+        input_steps=input_steps,
+        work_dir=work_dir,
+        depth=kwargs.get('depth') or kwargs.get('max_depth'),
     )
+
+    print(f'input: {result.input_file}')
+    print(f'top-module: {result.top_module}')
+    print(f'work-dir: {result.work_dir}')
+    print(f'assertions-present: {result.checked_assertions}')
+    print(f'passed: {result.passed}')
+    if result.errors:
+        print('assertion-errors:')
+        for error in result.errors:
+            print(f'  - {error}')
+    print(f'note: {result.note}')
+
+    if not result.passed:
+        raise SystemExit(1)
 
 
 def _loglevel(args: Namespace) -> int:

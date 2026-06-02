@@ -5,15 +5,40 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pyk.kcfg.semantics import DefaultSemantics
+from pyk.kast.inner import KApply, KSequence
 from pyk.kore.prelude import LBL_LIST, LBL_LIST_ITEM, SORT_K_ITEM, dv, inj
 from pyk.kore.syntax import DV, App, SortApp, String
 
 if TYPE_CHECKING:
+    from pyk.cterm import CTerm
     from pyk.kore.syntax import Pattern
 
 
-# TODO: implement
-class CirctSemantics(DefaultSemantics): ...
+def _contains_label(term: object, labels: set[str]) -> bool:
+    worklist = [term]
+    while worklist:
+        current = worklist.pop()
+        if isinstance(current, KApply):
+            if current.label.name in labels:
+                return True
+            worklist.extend(current.args)
+        elif isinstance(current, KSequence):
+            worklist.extend(current.items)
+    return False
+
+
+class CirctSemantics(DefaultSemantics):
+    def is_terminal(self, c: CTerm) -> bool:
+        try:
+            cmd_cell = c.cell('CMD_CELL')
+            currents_cell = c.cell('CURRENTS_CELL')
+        except ValueError:
+            return False
+
+        if _contains_label(c.config, {'CIRCTError::AssertionError'}):
+            return True
+
+        return cmd_cell == KSequence(()) and currents_cell == KApply('.CurrentInfoCellMap')
 
 
 def cell_symbol(cell_id: str) -> str:

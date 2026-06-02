@@ -77,6 +77,26 @@ chmod u+x src/kcirct/lib/diffvcd.py
 - src/tests/integration: Tests that require kompile. `make circt-semantics` is required.
 - src/tests/profiling: Tests for profiling. `make circt-semantics` is required.
 
+use this symbolic proof
+```
+poetry run kcirct verify \
+  src/tests/resources/verify/assert_true/assert_true.generic.mlir \
+  --top-module AssertTrue \
+  --symbolic \
+  --symbolic-input-widths 8 \
+  --max-depth 50 \
+  --max-iterations 3
+```
+
+use this concrete verify
+```
+poetry run kcirct verify \
+  src/tests/resources/verify/assert_true/assert_true.generic.mlir \
+  --top-module AssertTrue \
+  --inputs 1:8 \
+  --backend llvm
+```
+
 generator: generate generic mlir and adder.py (module of Adder)
 model: MLIR module
 context: all runtime context

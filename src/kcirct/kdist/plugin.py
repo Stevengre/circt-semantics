@@ -8,6 +8,11 @@ from pyk.kbuild.utils import k_version
 from pyk.kdist.api import Target
 from pyk.ktool.kompile import PykBackend, kompile
 
+try:
+    from pyk.ktool.kompile import LLVMKompileType
+except ImportError:  # pragma: no cover - compatibility with older pyk releases
+    LLVMKompileType = None  # type: ignore[assignment]
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
     from typing import Any, Final
@@ -40,6 +45,18 @@ class KompileTarget(Target):
         return ('circt-semantics.source',)
 
 
+def _llvm_library_args(src_dir: Path) -> dict[str, Any]:
+    args: dict[str, Any] = {
+        'backend': PykBackend.LLVM,
+        'main_file': src_dir / 'circt_semantics/circt-core.k',
+        'main_module': 'CIRCT-CORE',
+        'syntax_module': 'CIRCT-CORE-SYNTAX',
+    }
+    if LLVMKompileType is not None:
+        args['llvm_kompile_type'] = LLVMKompileType.C
+    return args
+
+
 __TARGETS__: Final = {
     'source': SourceTarget(),
     'llvm': KompileTarget(
@@ -54,6 +71,15 @@ __TARGETS__: Final = {
             # 'gen_glr_bison_parser': True,
             # 'bison-stack-max-depth': 10000000,
             # 'coverage': True,
+        },
+    ),
+    'llvm-library': KompileTarget(_llvm_library_args),
+    'haskell': KompileTarget(
+        lambda src_dir: {
+            'backend': PykBackend.HASKELL,
+            'main_file': src_dir / 'circt_semantics/circt-core.k',
+            'main_module': 'CIRCT-CORE',
+            'syntax_module': 'CIRCT-CORE-SYNTAX',
         },
     ),
     # 'coverage': KompileTarget(
