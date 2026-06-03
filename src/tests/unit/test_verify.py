@@ -7,7 +7,6 @@ import pytest
 from kcirct.__main__ import _parse_input_steps, _parse_symbolic_widths
 from kcirct.api import KCIRCT
 
-
 VERIFY_ASSERT_TRUE = Path('src/tests/resources/verify/assert_true/assert_true.generic.mlir')
 
 

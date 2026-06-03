@@ -62,7 +62,7 @@ class KVCD:
         time_scale: str = '1s',
         memory_dump: bool = False,
         # If True, the VCD output will include map entries related to firmem.
-    ):
+    ) -> None:
         self.__vcd_file = open(vcd_path, 'w')
         self.memory_dump = memory_dump
         self._mlir_path = mlir_path

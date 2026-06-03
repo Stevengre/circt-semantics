@@ -38,7 +38,7 @@ class Signal:
         num_bits: int = 1,
         signal_type: str = 'wire',
         signal_value: int = 0,
-    ):
+    ) -> None:
         self.name = name
         self.abbrev = abbrev
         self.mlir_gen_name = mlir_gen_name

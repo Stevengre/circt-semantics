@@ -317,7 +317,7 @@ def exec_verify(**kwargs: Any) -> None:
     work_dir = Path(kwargs['work_dir']) if kwargs.get('work_dir') else None
 
     if kwargs.get('symbolic'):
-        result = KCIRCT().prove_assertions(
+        symbolic_result = KCIRCT().prove_assertions(
             input_file,
             top_module=kwargs['top_module'],
             symbolic_widths=_parse_symbolic_widths(kwargs.get('symbolic_input_widths'), input_steps),
@@ -331,21 +331,21 @@ def exec_verify(**kwargs: Any) -> None:
             maintenance_rate=kwargs.get('maintenance_rate', 1),
         )
 
-        print(f'input: {result.input_file}')
-        print(f'top-module: {result.top_module}')
-        print(f'work-dir: {result.work_dir}')
-        print(f'setup-state: {result.setup_state}')
-        print(f'symbolic-widths: {result.symbolic_widths}')
-        print(f'proof-id: {result.proof.id}')
-        print(f'passed: {result.proof.passed}')
-        print(f'failed: {result.proof.failed}')
-        print(f'note: {result.note}')
+        print(f'input: {symbolic_result.input_file}')
+        print(f'top-module: {symbolic_result.top_module}')
+        print(f'work-dir: {symbolic_result.work_dir}')
+        print(f'setup-state: {symbolic_result.setup_state}')
+        print(f'symbolic-widths: {symbolic_result.symbolic_widths}')
+        print(f'proof-id: {symbolic_result.proof.id}')
+        print(f'passed: {symbolic_result.proof.passed}')
+        print(f'failed: {symbolic_result.proof.failed}')
+        print(f'note: {symbolic_result.note}')
 
-        if not result.proof.passed:
+        if not symbolic_result.proof.passed:
             raise SystemExit(1)
         return
 
-    result = KCIRCT().verify_assertions_fast(
+    concrete_result = KCIRCT().verify_assertions_fast(
         input_file,
         top_module=kwargs['top_module'],
         input_steps=input_steps,
@@ -353,18 +353,18 @@ def exec_verify(**kwargs: Any) -> None:
         depth=kwargs.get('depth') or kwargs.get('max_depth'),
     )
 
-    print(f'input: {result.input_file}')
-    print(f'top-module: {result.top_module}')
-    print(f'work-dir: {result.work_dir}')
-    print(f'assertions-present: {result.checked_assertions}')
-    print(f'passed: {result.passed}')
-    if result.errors:
+    print(f'input: {concrete_result.input_file}')
+    print(f'top-module: {concrete_result.top_module}')
+    print(f'work-dir: {concrete_result.work_dir}')
+    print(f'assertions-present: {concrete_result.checked_assertions}')
+    print(f'passed: {concrete_result.passed}')
+    if concrete_result.errors:
         print('assertion-errors:')
-        for error in result.errors:
+        for error in concrete_result.errors:
             print(f'  - {error}')
-    print(f'note: {result.note}')
+    print(f'note: {concrete_result.note}')
 
-    if not result.passed:
+    if not concrete_result.passed:
         raise SystemExit(1)
 
 

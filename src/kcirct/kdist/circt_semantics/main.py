@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyk.kcfg.semantics import DefaultSemantics
 from pyk.kast.inner import KApply, KSequence
+from pyk.kcfg.semantics import DefaultSemantics
 from pyk.kore.prelude import LBL_LIST, LBL_LIST_ITEM, SORT_K_ITEM, dv, inj
 from pyk.kore.syntax import DV, App, SortApp, String
 

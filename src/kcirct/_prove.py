@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pyk.cterm import CTerm, cterm_symbolic
-from pyk.kdist import kdist
 from pyk.kast.inner import KApply, KSequence, KSort, KToken, KVariable, Subst
 from pyk.kast.manip import split_config_from
 from pyk.kast.prelude.collections import list_of
@@ -14,6 +13,7 @@ from pyk.kast.prelude.kint import intToken, leInt
 from pyk.kast.prelude.ml import mlEqualsTrue
 from pyk.kcfg import KCFG
 from pyk.kcfg.explore import KCFGExplore
+from pyk.kdist import kdist
 from pyk.ktool.kprint import KPrint
 from pyk.proof.reachability import APRProof, APRProver
 

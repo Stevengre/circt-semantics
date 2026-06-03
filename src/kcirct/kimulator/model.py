@@ -37,7 +37,7 @@ class KimulatorModel:
         signals: dict[str, Signal] | None = None,
         children: dict[str, KimulatorModel] | None = None,
         context: KimulatorContext | None = None,
-    ):
+    ) -> None:
         if signals is None:
             signals = {}
         if children is None:

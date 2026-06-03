@@ -8,14 +8,15 @@ from pyk.kbuild.utils import k_version
 from pyk.kdist.api import Target
 from pyk.ktool.kompile import PykBackend, kompile
 
-try:
-    from pyk.ktool.kompile import LLVMKompileType
-except ImportError:  # pragma: no cover - compatibility with older pyk releases
-    LLVMKompileType = None  # type: ignore[assignment]
-
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
     from typing import Any, Final
+
+_LLVMKompileType: Any
+try:
+    from pyk.ktool.kompile import LLVMKompileType as _LLVMKompileType
+except ImportError:  # pragma: no cover - compatibility with older pyk releases
+    _LLVMKompileType = None
 
 
 class SourceTarget(Target):
@@ -31,7 +32,7 @@ class SourceTarget(Target):
 class KompileTarget(Target):
     _kompile_args: Callable[[Path], Mapping[str, Any]]
 
-    def __init__(self, kompile_args: Callable[[Path], Mapping[str, Any]]):
+    def __init__(self, kompile_args: Callable[[Path], Mapping[str, Any]]) -> None:
         self._kompile_args = kompile_args
 
     def build(self, output_dir: Path, deps: dict[str, Path], args: dict[str, Any], verbose: bool) -> None:
@@ -52,8 +53,8 @@ def _llvm_library_args(src_dir: Path) -> dict[str, Any]:
         'main_module': 'CIRCT-CORE',
         'syntax_module': 'CIRCT-CORE-SYNTAX',
     }
-    if LLVMKompileType is not None:
-        args['llvm_kompile_type'] = LLVMKompileType.C
+    if _LLVMKompileType is not None:
+        args['llvm_kompile_type'] = _LLVMKompileType.C
     return args
 
 

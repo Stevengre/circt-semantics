@@ -23,9 +23,10 @@ from pyk.ktool.kprint import KPrint
 from kcirct.kdist.circt_semantics.main import cell_symbol, cmd, phase_symbol
 
 if TYPE_CHECKING:
-    from kcirct._prove import AssertProofResult, AssertVerificationResult
-
     from pyk.kore.syntax import Pattern
+    from pyk.proof.reachability import APRProof
+
+    from kcirct._prove import AssertProofResult, AssertVerificationResult
 
 
 API_DIR = Path(__file__).parent
@@ -36,36 +37,28 @@ PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 
 sys.setrecursionlimit(2**31 - 1)
-sys.set_int_max_str_digits(10000)
+_set_int_max_str_digits = getattr(sys, 'set_int_max_str_digits', None)
+if _set_int_max_str_digits is not None:
+    _set_int_max_str_digits(10000)
 
 
-# 根据运行环境动态分配调用栈至目标或平台最大值
-soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-target = 128 * 1024 * 1024
-try:
-    if hard == resource.RLIM_INFINITY:
-        if soft < target:
-            resource.setrlimit(resource.RLIMIT_STACK, (target, hard))
-    else:
-        new_soft = min(target, hard)
-        if soft < new_soft:
-            resource.setrlimit(resource.RLIMIT_STACK, (new_soft, hard))
-except (ValueError, OSError):
-    pass
+def _raise_stack_limit() -> None:
+    """Raise the process stack limit when the platform allows it."""
+    soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+    target = 128 * 1024 * 1024
+    try:
+        if hard == resource.RLIM_INFINITY:
+            if soft < target:
+                resource.setrlimit(resource.RLIMIT_STACK, (target, hard))
+        else:
+            new_soft = min(target, hard)
+            if soft < new_soft:
+                resource.setrlimit(resource.RLIMIT_STACK, (new_soft, hard))
+    except (ValueError, OSError):
+        pass
 
-# 根据运行环境动态分配调用栈至目标或平台最大值
-soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-target = 128 * 1024 * 1024
-try:
-    if hard == resource.RLIM_INFINITY:
-        if soft < target:
-            resource.setrlimit(resource.RLIMIT_STACK, (target, hard))
-    else:
-        new_soft = min(target, hard)
-        if soft < new_soft:
-            resource.setrlimit(resource.RLIMIT_STACK, (new_soft, hard))
-except (ValueError, OSError):
-    pass
+
+_raise_stack_limit()
 
 
 class KCIRCT:
@@ -273,7 +266,7 @@ class KCIRCT:
         proof_id: str,
         symbolic_widths: list[int],
         proof_dir: Path | None = None,
-    ):
+    ) -> APRProof:
         from kcirct._prove import assertion_apr_proof
 
         return assertion_apr_proof(
@@ -470,7 +463,7 @@ class KCIRCT:
                 firmem_flag = reg_ports[i + 1]
                 reg_name = reg_ports[i + 5]
                 if firmem_flag == '1':
-                    assert reg_name != 'default_firmem' 'firmem should have name'
+                    assert reg_name != 'default_firmem', 'firmem should have name'
                     signal_port_mapping[reg_port] = '/'.join(reg_port.split('/')[:-1] + [reg_name]) + '_ext'
                 i += 6
 
@@ -643,14 +636,6 @@ class KCIRCT:
         phase = "preprocess" | "canonicalized"
         """
 
-        def _print_correct_pattern(_pgm: Path, _output_file: Path) -> None:
-            """When failed, print the correct pattern to the output file. Then update the template."""
-            with open(_output_file, 'w') as file:
-                pgm_pattern = KCIRCT.read_kore(_pgm)
-                init_pattern = top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm_pattern)})
-                init_pattern.write(file)
-
-        # _print_correct_pattern(pgm, output_file)
         template = r"""LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
         temp_file = output_file.parent / (output_file.name + '.prestate')
         with open(pgm, 'r') as file:

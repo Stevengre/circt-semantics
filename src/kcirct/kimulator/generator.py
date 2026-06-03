@@ -67,7 +67,7 @@ class Generator:
     _state_json_path: Path
     _header_path: Path
 
-    def __init__(self, source: Path, *, output_dir: Path | None = None):
+    def __init__(self, source: Path, *, output_dir: Path | None = None) -> None:
         self.source = source
         if output_dir is None:
             output_dir = source.parent.joinpath(self.source.stem)
