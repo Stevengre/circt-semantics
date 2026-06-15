@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -34,6 +35,7 @@ class DummyKCIRCT(KCIRCT):
     def run_simulate_fast(
         self, input_file: Path, output_file: Path, inputs: list[tuple[int, int]], depth: int | None = None
     ) -> None:
+        _ = input_file
         self.calls.append(f'run_simulate_fast:{inputs}:{depth}')
         if self.fail:
             output_file.write_text('LblassertionError{}("\\dv{SortString{}}("overflow_assert")")')
@@ -92,6 +94,8 @@ def test_verify_assertions_fast_pipeline(tmp_path: Path, fail: bool) -> None:
 
 def test_assertion_apr_proof_from_setup_state(tmp_path: Path) -> None:
     pytest.importorskip('pyk')
+    if shutil.which('krun') is None:
+        pytest.skip('krun is required to build the setup state')
     kcirct = KCIRCT()
     setup_state = kcirct._setup_state_for_assert_proof(VERIFY_ASSERT_TRUE, 'AssertTrue', tmp_path / 'proof')
 
