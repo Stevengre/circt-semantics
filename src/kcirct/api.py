@@ -636,6 +636,14 @@ class KCIRCT:
         phase = "preprocess" | "canonicalized"
         """
 
+        def _print_correct_pattern(_pgm: Path, _output_file: Path) -> None:
+            """When failed, print the correct pattern to the output file. Then update the template."""
+            with open(_output_file, 'w') as file:
+                pgm_pattern = KCIRCT.read_kore(_pgm)
+                init_pattern = top_cell_initializer({'$PGM': inj(SortApp('SortTopLevel'), SORT_K_ITEM, pgm_pattern)})
+                init_pattern.write(file)
+
+        # _print_correct_pattern(pgm, output_file)
         template = r"""LblinitGeneratedTopCell{}(\left-assoc{}(Lbl'Unds'Map'Unds'{}(Lbl'UndsPipe'-'-GT-Unds'{}(inj{SortKConfigVar{}, SortKItem{}}(\dv{SortKConfigVar{}}("$PGM")), inj{SortTopLevel{}, SortKItem{}}({pgm})))))"""
         temp_file = output_file.parent / (output_file.name + '.prestate')
         with open(pgm, 'r') as file:

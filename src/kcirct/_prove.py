@@ -151,6 +151,7 @@ def assertion_apr_proof(
     return APRProof(proof_id, kcfg, [], init_node.id, target_node.id, {}, proof_dir=proof_dir)
 
 
+# 符号执行验证入口
 def prove_assertions(
     kcirct: KCIRCT,
     input_file: Path,
@@ -218,6 +219,7 @@ def prove_assertions(
     )
 
 
+# 具体执行验证入口
 def verify_assertions_fast(
     kcirct: KCIRCT,
     input_file: Path,
