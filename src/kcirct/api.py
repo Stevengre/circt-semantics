@@ -23,9 +23,10 @@ from pyk.ktool.kprint import KPrint
 from kcirct.kdist.circt_semantics.main import cell_symbol, cmd, phase_symbol
 
 if TYPE_CHECKING:
-    pass
-
     from pyk.kore.syntax import Pattern
+    from pyk.proof.reachability import APRProof
+
+    from kcirct._prove import AssertProofResult, AssertVerificationResult
 
 
 API_DIR = Path(__file__).parent
@@ -36,36 +37,28 @@ PARSER_DIR = WORKING_DIR / 'parsers'
 TOP_LEVEL_PARSER = PARSER_DIR / 'parser_TopLevel_MAIN-SYNTAX'
 
 sys.setrecursionlimit(2**31 - 1)
-sys.set_int_max_str_digits(10000)
+_set_int_max_str_digits = getattr(sys, 'set_int_max_str_digits', None)
+if _set_int_max_str_digits is not None:
+    _set_int_max_str_digits(10000)
 
 
-# 根据运行环境动态分配调用栈至目标或平台最大值
-soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-target = 128 * 1024 * 1024
-try:
-    if hard == resource.RLIM_INFINITY:
-        if soft < target:
-            resource.setrlimit(resource.RLIMIT_STACK, (target, hard))
-    else:
-        new_soft = min(target, hard)
-        if soft < new_soft:
-            resource.setrlimit(resource.RLIMIT_STACK, (new_soft, hard))
-except (ValueError, OSError):
-    pass
+def _raise_stack_limit() -> None:
+    """Raise the process stack limit when the platform allows it."""
+    soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+    target = 128 * 1024 * 1024
+    try:
+        if hard == resource.RLIM_INFINITY:
+            if soft < target:
+                resource.setrlimit(resource.RLIMIT_STACK, (target, hard))
+        else:
+            new_soft = min(target, hard)
+            if soft < new_soft:
+                resource.setrlimit(resource.RLIMIT_STACK, (new_soft, hard))
+    except (ValueError, OSError):
+        pass
 
-# 根据运行环境动态分配调用栈至目标或平台最大值
-soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
-target = 128 * 1024 * 1024
-try:
-    if hard == resource.RLIM_INFINITY:
-        if soft < target:
-            resource.setrlimit(resource.RLIMIT_STACK, (target, hard))
-    else:
-        new_soft = min(target, hard)
-        if soft < new_soft:
-            resource.setrlimit(resource.RLIMIT_STACK, (new_soft, hard))
-except (ValueError, OSError):
-    pass
+
+_raise_stack_limit()
 
 
 class KCIRCT:
@@ -237,6 +230,105 @@ class KCIRCT:
             f.write(result.stdout)
         return
 
+    @staticmethod
+    def has_sv_assert(input_file: Path) -> bool:
+        from kcirct._prove import has_sv_assert
+
+        return has_sv_assert(input_file)
+
+    @staticmethod
+    def find_assertion_errors(kore_file: Path) -> list[str]:
+        from kcirct._prove import find_assertion_errors
+
+        return find_assertion_errors(kore_file)
+
+    @staticmethod
+    def assert_semantics_note() -> str:
+        from kcirct._prove import assert_semantics_note
+
+        return assert_semantics_note()
+
+    def _setup_state_for_assert_proof(self, input_file: Path, top_module: str, work_dir: Path) -> Path:
+        from kcirct._prove import setup_state_for_assert_proof
+
+        return setup_state_for_assert_proof(self, input_file, top_module, work_dir)
+
+    @staticmethod
+    def default_assertion_artifact_dir(input_file: Path, top_module: str) -> Path:
+        from kcirct._prove import default_assertion_artifact_dir
+
+        return default_assertion_artifact_dir(input_file, top_module)
+
+    def assertion_apr_proof(
+        self,
+        setup_state: Path,
+        *,
+        proof_id: str,
+        symbolic_widths: list[int],
+        proof_dir: Path | None = None,
+    ) -> APRProof:
+        from kcirct._prove import assertion_apr_proof
+
+        return assertion_apr_proof(
+            self,
+            setup_state,
+            proof_id=proof_id,
+            symbolic_widths=symbolic_widths,
+            proof_dir=proof_dir,
+        )
+
+    def prove_assertions(
+        self,
+        input_file: Path,
+        *,
+        top_module: str,
+        symbolic_widths: list[int],
+        proof_dir: Path | None = None,
+        work_dir: Path | None = None,
+        haskell_target: Path | None = None,
+        llvm_lib_target: Path | None = None,
+        max_depth: int | None = None,
+        max_iterations: int | None = None,
+        fail_fast: bool = False,
+        maintenance_rate: int = 1,
+    ) -> AssertProofResult:
+        from kcirct._prove import prove_assertions
+
+        return prove_assertions(
+            self,
+            input_file,
+            top_module=top_module,
+            symbolic_widths=symbolic_widths,
+            proof_dir=proof_dir,
+            work_dir=work_dir,
+            haskell_target=haskell_target,
+            llvm_lib_target=llvm_lib_target,
+            max_depth=max_depth,
+            max_iterations=max_iterations,
+            fail_fast=fail_fast,
+            maintenance_rate=maintenance_rate,
+        )
+
+    def verify_assertions_fast(
+        self,
+        input_file: Path,
+        *,
+        top_module: str,
+        input_steps: list[list[tuple[int, int]]] | None = None,
+        work_dir: Path | None = None,
+        depth: int | None = None,
+    ) -> AssertVerificationResult:
+        from kcirct._prove import verify_assertions_fast
+
+        return verify_assertions_fast(
+            self,
+            input_file,
+            top_module=top_module,
+            input_steps=input_steps,
+            work_dir=work_dir,
+            depth=depth,
+        )
+
     def krun(self, pattern: Pattern, depth: int | None = None, check: bool = True) -> Pattern:
         """Run the CIRCT Semantics pipeline on Kore."""
 
@@ -371,7 +463,7 @@ class KCIRCT:
                 firmem_flag = reg_ports[i + 1]
                 reg_name = reg_ports[i + 5]
                 if firmem_flag == '1':
-                    assert reg_name != 'default_firmem' 'firmem should have name'
+                    assert reg_name != 'default_firmem', 'firmem should have name'
                     signal_port_mapping[reg_port] = '/'.join(reg_port.split('/')[:-1] + [reg_name]) + '_ext'
                 i += 6
 

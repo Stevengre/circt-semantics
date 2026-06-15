@@ -25,7 +25,7 @@ class KimulatorVCD:
     top: KimulatorModel | None = None
     trace_level: int = 0
 
-    def __init__(self, top: KimulatorModel, trace_level: int):
+    def __init__(self, top: KimulatorModel, trace_level: int) -> None:
         self.top = top
         self.trace_level = trace_level
         return

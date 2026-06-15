@@ -40,7 +40,7 @@ class PathNode:
     is_firreg: bool
     is_constant: bool
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.edges_in = []
         self.edges_out = []
         self.edge_id = 0

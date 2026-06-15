@@ -14,7 +14,7 @@ authors = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-kframework = "7.1.249"
+kframework = "7.1.323"
 vcdvcd = "^2.3.4"
 
 [tool.poetry.scripts]
@@ -40,6 +40,7 @@ pytest-mock = "*"
 pytest-xdist = "*"
 pyupgrade = "*"
 pydocstyle = "*"
+kframework = "7.1.323"
 
 
 [[tool.poetry.source]]

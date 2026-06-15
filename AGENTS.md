@@ -2,10 +2,10 @@
 
 ## 项目定位与整体架构
 
-`circt-semantics`（Python 包名为 `kcirct`）的目标，是为 CIRCT/MLIR 硬件中间表示提供一套基于 **K Framework** 的形式语义，并在此基础上暴露一个可编程、可测试的仿真接口。仓库可以分成两条主线来理解：
+`circt-semantics`（Python 包名为 `kcirct`）的目标，是为 CIRCT/MLIR 硬件中间表示提供一套基于 **K Framework** 的形式语义，并在此基础上暴露可编程、可测试的仿真与 assertion 验证接口。仓库可以分成两条主线来理解：
 
 1. **K 语义定义**：位于 `src/kcirct/kdist/circt_semantics/`，这里保存 CIRCT 相关的 K 定义、方言语义和配置文件，是形式化语义本体。
-2. **Python 侧工具链**：位于 `src/kcirct/`，负责调用 `kdist` / `kompile` / `krun` 等能力，把语义定义包装成 CLI、API 和 Kimulator 仿真工作流。
+2. **Python 侧工具链**：位于 `src/kcirct/`，负责调用 `kdist` / `kompile` / `krun` / `pyk` proof 能力，把语义定义包装成 CLI、API、Kimulator 仿真工作流和 `sv.assert` 验证工作流。
 
 如果你是助手或新加入的开发者，建议按“入口层 → Python API → K 语义 → 测试资源”这个顺序阅读。
 
@@ -24,13 +24,15 @@
 
 这是 Python 主包。
 
-- `__main__.py`：CLI 入口，当前明确暴露了 `kcirct generate` 等命令。
+- `__main__.py`：CLI 入口，当前明确暴露了 `kcirct generate`、`kcirct verify`（别名 `validate`）等命令。命令分发遵循 `command -> exec_<command>` 约定。
 - `api.py`：核心编排层。`KCIRCT` 类负责：
   - 定位 `kdist` 编译后的定义目录；
   - 调用 `kast` 生成 parser；
   - 调用 `kompile` / `krun` / 相关 K 工具；
-  - 读写中间 Kore / parser / working data。
-- `kdist/plugin.py`：把仓库中的 K 语义注册为 `kdist` target，例如 `circt-semantics.llvm`。
+  - 读写中间 Kore / parser / working data；
+  - 暴露 `verify_assertions_fast`、`prove_assertions` 等 assertion 验证 API。
+- `_prove.py`：`sv.assert` 验证与证明编排层。具体执行验证会走 compile / preprocess / setup / simulate pipeline 并扫描 assertion error；符号验证会构造 APR proof，通过 Haskell 后端和 `KCFGExplore` 推进证明。
+- `kdist/plugin.py`：把仓库中的 K 语义注册为 `kdist` target，例如 `circt-semantics.llvm`、`circt-semantics.llvm-library`、`circt-semantics.haskell`。LLVM 后端主要服务 concrete execution，Haskell 后端主要服务 symbolic execution / proof。
 - `kimulator/`：Python 侧仿真抽象层。
   - `context.py`：运行上下文、信号状态、时间推进与 trace 管理。
   - `model.py`：`KimulatorModel`，负责 compile / eval 等模型生命周期。
@@ -54,7 +56,7 @@
 
 - `unit/`：无需完整 kompile 的轻量测试。
 - `integration/`：需要语义定义可用，覆盖 API、Kimulator、语义运行等主流程。
-- `resources/`：测试输入与基准输出，非常关键。里面包含大量 `.mlir`、`.generic.mlir`、`.kore`、`state.json`、`test_data.json`、VCD 以及 expected 结果。
+- `resources/`：测试输入与基准输出，非常关键。里面包含大量 `.mlir`、`.generic.mlir`、`.kore`、`state.json`、`test_data.json`、VCD 以及 expected 结果；`resources/verify/` 下放 assertion 验证样例。
 
 尤其 `src/tests/resources/operation/` 下按 `comb/hw/seq/sv` 分类，基本就是仓库支持能力的“样例总表”。遇到某个 op 或方言不理解时，优先从这里反向定位。
 
@@ -73,6 +75,28 @@
 - `make check`：统一执行 flake8 / mypy / autoflake / isort / black 检查。
 - `make format`：执行 autoflake、isort、black 自动格式化。
 - `make check-dependencies`：检查 firtool、verilator、iverilog、K 等外部工具版本。
+
+常用 CLI 示例：
+
+```bash
+poetry run kcirct verify \
+  src/tests/resources/verify/assert_true/assert_true.generic.mlir \
+  --top-module AssertTrue \
+  --inputs 1:8 \
+  --backend llvm
+```
+
+```bash
+poetry run kcirct verify \
+  src/tests/resources/verify/assert_true/assert_true.generic.mlir \
+  --top-module AssertTrue \
+  --symbolic \
+  --symbolic-input-widths 8 \
+  --max-depth 50 \
+  --max-iterations 3
+```
+
+`verify` 的默认工作目录是输入文件旁的 `.kcirct/<stem>.<top-module>.assertions/`，可用 `--work-dir` 覆盖；符号证明目录默认是该工作目录下的 `proof/`，可用 `--proof-dir` 覆盖。
 
 常见本地开发顺序：
 
@@ -98,6 +122,8 @@ make test-integration
 - 模块/文件名使用小写加下划线，如 `err_trace.py`。
 - 测试文件命名为 `test_*.py`。
 - 新增方言或操作语义时，目录组织尽量对齐现有 `dialects/<dialect>/` 与 `src/tests/resources/operation/<dialect>/`。
+- 新增 CLI 子命令时，在 `create_arg_parser()` 中注册子命令，并提供同名 `exec_<command>` 函数；需要兼容别名时在 `_normalize_command()` 中集中处理。
+- 新增 assertion 验证能力时，优先把 orchestration 放在 `_prove.py`，再通过 `KCIRCT` 方法和 `kcirct verify` CLI 暴露，避免把证明细节塞进 `__main__.py`。
 - 不要随意改动 `workingdir/`、`tmp/` 的运行期行为，除非你清楚其对 parser / 中间文件生命周期的影响。
 
 ## 测试指南
@@ -114,6 +140,14 @@ make test-integration
 make test-unit
 ```
 
+如果修改 `kcirct verify`、`_prove.py` 或 assertion 相关 API，至少跑：
+
+```bash
+make test-unit
+```
+
+并重点关注 `src/tests/unit/test_verify.py`。涉及真实 K 后端、Haskell proof、`CirctSemantics.is_terminal` 或 K 规则时，还需要先构建语义定义再跑相关集成路径。
+
 如果涉及语义、仿真、K 运行或 op 行为，至少跑：
 
 ```bash
@@ -127,6 +161,8 @@ make test-integration
 
 - `fix api`
 - `fix firreg & firmem`
+- `构建了assert的具体验证和符号执行验证`
+- `format`
 - `实现ErrorTrace以及对seq的时序和mask的修正`
 - `SV Dialect重构完成，kompile通过，尚未进行validation`
 
@@ -137,5 +173,7 @@ make test-integration
 - 先读 `README.md`、`Makefile`、`pyproject.toml`，再进入 `src/kcirct/`。
 - 想理解功能覆盖范围时，优先查看 `src/tests/resources/operation/`。
 - 想定位语义实现时，从测试资源反查到 `src/kcirct/kdist/circt_semantics/dialects/...`。
+- 想定位 `kcirct verify` 行为时，按 `__main__.py -> api.py -> _prove.py -> kdist/circt_semantics/main.py` 阅读；具体执行关注 `verify_assertions_fast`，符号证明关注 `prove_assertions` 和 `assertion_apr_proof`。
+- 调试 assertion 验证时，先查看工作目录中的 `pgm.kore`、`preprocessed.kore`、`setup.kore`、`simulated.<n>.kore` 或 `proof/` 数据，再判断是 pipeline、输入宽度、后端 target 还是 K 规则问题。
 - 想定位运行问题时，先区分是：**外部依赖缺失**、**kdist/kompile 失败**、**Python 包装层问题**，还是**K 语义本身不符合预期**。
 - 修改语义后，不要只看 Python 测试是否通过，还要关注生成的 Kore / VCD / expected 工件是否一致。
