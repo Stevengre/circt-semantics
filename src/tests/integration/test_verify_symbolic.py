@@ -49,12 +49,7 @@ def _ensure_symbolic_verify_env() -> None:
 
 
 def _proof_debug_summary(result: AssertProofResult) -> str:
-    proof = result.proof
-    return (
-        f'{proof.one_line_summary}; '
-        f'pending={[node.id for node in proof.pending]}; '
-        f'failing={[node.id for node in proof.failing]}'
-    )
+    return KCIRCT.summarize_assert_proof(result)
 
 
 def _prove_with_retry(example: VerifyExample, work_dir: Path, proof_dir: Path) -> tuple[Path, AssertProofResult]:

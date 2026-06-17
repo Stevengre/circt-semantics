@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -85,6 +86,14 @@ def default_assertion_artifact_dir(input_file: Path, top_module: str) -> Path:
     return input_file.parent / '.kcirct' / f'{input_file.stem}.{top_module}.assertions'
 
 
+def clear_assertion_proof_data(proof_id: str, proof_dir: Path) -> bool:
+    proof_data_dir = proof_dir / proof_id
+    if not proof_data_dir.exists():
+        return False
+    shutil.rmtree(proof_data_dir)
+    return True
+
+
 def _symbolic_bits(name: str, width: int) -> KApply:
     return KApply(BITS_LABEL, (KVariable(name, KSort('Int')), intToken(width)))
 
@@ -166,6 +175,7 @@ def prove_assertions(
     max_iterations: int | None = None,
     fail_fast: bool = False,
     maintenance_rate: int = 1,
+    reload: bool = False,
 ) -> AssertProofResult:
     if not symbolic_widths:
         raise ValueError('prove_assertions expects at least one symbolic input width')
@@ -174,6 +184,8 @@ def prove_assertions(
     proof_dir = proof_dir or work_dir / 'proof'
     setup_state = setup_state_for_assert_proof(kcirct, input_file, top_module, work_dir)
     proof_id = f'{input_file.stem}.{top_module}.assertions'
+    if reload:
+        clear_assertion_proof_data(proof_id, proof_dir)
     if APRProof.proof_data_exists(proof_id, proof_dir):
         proof = APRProof.read_proof_data(proof_dir, proof_id)
     else:

@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from pyk.proof.reachability import APRProof
 
     from kcirct._prove import AssertProofResult, AssertVerificationResult
+    from kcirct.verify_debug import AssertProofDebugArtifacts
 
 
 API_DIR = Path(__file__).parent
@@ -291,6 +292,7 @@ class KCIRCT:
         max_iterations: int | None = None,
         fail_fast: bool = False,
         maintenance_rate: int = 1,
+        reload: bool = False,
     ) -> AssertProofResult:
         from kcirct._prove import prove_assertions
 
@@ -307,6 +309,35 @@ class KCIRCT:
             max_iterations=max_iterations,
             fail_fast=fail_fast,
             maintenance_rate=maintenance_rate,
+            reload=reload,
+        )
+
+    @staticmethod
+    def summarize_assert_proof(result: AssertProofResult) -> str:
+        from kcirct.verify_debug import summarize_assert_proof
+
+        return summarize_assert_proof(result)
+
+    @staticmethod
+    def summarize_assertion_branches(result: AssertProofResult, *, max_constraints_per_target: int = 3) -> str:
+        from kcirct.verify_debug import summarize_assertion_branches
+
+        return summarize_assertion_branches(result, max_constraints_per_target=max_constraints_per_target)
+
+    def dump_assertion_debug_artifacts(
+        self,
+        result: AssertProofResult,
+        *,
+        output_dir: Path | None = None,
+        state_files: list[Path] | None = None,
+    ) -> AssertProofDebugArtifacts:
+        from kcirct.verify_debug import dump_assertion_debug_artifacts
+
+        return dump_assertion_debug_artifacts(
+            self,
+            result,
+            output_dir=output_dir,
+            state_files=state_files,
         )
 
     def verify_assertions_fast(
