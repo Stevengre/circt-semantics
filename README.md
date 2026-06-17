@@ -4,10 +4,11 @@ CIRCT is built on top of the LLVM compiler infrastructure and is designed to sup
 
 This project aims to provide a formal framework for CIRCT, which will allow us to formally reason about CIRCT transformations and CIRCT-based hardware designs.
 
-K-CIRCT consists of 2 parts:
+K-CIRCT consists of 3 parts:
 
 - `src/kproj`: An extensible and composable semantics of CIRCT in K as a rigorous foundation for CIRCT.
-- `src/kirct`: A user-friendly interface for the formal semantics, called `kirct`, which allows users to utilize the semantics for simulation. It's also easy to extend `kirct` in Python to support more features. And we will support symbolic execution and verification in the future.
+- `src/kirct`: A user-friendly interface for the formal semantics, called `kirct`, which allows users to utilize the semantics for simulation. It's also easy to extend `kirct` in Python to support more features.
+- `verification/`: A comprehensive formal verification framework enabling mathematical proofs of hardware design correctness and compiler optimization equivalence using K framework claims and symbolic execution.
 
 ## Installation
 
@@ -70,6 +71,32 @@ Note that you need to run the following command to make `diffvcd.py` executable:
 ```
 chmod u+x src/kcirct/lib/diffvcd.py
 ```
+
+## Formal Verification Framework
+
+K-CIRCT includes a comprehensive verification framework located in `verification/` that enables:
+
+- **Mathematical Hardware Verification**: Prove hardware design correctness for all possible inputs
+- **Compiler Transformation Verification**: Verify CIRCT optimizations preserve semantic equivalence
+- **Safety Property Verification**: Prove critical safety properties like overflow detection
+
+### Quick Start Verification
+
+```bash
+# Run all verification cases
+./verification/scripts/run_all_verifications.sh
+
+# Individual verification cases
+./verification/scripts/verify_constant_folding.sh    # Compiler optimization equivalence
+./verification/scripts/verify_arithmetic_safety.sh  # Hardware overflow detection
+```
+
+### Verification Cases Included
+
+1. **Constant Folding Equivalence** - Proves compiler optimizations preserve semantics
+2. **Arithmetic Safety Properties** - Verifies 4-bit overflow detection correctness
+
+For complete documentation, see [verification/README.md](verification/README.md).
 
 ## Test
 
