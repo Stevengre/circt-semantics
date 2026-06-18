@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import shutil
 from pathlib import Path
 from types import SimpleNamespace
@@ -8,8 +9,10 @@ from typing import Any, cast
 import pytest
 
 import kcirct.__main__ as main_module
+import kcirct.api as api_module
 from kcirct._prove import clear_assertion_proof_data
 from kcirct.api import KCIRCT
+from kcirct.kdist.circt_semantics.main import CirctSemantics
 from kcirct.verify_debug import dump_assertion_debug_artifacts, summarize_assert_proof, summarize_assertion_branches
 
 VERIFY_ASSERT_TRUE = Path('src/tests/resources/verify/assert_true/assert_true.generic.mlir')
@@ -88,6 +91,18 @@ def test_find_assertion_errors(tmp_path: Path) -> None:
     state.write_text('... ASSERT: overflow_assert ...')
 
     assert KCIRCT.find_assertion_errors(state) == ['overflow_assert']
+
+
+def test_circt_semantics_is_terminal_missing_currents_cell() -> None:
+    class MissingCurrentsCell:
+        config = object()
+
+        def cell(self, name: str) -> object:
+            if name == 'CMD_CELL':
+                return object()
+            raise KeyError(name)
+
+    assert CirctSemantics().is_terminal(cast('Any', MissingCurrentsCell())) is False
 
 
 def test_clear_assertion_proof_data(tmp_path: Path) -> None:
@@ -175,7 +190,74 @@ def test_summarize_assertion_branches(tmp_path: Path) -> None:
     assert 'target 4: 2 constraints (1 new vs source)' in summary
     assert 'target 5: 2 constraints (1 new vs source)' in summary
     assert 'not (BRANCH4)' in summary
-    assert 'COND5 == true' in summary
+    assert '    + COND5' in summary
+
+
+def test_summarize_assertion_branches_includes_changed_node_properties(tmp_path: Path) -> None:
+    proof_root = tmp_path / 'work' / 'proof' / 'unit.assertions' / 'kcfg'
+    nodes_dir = proof_root / 'nodes'
+    nodes_dir.mkdir(parents=True)
+    (proof_root / 'kcfg.json').write_text(
+        '{"nodes":[3,4],"edges":[],"ndbranches":[{"source":3,"targets":[4],"rules":[]}],"vacuous":[],"stuck":[]}'
+    )
+    (nodes_dir / '3.json').write_text(
+        '{"id":3,"cterm":{"config":{"node":"KApply","label":{"node":"KLabel","name":"<generatedTop>","params":[]},'
+        '"args":[{"node":"KApply","label":{"node":"KLabel","name":"<signals>","params":[]},"args":[{"node":"KApply",'
+        '"label":{"node":"KLabel","name":"_|->_","params":[]},"args":[{"node":"KToken","token":"\\"Foo/%arg0\\"",'
+        '"sort":{"node":"KSort","name":"String","params":[]}},{"node":"KApply","label":{"node":"KLabel",'
+        '"name":"bits(_,_)_BITS-SYNTAX_Bits_BitsValue_Int","params":[]},"args":[{"node":"KVariable","name":"INPUT0",'
+        '"sort":{"node":"KSort","name":"Int","params":[]}},{"node":"KToken","token":"8","sort":{"node":"KSort",'
+        '"name":"Int","params":[]}}],"arity":2,"variable":false}],"arity":2,"variable":false}],"arity":1,'
+        '"variable":false},{"node":"KApply","label":{"node":"KLabel","name":"<currents>","params":[]},"args":[{'
+        '"node":"KApply","label":{"node":"KLabel","name":"<current-info>","params":[]},"args":[{"node":"KApply",'
+        '"label":{"node":"KLabel","name":"<current-id>","params":[]},"args":[{"node":"KToken","token":"0","sort":'
+        '{"node":"KSort","name":"Int","params":[]}}],"arity":1,"variable":false},{"node":"KApply","label":{"node":"KLabel",'
+        '"name":"<current>","params":[]},"args":[{"node":"KSequence","items":[],"arity":0}],"arity":1,"variable":false}],'
+        '"arity":2,"variable":false}],"arity":2,"variable":false}],"arity":1,"variable":false},"constraints":[]},'
+        '"attrs":[{"node":"KToken","token":"source-attr","sort":{"node":"KSort","name":"String","params":[]}}]}'
+    )
+    (nodes_dir / '4.json').write_text(
+        '{"id":4,"cterm":{"config":{"node":"KApply","label":{"node":"KLabel","name":"<generatedTop>","params":[]},'
+        '"args":[{"node":"KApply","label":{"node":"KLabel","name":"<signals>","params":[]},"args":[{"node":"KApply",'
+        '"label":{"node":"KLabel","name":"_Map_","params":[]},"args":[{"node":"KApply","label":{"node":"KLabel",'
+        '"name":"_|->_","params":[]},"args":[{"node":"KToken","token":"\\"Foo/%arg0\\"","sort":{"node":"KSort",'
+        '"name":"String","params":[]}},{"node":"KApply","label":{"node":"KLabel","name":"bits(_,_)_BITS-SYNTAX_Bits_BitsValue_Int",'
+        '"params":[]},"args":[{"node":"KVariable","name":"INPUT0","sort":{"node":"KSort","name":"Int","params":[]}},'
+        '{"node":"KToken","token":"8","sort":{"node":"KSort","name":"Int","params":[]}}],"arity":2,"variable":false}],'
+        '"arity":2,"variable":false},{"node":"KApply","label":{"node":"KLabel","name":"_|->_","params":[]},"args":[{'
+        '"node":"KToken","token":"\\"Foo/%0\\"","sort":{"node":"KSort","name":"String","params":[]}},{"node":"KApply",'
+        '"label":{"node":"KLabel","name":"bits(_,_)_BITS-SYNTAX_Bits_BitsValue_Int","params":[]},"args":[{"node":"KToken",'
+        '"token":"0","sort":{"node":"KSort","name":"Int","params":[]}},{"node":"KToken","token":"8","sort":{"node":"KSort",'
+        '"name":"Int","params":[]}}],"arity":2,"variable":false}],"arity":2,"variable":false}],"arity":2,"variable":false}],'
+        '"arity":1,"variable":false},{"node":"KApply","label":{"node":"KLabel","name":"<currents>","params":[]},"args":[{'
+        '"node":"KApply","label":{"node":"KLabel","name":"_CurrentInfoCellMap_","params":[]},"args":[{"node":"KApply",'
+        '"label":{"node":"KLabel","name":"<current-info>","params":[]},"args":[{"node":"KApply","label":{"node":"KLabel",'
+        '"name":"<current-id>","params":[]},"args":[{"node":"KToken","token":"0","sort":{"node":"KSort","name":"Int",'
+        '"params":[]}}],"arity":1,"variable":false},{"node":"KApply","label":{"node":"KLabel","name":"<current>",'
+        '"params":[]},"args":[{"node":"KSequence","items":[],"arity":0}],"arity":1,"variable":false}],"arity":2,'
+        '"variable":false},{"node":"KApply","label":{"node":"KLabel","name":"<current-info>","params":[]},"args":[{"node":"KApply",'
+        '"label":{"node":"KLabel","name":"<current-id>","params":[]},"args":[{"node":"KToken","token":"4","sort":{"node":"KSort",'
+        '"name":"Int","params":[]}}],"arity":1,"variable":false},{"node":"KApply","label":{"node":"KLabel","name":"<current>",'
+        '"params":[]},"args":[{"node":"KSequence","items":[{"node":"KVariable","name":"STEP4","sort":{"node":"KSort",'
+        '"name":"KItem","params":[]}}],"arity":1}],"arity":1,"variable":false}],"arity":2,"variable":false}],"arity":2,'
+        '"variable":false}],"arity":1,"variable":false}],"arity":2,"variable":false},"constraints":[]},'
+        '"attrs":[{"node":"KToken","token":"target-attr","sort":{"node":"KSort","name":"String","params":[]}}]}'
+    )
+    result = SimpleNamespace(
+        proof=SimpleNamespace(id='unit.assertions'),
+        work_dir=tmp_path / 'work',
+    )
+
+    summary = summarize_assertion_branches(cast('Any', result))
+
+    assert 'source-properties:' in summary
+    assert 'attrs: [source-attr]' in summary
+    assert 'signals: {Foo/%arg0 |-> bits(INPUT0, 8)}' in summary
+    assert 'currents: [0 -> .K]' in summary
+    assert 'changed-properties:' in summary
+    assert 'attrs: [target-attr]' in summary
+    assert 'signals: {Foo/%arg0 |-> bits(INPUT0, 8), Foo/%0 |-> bits(0, 8)}' in summary
+    assert 'currents: [0 -> .K, 4 -> STEP4]' in summary
 
 
 def test_dump_assertion_debug_artifacts(tmp_path: Path) -> None:
@@ -317,14 +399,30 @@ def test_exec_verify_symbolic_dump_debug_artifacts(
         )
 
     stdout = capsys.readouterr().out
-    assert f'debug-dir: {debug_dir}' in stdout
-    assert f'debug-summary-file: {debug_dir / "proof-summary.txt"}' in stdout
-    assert f'debug-branch-summary-file: {debug_dir / "proof-branches.txt"}' in stdout
-    assert f'debug-setup-pretty: {debug_dir / "setup.pretty"}' in stdout
-    assert f'  - {debug_dir / "setup.kore.pretty"}' in stdout
-    assert 'debug-summary: proof summary' in stdout
+    assert f'debug-artifacts: {debug_dir}' in stdout
     assert 'branch-constraints:' in stdout
     assert 'Branch 3 -> [4, 5]' in stdout
+
+
+def test_kcirct_run_logs_without_stdout(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture
+) -> None:
+    class DummyPopen:
+        returncode = 0
+
+        def communicate(self) -> tuple[bytes, bytes]:
+            return (b'ok\n', b'')
+
+    monkeypatch.setattr(api_module.subprocess, 'Popen', lambda *args, **kwargs: DummyPopen())
+
+    with caplog.at_level(logging.DEBUG, logger=api_module.__name__):
+        result = KCIRCT.run(['echo', 'ok'])
+
+    captured = capsys.readouterr()
+    assert captured.out == ''
+    assert result.stdout == 'ok\n'
+    assert 'Running command: echo ok' in caplog.text
+    assert 'Execution time:' in caplog.text
 
 
 @pytest.mark.parametrize('fail', [False, True])

@@ -48,6 +48,7 @@
 
 - `circt-core.k`、`main.k`：K 语义主入口。
 - `mlir/`、`circt/`、`hardware/`：MLIR/CIRCT/硬件层公共定义与配置。
+- `hardware/int-normalization.md`：`Int` 层局部归一化规则，例如 `xorInt`、`&Int`、`|Int`、加减零和 mask 化简。新增规则应保持“单向收缩”，不要在这里直接加入交换律或结合律，避免 rewrite loop。
 - `dialects/comb/`、`dialects/hw/`、`dialects/seq/`、`dialects/sv/`：各方言的语法与语义规则。
 
 这里的 `.md` 文件并不是普通说明文档，它们是语义定义的重要组成部分，修改时要把它们视作“源码”。
@@ -148,6 +149,26 @@ make test-unit
 
 并重点关注 `src/tests/unit/test_verify.py`。涉及真实 K 后端、Haskell proof、`CirctSemantics.is_terminal` 或 K 规则时，还需要先构建语义定义再跑相关集成路径。
 
+如果修改了 K 语义定义，尤其是验证相关规则，建议按下面顺序刷新 Python 包和 K compiled target：
+
+```bash
+make kcirct
+make circt-semantics
+poetry run kdist build
+```
+
+如果 `kompile` / `krun` 已由 Nix 安装但当前 shell 找不到，先临时补 PATH：
+
+```bash
+export PATH="$HOME/.nix-profile/bin:$PATH"
+```
+
+完成后再跑验证相关集成测试，例如：
+
+```bash
+poetry run pytest -q src/tests/integration/test_verify_symbolic.py
+```
+
 如果涉及语义、仿真、K 运行或 op 行为，至少跑：
 
 ```bash
@@ -173,6 +194,7 @@ make test-integration
 - 先读 `README.md`、`Makefile`、`pyproject.toml`，再进入 `src/kcirct/`。
 - 想理解功能覆盖范围时，优先查看 `src/tests/resources/operation/`。
 - 想定位语义实现时，从测试资源反查到 `src/kcirct/kdist/circt_semantics/dialects/...`。
+- 想补验证用代数化简时，优先区分层级：`Int` 表达式恒等式放在 `hardware/int-normalization.md`，`Bits` 宽度和 X/Z 相关行为放在 `hardware/bits.md`，方言 op 形状相关规则放在对应 `dialects/...`。
 - 想定位 `kcirct verify` 行为时，按 `__main__.py -> api.py -> _prove.py -> kdist/circt_semantics/main.py` 阅读；具体执行关注 `verify_assertions_fast`，符号证明关注 `prove_assertions` 和 `assertion_apr_proof`。
 - 调试 assertion 验证时，先查看工作目录中的 `pgm.kore`、`preprocessed.kore`、`setup.kore`、`simulated.<n>.kore` 或 `proof/` 数据，再判断是 pipeline、输入宽度、后端 target 还是 K 规则问题。
 - 想定位运行问题时，先区分是：**外部依赖缺失**、**kdist/kompile 失败**、**Python 包装层问题**，还是**K 语义本身不符合预期**。

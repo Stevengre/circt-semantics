@@ -358,6 +358,7 @@ def exec_verify(**kwargs: Any) -> None:
         print(f'work-dir: {symbolic_result.work_dir}')
         print(f'setup-state: {symbolic_result.setup_state}')
         print(f'symbolic-widths: {symbolic_result.symbolic_widths}')
+        print(f'elapsed-seconds: {getattr(symbolic_result, "elapsed_seconds", 0.0):.3f}')
         print(f'proof-id: {symbolic_result.proof.id}')
         print(f'passed: {symbolic_result.proof.passed}')
         print(f'failed: {symbolic_result.proof.failed}')
@@ -372,17 +373,7 @@ def exec_verify(**kwargs: Any) -> None:
                 output_dir=debug_output_dir,
                 state_files=[symbolic_result.setup_state],
             )
-            print(f'debug-summary: {kcirct.summarize_assert_proof(symbolic_result)}')
-            print(f'debug-dir: {debug_artifacts.output_dir}')
-            print(f'debug-summary-file: {debug_artifacts.summary_file}')
-            if debug_artifacts.branch_summary_file is not None:
-                print(f'debug-branch-summary-file: {debug_artifacts.branch_summary_file}')
-            if debug_artifacts.setup_pretty_file is not None:
-                print(f'debug-setup-pretty: {debug_artifacts.setup_pretty_file}')
-            if debug_artifacts.state_pretty_files:
-                print('debug-state-pretty-files:')
-                for state_pretty_file in debug_artifacts.state_pretty_files:
-                    print(f'  - {state_pretty_file}')
+            print(f'debug-artifacts: {debug_artifacts.output_dir}')
 
         if not symbolic_result.proof.passed:
             raise SystemExit(1)
@@ -400,6 +391,7 @@ def exec_verify(**kwargs: Any) -> None:
     print(f'top-module: {concrete_result.top_module}')
     print(f'work-dir: {concrete_result.work_dir}')
     print(f'assertions-present: {concrete_result.checked_assertions}')
+    print(f'elapsed-seconds: {getattr(concrete_result, "elapsed_seconds", 0.0):.3f}')
     print(f'passed: {concrete_result.passed}')
     if concrete_result.errors:
         print('assertion-errors:')
