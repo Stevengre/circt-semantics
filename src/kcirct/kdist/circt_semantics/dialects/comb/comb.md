@@ -140,10 +140,15 @@ rule
 rule
 <current> "comb.mux" ( ListItem(_:Bits) ListItem(B:Bits) ListItem(B:Bits) ) {_:Map} :  (_) -> (T:IntegerType) => ListItem(BitsCast(B, getWidth(T)))
 ... </current>
+[priority(45)]
 
 rule
-<current> "comb.mux" ( ListItem(B1:Bits) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) => #if Bits2Bool(B1) #then ListItem(BitsCast(B2, getWidth(T))) #else ListItem(BitsCast(B3, getWidth(T))) #fi
-... </current>
+<current> "comb.mux" ( ListItem(bits(S:Int, 1)) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) =>  ListItem(BitsCast(B3, getWidth(T))) 
+... </current> requires S ==Int 0
+
+rule
+<current> "comb.mux" ( ListItem(bits(S:Int, 1)) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) =>  ListItem(BitsCast(B2, getWidth(T))) 
+... </current> requires S =/=Int 0
 ```
 
 ## comb.icmp
