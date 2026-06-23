@@ -1,5 +1,9 @@
 # Bits
 
+```k
+requires "int-normalization.md"
+```
+
 ## Bits Syntax
 
 ```k
@@ -72,15 +76,18 @@ endmodule
 module BITS
     imports BITS-SYNTAX
     imports INT
+    imports INT-NORMALIZATION
     imports BOOL-COMMON
     imports K-EQUAL
 
+    rule BitsAdd(ListItem(B:Bits)) => B
     rule BitsAdd(ListItem(B:Bits) L:List) => B +Bits BitsAdd(L)
     rule BitsAdd(.List) => bits(0, 0)
 
     // bits binary add
-    rule bits(X1:Int, W1:Int)   +Bits bits(X2:Int, W2:Int)  => BitsCast(bits((X1 +Int X2) &Int (2 ^Int maxInt(W1, W2) -Int 1), maxInt(W1, W2)))
-    // TODO: optimize
+    rule bits(X:Int, W:Int) +Bits bits(0, W) => bits(X, W) [simplification]
+    rule bits(0, W:Int) +Bits bits(X:Int, W) => bits(X, W) [simplification]
+    rule bits(X1:Int, W1:Int)   +Bits bits(X2:Int, W2:Int)  => BitsCast(bits((X1 +Int X2), maxInt(W1, W2)))    // TODO: optimize
     rule bits(_:XZValue, W1)  +Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
     rule bits(_, W1) +Bits bits(_:XZValue, W2) => bits(#x, maxInt(W1, W2))
     [owise]
@@ -88,6 +95,9 @@ module BITS
     rule BitsAnd(ListItem(B:Bits) L:List) => B &Bits BitsAnd(L)
     rule BitsAnd(ListItem(B:Bits)) => B
 
+    rule bits(X:Int, W:Int) &Bits bits(X:Int, W) => bits(X, W) [simplification]
+    rule bits(_:Int, W:Int) &Bits bits(0, W) => bits(0, W) [simplification]
+    rule bits(0, W:Int) &Bits bits(_:Int, W) => bits(0, W) [simplification]
     rule bits(X1:Int, W1:Int)   &Bits bits(X2:Int, W2:Int)  => bits(X1 &Int X2, maxInt(W1, W2))
     // #x
     rule bits(#x, W1) &Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
@@ -98,9 +108,13 @@ module BITS
     rule bits(_:Int, W1) &Bits bits(#z, W2) => bits(0, maxInt(W1, W2))
     rule bits(#z, W1) &Bits bits(_:Int, W2) => bits(0, maxInt(W1, W2))
 
+    rule BitsOr(ListItem(B:Bits)) => B
     rule BitsOr(ListItem(B:Bits) L:List) => B |Bits BitsOr(L)
     rule BitsOr(.List) => bits(0, 0)
 
+    rule bits(X:Int, W:Int) |Bits bits(X:Int, W) => bits(X, W) [simplification]
+    rule bits(X:Int, W:Int) |Bits bits(0, W) => bits(X, W) [simplification]
+    rule bits(0, W:Int) |Bits bits(X:Int, W) => bits(X, W) [simplification]
     rule bits(X1:Int, W1:Int)   |Bits bits(X2:Int, W2:Int)   => bits(X1 |Int X2, maxInt(W1, W2))
     rule bits(#x, W1) |Bits bits(_, W2)    => bits(#x, maxInt(W1, W2))
     rule bits(_, W1) |Bits bits(#x, W2) => bits(#x, maxInt(W1, W2))
@@ -110,9 +124,13 @@ module BITS
     rule bits(_:Int, W1) |Bits bits(#z, W2) => bits(#z, maxInt(W1, W2))
     rule bits(#z, W1) |Bits bits(#z, W2) => bits(#z, maxInt(W1, W2))
 
+    rule BitsXor(ListItem(B:Bits)) => B
     rule BitsXor(ListItem(B:Bits) L:List) => B ^Bits BitsXor(L)
     rule BitsXor(.List) => bits(0, 0)
     
+    rule bits(X:Int, W1:Int) ^Bits bits(X:Int, W2:Int) => bits(0, maxInt(W1, W2)) [simplification]
+    rule bits(X:Int, W:Int) ^Bits bits(0, W) => bits(X, W) [simplification]
+    rule bits(0, W:Int) ^Bits bits(X:Int, W) => bits(X, W) [simplification]
     rule bits(X1:Int, W1:Int) ^Bits bits(X2:Int, W2:Int)  => bits(X1 xorInt X2, maxInt(W1, W2))
     rule bits(_, W1) ^Bits bits(_, W2) => bits(0, maxInt(W1, W2))
     [owise]
@@ -130,6 +148,7 @@ module BITS
     rule BitsCast(bits(X:XZValue, W:Int)) => bits(X, W)
 
     rule BitsCast(bits(X:Int, _W:Int), W1:Int) => BitsCast(bits(X, W1))
+    rule BitsCast(bits(X:Int, W:Int)) => bits(X, W) requires X <Int (2 ^Int W)  [simplification]
 
     rule BitsMul(ListItem(B:Bits) L:List) => B *Bits BitsMul(L)
     rule BitsMul(ListItem(B:Bits)) => B
@@ -191,6 +210,8 @@ module BITS
     [owise]
 
     rule BitsSub(ListItem(B1:Bits) ListItem(B2:Bits))  => B1 -Bits B2
+    rule bits(X:Int, W:Int) -Bits bits(0, W) => bits(X, W) [simplification]
+    rule bits(X:Int, W1:Int) -Bits bits(X:Int, _:Int) => bits(0, W1) [simplification]
     rule bits(X1:Int, W1:Int) -Bits bits(X2:Int, W2:Int) => BitsCast(bits(X1 +Int ((2 ^Int W2 -Int 1) xorInt X2) +Int 1, W1))
     rule bits(_:XZValue, W1:Int) -Bits bits(_, _W2:Int) => bits(#x, W1)
     rule bits(_, W1:Int) -Bits bits(_:XZValue, _W2:Int) => bits(#x, W1)
@@ -206,6 +227,9 @@ module BITS
 
     rule Bool2Int(B:Bool) => #if B #then 1 #else 0 #fi
 
+    rule BitsCmp(0, bits(X:Int, _:Int), bits(X:Int, _:Int)) => bits(1, 1) [simplification]
+    rule BitsCmp(1, bits(X:Int, _:Int), bits(X:Int, _:Int)) => bits(0, 1) [simplification]
+    rule BitsCmp(2, bits(X:Int, _:Int), bits(X:Int, _:Int)) => bits(0, 1) [simplification]
     rule BitsCmp(0, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => bits(Bool2Int(X1 ==Int X2), 1)
     rule BitsCmp(1, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => bits(Bool2Int(X1 =/=Int X2), 1)
     rule BitsCmp(2, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => bits(Bool2Int(X1 =/=Int X2), 1)

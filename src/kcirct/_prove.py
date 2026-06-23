@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import shutil
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -38,6 +40,7 @@ class AssertVerificationResult:
     errors: list[str]
     checked_assertions: bool
     note: str
+    elapsed_seconds: float = 0.0
 
 
 @dataclass
@@ -49,6 +52,7 @@ class AssertProofResult:
     setup_state: Path
     symbolic_widths: list[int]
     note: str
+    elapsed_seconds: float = 0.0
 
 
 def has_sv_assert(input_file: Path) -> bool:
@@ -83,6 +87,14 @@ def assert_semantics_note() -> str:
 
 def default_assertion_artifact_dir(input_file: Path, top_module: str) -> Path:
     return input_file.parent / '.kcirct' / f'{input_file.stem}.{top_module}.assertions'
+
+
+def clear_assertion_proof_data(proof_id: str, proof_dir: Path) -> bool:
+    proof_data_dir = proof_dir / proof_id
+    if not proof_data_dir.exists():
+        return False
+    shutil.rmtree(proof_data_dir)
+    return True
 
 
 def _symbolic_bits(name: str, width: int) -> KApply:
@@ -166,7 +178,9 @@ def prove_assertions(
     max_iterations: int | None = None,
     fail_fast: bool = False,
     maintenance_rate: int = 1,
+    reload: bool = False,
 ) -> AssertProofResult:
+    start_time = time.perf_counter()
     if not symbolic_widths:
         raise ValueError('prove_assertions expects at least one symbolic input width')
 
@@ -174,6 +188,8 @@ def prove_assertions(
     proof_dir = proof_dir or work_dir / 'proof'
     setup_state = setup_state_for_assert_proof(kcirct, input_file, top_module, work_dir)
     proof_id = f'{input_file.stem}.{top_module}.assertions'
+    if reload:
+        clear_assertion_proof_data(proof_id, proof_dir)
     if APRProof.proof_data_exists(proof_id, proof_dir):
         proof = APRProof.read_proof_data(proof_dir, proof_id)
     else:
@@ -216,6 +232,7 @@ def prove_assertions(
         setup_state=setup_state,
         symbolic_widths=symbolic_widths,
         note=assert_semantics_note(),
+        elapsed_seconds=time.perf_counter() - start_time,
     )
 
 
@@ -230,6 +247,7 @@ def verify_assertions_fast(
     depth: int | None = None,
 ) -> AssertVerificationResult:
     """Run the existing CIRCT pipeline and fail if an sv.assert reaches assertionError."""
+    start_time = time.perf_counter()
     if input_steps is None:
         input_steps = [[]]
     if not input_steps:
@@ -266,4 +284,5 @@ def verify_assertions_fast(
         errors=errors,
         checked_assertions=has_sv_assert(input_file),
         note=assert_semantics_note(),
+        elapsed_seconds=time.perf_counter() - start_time,
     )

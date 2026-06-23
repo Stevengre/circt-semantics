@@ -245,6 +245,26 @@ def _add_verify_args(verify_parser: ArgumentParser) -> None:
         metavar='WIDTHS',
         help='Comma-separated input bit widths for symbolic proof, e.g. 8,8.',
     )
+    verify_parser.add_argument(
+        '--dump-debug-artifacts',
+        dest='dump_debug_artifacts',
+        action='store_true',
+        help='Export readable debug artifacts for symbolic verification runs.',
+    )
+    verify_parser.add_argument(
+        '--debug-artifact-dir',
+        dest='debug_artifact_dir',
+        type=str,
+        default=None,
+        metavar='DIR',
+        help='Optional output directory for exported debug artifacts.',
+    )
+    verify_parser.add_argument(
+        '--show-branch-constraints',
+        dest='show_branch_constraints',
+        action='store_true',
+        help='Print proof branch nodes and per-branch added constraints for symbolic verification.',
+    )
 
 
 def create_arg_parser() -> ArgumentParser:
@@ -315,9 +335,10 @@ def exec_verify(**kwargs: Any) -> None:
     input_file = Path(kwargs['input'])
     input_steps = _parse_input_steps(kwargs.get('input_steps'))
     work_dir = Path(kwargs['work_dir']) if kwargs.get('work_dir') else None
+    kcirct = KCIRCT()
 
     if kwargs.get('symbolic'):
-        symbolic_result = KCIRCT().prove_assertions(
+        symbolic_result = kcirct.prove_assertions(
             input_file,
             top_module=kwargs['top_module'],
             symbolic_widths=_parse_symbolic_widths(kwargs.get('symbolic_input_widths'), input_steps),
@@ -329,6 +350,7 @@ def exec_verify(**kwargs: Any) -> None:
             max_iterations=kwargs.get('max_iterations'),
             fail_fast=kwargs.get('fail_fast', False),
             maintenance_rate=kwargs.get('maintenance_rate', 1),
+            reload=kwargs.get('reload', False),
         )
 
         print(f'input: {symbolic_result.input_file}')
@@ -336,16 +358,28 @@ def exec_verify(**kwargs: Any) -> None:
         print(f'work-dir: {symbolic_result.work_dir}')
         print(f'setup-state: {symbolic_result.setup_state}')
         print(f'symbolic-widths: {symbolic_result.symbolic_widths}')
+        print(f'elapsed-seconds: {getattr(symbolic_result, "elapsed_seconds", 0.0):.3f}')
         print(f'proof-id: {symbolic_result.proof.id}')
         print(f'passed: {symbolic_result.proof.passed}')
         print(f'failed: {symbolic_result.proof.failed}')
         print(f'note: {symbolic_result.note}')
+        if kwargs.get('show_branch_constraints'):
+            print('branch-constraints:')
+            print(kcirct.summarize_assertion_branches(symbolic_result), end='')
+        if kwargs.get('dump_debug_artifacts'):
+            debug_output_dir = Path(kwargs['debug_artifact_dir']) if kwargs.get('debug_artifact_dir') else None
+            debug_artifacts = kcirct.dump_assertion_debug_artifacts(
+                symbolic_result,
+                output_dir=debug_output_dir,
+                state_files=[symbolic_result.setup_state],
+            )
+            print(f'debug-artifacts: {debug_artifacts.output_dir}')
 
         if not symbolic_result.proof.passed:
             raise SystemExit(1)
         return
 
-    concrete_result = KCIRCT().verify_assertions_fast(
+    concrete_result = kcirct.verify_assertions_fast(
         input_file,
         top_module=kwargs['top_module'],
         input_steps=input_steps,
@@ -357,6 +391,7 @@ def exec_verify(**kwargs: Any) -> None:
     print(f'top-module: {concrete_result.top_module}')
     print(f'work-dir: {concrete_result.work_dir}')
     print(f'assertions-present: {concrete_result.checked_assertions}')
+    print(f'elapsed-seconds: {getattr(concrete_result, "elapsed_seconds", 0.0):.3f}')
     print(f'passed: {concrete_result.passed}')
     if concrete_result.errors:
         print('assertion-errors:')

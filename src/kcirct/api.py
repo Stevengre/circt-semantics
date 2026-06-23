@@ -6,6 +6,7 @@ It does not include:
 
 from __future__ import annotations
 
+import logging
 import re
 import resource
 import subprocess
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
     from pyk.proof.reachability import APRProof
 
     from kcirct._prove import AssertProofResult, AssertVerificationResult
+    from kcirct.verify_debug import AssertProofDebugArtifacts
 
 
 API_DIR = Path(__file__).parent
@@ -40,6 +42,8 @@ sys.setrecursionlimit(2**31 - 1)
 _set_int_max_str_digits = getattr(sys, 'set_int_max_str_digits', None)
 if _set_int_max_str_digits is not None:
     _set_int_max_str_digits(10000)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _raise_stack_limit() -> None:
@@ -82,12 +86,12 @@ class KCIRCT:
 
     def ensure_env(self) -> None:
         if not TOP_LEVEL_PARSER.exists():
-            print('Generating TopLevelParser...')
+            _LOGGER.info('Generating TopLevelParser...')
             self.generate_parser(sort='TopLevel', parser=TOP_LEVEL_PARSER)
-            print(f'Generated: {TOP_LEVEL_PARSER}')
+            _LOGGER.info('Generated TopLevelParser at %s', TOP_LEVEL_PARSER)
         else:
-            print(f'TopLevelParser exists: {TOP_LEVEL_PARSER}')
-            print('If you want to re-generate, please delete the existing file.')
+            _LOGGER.debug('TopLevelParser exists: %s', TOP_LEVEL_PARSER)
+            _LOGGER.debug('Delete the existing parser file to re-generate it.')
 
     @dataclass
     class Result:
@@ -97,16 +101,15 @@ class KCIRCT:
     @staticmethod
     def run(command: list[str]) -> KCIRCT.Result:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(f'Running command: {" ".join(command)}')
+        _LOGGER.debug('Running command: %s', ' '.join(command))
         start_time = time.time()
         stdout, stderr = process.communicate()
         end_time = time.time()
         time_cost = end_time - start_time
         if process.returncode != 0:
-            print(f'Execution time: {time_cost} seconds')
+            _LOGGER.debug('Execution time: %.3f seconds', time_cost)
             raise RuntimeError(stderr.decode('utf-8'))
-        # print(f'Command succeeded: {stdout.decode('utf-8')}')
-        print(f'Execution time: {time_cost} seconds')
+        _LOGGER.debug('Execution time: %.3f seconds', time_cost)
         return KCIRCT.Result(stdout.decode('utf-8'), time_cost)
 
     @staticmethod
@@ -291,6 +294,7 @@ class KCIRCT:
         max_iterations: int | None = None,
         fail_fast: bool = False,
         maintenance_rate: int = 1,
+        reload: bool = False,
     ) -> AssertProofResult:
         from kcirct._prove import prove_assertions
 
@@ -307,6 +311,35 @@ class KCIRCT:
             max_iterations=max_iterations,
             fail_fast=fail_fast,
             maintenance_rate=maintenance_rate,
+            reload=reload,
+        )
+
+    @staticmethod
+    def summarize_assert_proof(result: AssertProofResult) -> str:
+        from kcirct.verify_debug import summarize_assert_proof
+
+        return summarize_assert_proof(result)
+
+    @staticmethod
+    def summarize_assertion_branches(result: AssertProofResult, *, max_constraints_per_target: int = 3) -> str:
+        from kcirct.verify_debug import summarize_assertion_branches
+
+        return summarize_assertion_branches(result, max_constraints_per_target=max_constraints_per_target)
+
+    def dump_assertion_debug_artifacts(
+        self,
+        result: AssertProofResult,
+        *,
+        output_dir: Path | None = None,
+        state_files: list[Path] | None = None,
+    ) -> AssertProofDebugArtifacts:
+        from kcirct.verify_debug import dump_assertion_debug_artifacts
+
+        return dump_assertion_debug_artifacts(
+            self,
+            result,
+            output_dir=output_dir,
+            state_files=state_files,
         )
 
     def verify_assertions_fast(

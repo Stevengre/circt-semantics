@@ -10,7 +10,7 @@ from pyk.kore.prelude import LBL_LIST, LBL_LIST_ITEM, SORT_K_ITEM, dv, inj
 from pyk.kore.syntax import DV, App, SortApp, String
 
 if TYPE_CHECKING:
-    from pyk.cterm import CTerm
+    from pyk.cterm.cterm import CTerm
     from pyk.kore.syntax import Pattern
 
 
@@ -32,7 +32,7 @@ class CirctSemantics(DefaultSemantics):
         try:
             cmd_cell = c.cell('CMD_CELL')
             currents_cell = c.cell('CURRENTS_CELL')
-        except ValueError:
+        except (KeyError, ValueError):
             return False
 
         if _contains_label(c.config, {'CIRCTError::AssertionError'}):
