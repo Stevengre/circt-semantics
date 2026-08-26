@@ -293,6 +293,23 @@ def create_arg_parser() -> ArgumentParser:
         required=False,
     )
 
+    pretty_parser = command_parser.add_parser(
+        'pretty', help='Convert a Kore file to readable K syntax', parents=[shared_args]
+    )
+    pretty_parser.add_argument(
+        'input',
+        type=file_path,
+        help='Input Kore file.',
+    )
+    pretty_parser.add_argument(
+        '--output',
+        '-o',
+        dest='output',
+        type=Path,
+        default=None,
+        help='Output file. Defaults to INPUT.pretty.',
+    )
+
     verify_parser = command_parser.add_parser(
         'verify',
         aliases=['validate'],
@@ -305,6 +322,15 @@ def create_arg_parser() -> ArgumentParser:
 
 
 def exec_generate(input: str, output: str = 'none', **kwargs: Any) -> None: ...
+
+
+def exec_pretty(input: str | Path, output: str | Path | None = None, **kwargs: Any) -> None:
+    input_path = Path(input)
+    output_path = Path(output) if output is not None else input_path.with_name(f'{input_path.name}.pretty')
+
+    kcirct = KCIRCT()
+    kcirct.write_pretty(input_path, output_path)
+    print(output_path)
 
 
 def _parse_input_steps(raw_steps: list[str] | None) -> list[list[tuple[int, int]]]:

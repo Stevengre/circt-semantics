@@ -14,6 +14,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 
 from pyk.kdist import kdist
@@ -385,25 +386,28 @@ class KCIRCT:
 
     def write_pretty(self, kore_path: Path, pretty_path: Path) -> None:
         """Write the pretty print of Kore to a file."""
+        if kore_path.resolve() == pretty_path.resolve():
+            raise ValueError(f'Output path must differ from input path: {kore_path}')
+
         kore = KCIRCT.read_kore(kore_path)
-        with open(pretty_path, 'w') as file:
-            file.write(self.pretty(kore))
-        # wrong command
-        # KCIRCT.run(
-        #     [
-        #         'kast',
-        #         str(kore_path),
-        #         '-i',
-        #         'kore',
-        #         '-o',
-        #         'program',
-        #         '-d',
-        #         str(self.definition_dir),
-        #         '--output-file',
-        #         str(pretty_path),
-        #     ]
-        # )
-        return
+        rendered = self.pretty(kore)
+
+        temporary_path: Path | None = None
+        try:
+            with NamedTemporaryFile(
+                mode='w',
+                encoding='utf-8',
+                dir=pretty_path.parent,
+                prefix=f'.{pretty_path.name}.',
+                suffix='.tmp',
+                delete=False,
+            ) as temporary_file:
+                temporary_path = Path(temporary_file.name)
+                temporary_file.write(rendered)
+            temporary_path.replace(pretty_path)
+        finally:
+            if temporary_path is not None:
+                temporary_path.unlink(missing_ok=True)
 
     def run_first_simulate(self, pgm: Pattern, top_module: str, inputs: list[tuple[int, int]]) -> Pattern:
         """Run the first simulate step on Kore.

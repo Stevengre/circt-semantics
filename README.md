@@ -65,6 +65,19 @@ After building the project, you can access the `kcirct` CLI via `poetry`:
 poetry run kcirct --help
 ```
 
+### Pretty-print KORE 状态
+
+`kcirct pretty INPUT [-o OUTPUT]` 将 CIRCT semantics 生成的 KORE 状态转换为便于调试的 K pretty syntax。
+未指定 `-o` 时，命令会在完整输入文件名后追加 `.pretty`，例如 `foo.kore` 输出为
+`foo.kore.pretty`；指定 `-o` 可以覆盖输出路径。
+
+```bash
+poetry run kcirct pretty path/to/foo.kore
+poetry run kcirct pretty path/to/foo.kore -o path/to/foo.pretty
+```
+
+该命令依赖与当前 `kcirct` 版本匹配的 compiled CIRCT semantics definition 和 K toolchain；使用前请先完成相应语义定义的构建。
+
 Note that you need to run the following command to make `diffvcd.py` executable:
 
 ```
