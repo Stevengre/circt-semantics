@@ -122,6 +122,9 @@ def test_evaluate_operation(
             vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore'))
         print('runtime:' + str((end_time - start_time) / len(inputs)))
 
+    # 确保后续 diffvcd 读取到完整波形，而不是尚未刷新的缓冲内容。
+    vcd.close()
+
 
 @pytest.mark.parametrize(
     'mlir_file',

@@ -63,6 +63,7 @@ DIALECT_OPERATIONS = {
     ],
     "seq": [
         "from_clock",
+        "to_clock",
         "firreg",
         "firreg2",
         "firmem_rl",

@@ -18,6 +18,16 @@ imports BUILTIN
 imports MLIR-HELPER
 ```
 
+## `seq.to_clock`
+
+时钟转换保留单比特信号的值；边沿检测仍由使用该时钟的寄存器读取历史值完成。
+
+```k
+rule
+<current> "seq.to_clock" ( ListItem(B:Bits) ) { _:Map } : ( T:SignlessIntegerType ) -> ( !seq.clock ) => ListItem(B) ... </current>
+requires getWidth(T) ==Int 1
+```
+
 ## `seq.from_clock`
 
 ```k

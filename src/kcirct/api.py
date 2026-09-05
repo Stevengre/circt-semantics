@@ -435,28 +435,33 @@ class KCIRCT:
         return self.krun(state.top_down(_rewrite))
 
     def read_ports_fast(self, state_file: Path, skip_missing: bool = False) -> dict[str, tuple[int, int]]:
-        """Read the outputs from the Kore pattern."""
+        """读取所有命名端口，保留共享同一信号的输入、输出及内存别名。"""
         signals = self.read_signals(state_file)
-        signal_port_mapping = self.read_signal_port_mapping(state_file)
-        ports = {}
-        for signal in signal_port_mapping:
+        signal_port_aliases = self.read_signal_port_aliases(state_file)
+        ports: dict[str, tuple[int, int]] = {}
+        for signal, names in signal_port_aliases.items():
             if skip_missing and signal not in signals:
                 continue
             value = signals[signal]
-            if isinstance(value, dict):
-                for key, v in value.items():
-                    port_name = signal_port_mapping[signal] + '/' + f'Memory[{key[0]}]'
-                    ports[port_name] = v
-            else:
-                ports[signal_port_mapping[signal]] = value
-        return ports  # type: ignore
+            for name in names:
+                if isinstance(value, dict):
+                    for key, v in value.items():
+                        ports[name + '/' + f'Memory[{key[0]}]'] = v
+                else:
+                    ports[name] = value
+        return ports
 
     @staticmethod
     def read_signal_port_mapping(state_file: Path) -> dict[str, str]:
-        """Read the signal port mapping from the Kore pattern."""
+        """保留旧接口的单名称选择规则：同一信号最后出现的端口名优先。"""
+        return {signal: names[-1] for signal, names in KCIRCT.read_signal_port_aliases(state_file).items()}
+
+    @staticmethod
+    def read_signal_port_aliases(state_file: Path) -> dict[str, list[str]]:
+        """读取信号到全部命名端口的映射，避免常量和直通信号覆盖别名。"""
         with open(state_file, 'r') as file:
             state = file.read()
-        signal_port_mapping = {}
+        signal_port_aliases: dict[str, list[str]] = {}
         while len(state):
             idx0 = state.find("Lbl'-LT-'hw-inputs'-GT-'")
             if idx0 == -1:
@@ -493,9 +498,11 @@ class KCIRCT:
             hw_outports = _find_names(hw_outports_str)
             reg_ports = _find_names(register_str)
             for hw_inport, hw_input in zip(hw_inports, hw_inputs, strict=True):
-                signal_port_mapping[hw_inport] = '/'.join(hw_inport.split('/')[:-1] + [hw_input])
+                signal_port_aliases.setdefault(hw_inport, []).append('/'.join(hw_inport.split('/')[:-1] + [hw_input]))
             for hw_outport, hw_output in zip(hw_outports, hw_outputs, strict=True):
-                signal_port_mapping[hw_outport] = '/'.join(hw_outport.split('/')[:-1] + [hw_output])
+                signal_port_aliases.setdefault(hw_outport, []).append(
+                    '/'.join(hw_outport.split('/')[:-1] + [hw_output])
+                )
             i = 0
             while i < len(reg_ports):
                 reg_port = reg_ports[i]
@@ -503,10 +510,12 @@ class KCIRCT:
                 reg_name = reg_ports[i + 5]
                 if firmem_flag == '1':
                     assert reg_name != 'default_firmem', 'firmem should have name'
-                    signal_port_mapping[reg_port] = '/'.join(reg_port.split('/')[:-1] + [reg_name]) + '_ext'
+                    signal_port_aliases.setdefault(reg_port, []).append(
+                        '/'.join(reg_port.split('/')[:-1] + [reg_name]) + '_ext'
+                    )
                 i += 6
 
-        return signal_port_mapping
+        return signal_port_aliases
 
     def read_signals(self, state_file: Path) -> dict[str, tuple[int, int] | dict[tuple[int, int], tuple[int, int]]]:
         """Read the signals from the Kore pattern."""

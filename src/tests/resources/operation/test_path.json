@@ -105,6 +105,7 @@
                 "firreg",
                 "firmem",
                 "from_clock",
+                "to_clock",
                 "firmem_mask",
                 "firmem_rx",
                 "firreg2"

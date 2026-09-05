@@ -240,6 +240,9 @@ module BITS
     rule BitsCmp(7, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => bits(Bool2Int(X1 <=Int X2), 1)
     rule BitsCmp(8, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => bits(Bool2Int(X1 >Int X2), 1)
     rule BitsCmp(9, bits(X1:Int, _:Int), bits(X2:Int, _:Int)) => bits(Bool2Int(X1 >=Int X2), 1)
+    // 二态同宽整数的 case equality；X/Z 继续使用现有规则，不表示完整四态支持。
+    rule BitsCmp(10, bits(X1:Int, W:Int), bits(X2:Int, W:Int)) => bits(Bool2Int(X1 ==Int X2), 1)
+    rule BitsCmp(11, bits(X1:Int, W:Int), bits(X2:Int, W:Int)) => bits(Bool2Int(X1 =/=Int X2), 1)
     rule BitsCmp(_:Int, bits(_:XZValue, _:Int), bits(_, _:Int)) => bits(0, 1)
     rule BitsCmp(_:Int, bits(_, _:Int), bits(_:XZValue, _:Int)) => bits(0, 1)
     [owise]
