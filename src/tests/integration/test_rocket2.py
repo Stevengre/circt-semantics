@@ -1,227 +1,28 @@
 from __future__ import annotations
 
-import filecmp
-import json
-import shutil
-import time
-from pathlib import Path
-from typing import List
+import os
+import sys
 
-from kcirct.api import KCIRCT
-from kcirct.vcd import KVCD
-from tests.resources import DATA_PATH
+import pytest
 
-ROCKET_SMALL_MLIR_FILE_V14 = DATA_PATH / 'rocket-small' / 'rocket-small-1.4-drop.mlir'
-ROCKET_SMALL_MLIR_FILE_V16 = Path('/data/cym/rocket/rocket-small-1.6-drop.mlir')
-ROCKET_SMALL_MLIR_FILE_MASTER = DATA_PATH / 'rocket-small' / 'rocket-small-master-drop.mlir'
+from tests.integration.arc_test import ROCKET_CASES, get_case, main, missing_case_files, run_case
 
-ROCKET_INPUT_V14 = DATA_PATH / 'rocket-small' / 'input_1.4twoedge.json'
-ROCKET_INPUT_MASTER = DATA_PATH / 'rocket-small' / 'input_twoedge.json'
-ROCKET_INPUT_V16 = DATA_PATH / 'rocket-small' / 'input_v1.6.json'
-ROCKET_INPUT_V16_MAIN = DATA_PATH / 'rocket-small' / 'input_v1.6start.json'
-ROCKET_INPUT_V16_2EDGE = DATA_PATH / 'rocket-small' / 'inputv1.6_2edge.json'
-
-PACK_MASTER = [ROCKET_SMALL_MLIR_FILE_MASTER, ROCKET_INPUT_MASTER]
-PACK_V14 = [ROCKET_SMALL_MLIR_FILE_V14, ROCKET_INPUT_V14]
-PACK_V16 = [ROCKET_SMALL_MLIR_FILE_V16, ROCKET_INPUT_V16]  # 有用 跑全部用这个
-PACK_V16_2EDGE = [ROCKET_SMALL_MLIR_FILE_V16, ROCKET_INPUT_V16_2EDGE]  # 有用
-PACK_V16_MAIN = [ROCKET_SMALL_MLIR_FILE_V16, ROCKET_INPUT_V16_MAIN]
-
-NowPick = []
-NowPick = PACK_V16_2EDGE
+DEFAULT_ROCKET_VARIANT = 'v1.6-two-edge'
 
 
-def test_print_pretty(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
-    kcirct = KCIRCT()
-    file_name = '213simulated.1.kore'
-    kcirct.write_pretty(mlir_file.parent / file_name, mlir_file.parent / f'{file_name}.pretty')
+def test_rocket2() -> None:
+    if os.environ.get('KCIRCT_RUN_ARC_TESTS') != '1':
+        pytest.skip('Rocket 长周期测试需设置 KCIRCT_RUN_ARC_TESTS=1，或使用 python -m 直接运行。')
+    variant = os.environ.get('KCIRCT_ROCKET_VARIANT', DEFAULT_ROCKET_VARIANT)
+    case = get_case('rocket', variant)
+    missing = missing_case_files(case, compare=False)
+    if missing:
+        pytest.skip(f'缺少 Rocket 输入子仓库资源：{missing}')
+    run_case(case, compare=False)
 
-
-def test_pretty() -> None:
-    test_print_pretty(NowPick[0], 'RocketSystem', [])
-
-
-def test_evaluate_depth(mlir_file: Path, top_module: str) -> None:
-
-    kcirct = KCIRCT()
-
-    kcirct.ensure_env()
-
-    kore_name = 'setup.kore.prestate'
-    current_depth = 2900
-    depth_path = 10
-    input_kore = mlir_file.parent / f'{kore_name}.{current_depth}'
-    while True:
-        current_depth += depth_path
-        output_kore = input_kore.parent / f'{kore_name}.{current_depth}'
-        print(f'continue run to {current_depth}')
-        kcirct.krun_fast(input_file=input_kore, output_file=output_kore, depth=depth_path)
-        if filecmp.cmp(input_kore, output_kore, shallow=False):
-            print(f'find stuck at {current_depth}, but it might be a correct result')
-            kcirct.write_pretty(output_kore, input_kore.parent / f'{kore_name}.{current_depth}.pretty')
-            print('pretty file generated!!!!')
-            break
-        input_kore = output_kore
-
-
-def test_evaluate_demo(mlir_file: Path, top_module: str, inputs: List) -> None:
-
-    kcirct = KCIRCT()
-
-    kcirct.ensure_env()
-    # KCIRCT Parsing: from mlir to kore
-    kcirct.compile_fast(mlir_file, mlir_file.parent / 'pgm.kore')
-    # KCIRCT Preprocessing
-    kcirct.run_preprocess_fast(mlir_file.parent / 'pgm.kore', mlir_file.parent / 'preprocessed.kore')
-    # KCIRCT Hardware Setup & Initialization
-    kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
-
-    # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / 'test_setup_0.vcd', mlir_path=mlir_file)
-    vcd.time = 0
-    circle_num = 0
-    tot_time = 0.0
-    if len(inputs) == 0:
-        input = None
-        start_time = time.time()
-        kcirct.krun_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore')
-        end_time = time.time()
-        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        print(str(vcd.time) + str(mlir_file))
-        print('runtime:' + str(end_time - start_time))
-    else:
-        run_time = 0
-        shutil.copy(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{0}.kore')
-        # vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        for input in inputs[0:]:
-            if 'vcd_dump' in input:
-                vcd.time = input['vcd_dump']
-                vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{run_time}.kore'))
-                print('vcd_dump:' + str(vcd.time))
-                if vcd.time >= 10:  # 结束在上升沿
-                    break
-            elif 'input' in input:
-                input_data = input['input']
-                start_time = time.time()
-                kcirct.run_simulate_fast(
-                    mlir_file.parent / f'simulated.{run_time}.kore',
-                    mlir_file.parent / f'simulated.{run_time^1}.kore',
-                    input_data,
-                )
-                end_time = time.time()
-                tot_time += end_time - start_time
-                run_time = run_time ^ 1
-                print(str(run_time) + str(mlir_file))
-                circle_num += 1
-            # vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        print('runtime_per_cicle:' + str((tot_time) / (circle_num)))
-        print('runtime_total:' + str((tot_time)))
-
-
-def test_from_main(mlir_file: Path, top_module: str, inputs: List) -> None:
-
-    kcirct = KCIRCT()
-
-    kcirct.ensure_env()
-    # KCIRCT Parsing: from mlir to kore
-    kcirct.compile_fast(mlir_file, mlir_file.parent / 'pgm.kore')
-    # KCIRCT Preprocessing
-    kcirct.run_preprocess_fast(mlir_file.parent / 'pgm.kore', mlir_file.parent / 'preprocessed.kore')
-    # KCIRCT Hardware Setup & Initialization
-    kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
-
-    # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / 'test.vcd', mlir_path=mlir_file)
-    vcd.time = 0
-    circle_num = 0
-    tot_time = 0.0
-    if len(inputs) == 0:
-        input = None
-        start_time = time.time()
-        kcirct.krun_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{vcd.time&1}.kore')
-        end_time = time.time()
-        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        print(str(vcd.time) + str(mlir_file))
-        print('runtime:' + str(end_time - start_time))
-    else:
-        run_time = 0
-        shutil.copy(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{0}.kore')
-        # vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{vcd.time&1}.kore'))
-        for input in inputs[0:]:
-            if 'vcd_dump' in input:
-                vcd.time = input['vcd_dump']
-                vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{run_time}.kore'))
-                print('vcd_dump:' + str(vcd.time))
-
-            elif 'input' in input:
-                input_data = input['input']
-                start_time = time.time()
-                kcirct.run_simulate_fast(
-                    mlir_file.parent / f'simulated.{run_time}.kore',
-                    mlir_file.parent / f'simulated.{run_time^1}.kore',
-                    input_data,
-                )
-                end_time = time.time()
-                tot_time += end_time - start_time
-                run_time = run_time ^ 1
-                print(str(run_time) + str(mlir_file))
-                circle_num += 1
-        print('runtime_per_cicle:' + str((tot_time) / (circle_num)))
-        print('runtime_total:' + str((tot_time)))
-
-
-def test_from_main_two_edge(mlir_file: Path, top_module: str, inputs: List) -> None:
-
-    kcirct = KCIRCT()
-    kcirct.ensure_env()
-    # KCIRCT Parsing: from mlir to kore
-    kcirct.compile_fast(mlir_file, mlir_file.parent / 'pgm.kore')
-    # KCIRCT Preprocessing
-    kcirct.run_preprocess_fast(mlir_file.parent / 'pgm.kore', mlir_file.parent / 'preprocessed.kore')
-    # KCIRCT Hardware Setup & Initialization
-    kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
-
-    # KCIRCT Simulation
-    vcd = KVCD(vcd_path=mlir_file.parent / '4e.vcd', mlir_path=mlir_file)
-    vcd.time = 0
-    circle_num = 0
-    tot_time = 0.0
-
-    run_time = 0
-    shutil.copy(mlir_file.parent / 'setup.kore', mlir_file.parent / f'4simulated.{0}.kore')
-    for input in inputs[0:]:
-        if 'vcd_dump' in input:
-            vcd.time = input['vcd_dump']
-            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'4simulated.{run_time}.kore'))
-            print('vcd_dump:' + str(vcd.time))
-
-        elif 'input' in input:
-            input_data = input['input']
-            start_time = time.time()
-            kcirct.run_simulate_fast(
-                mlir_file.parent / f'4simulated.{run_time}.kore',
-                mlir_file.parent / f'4simulated.{run_time^1}.kore',
-                input_data,
-            )
-            run_time = run_time ^ 1
-            kcirct.run_simulate_fast(
-                mlir_file.parent / f'4simulated.{run_time}.kore',
-                mlir_file.parent / f'4simulated.{run_time^1}.kore',
-                input_data,
-            )
-            run_time = run_time ^ 1
-            end_time = time.time()
-            tot_time += end_time - start_time
-            print(str(run_time) + str(mlir_file))
-            circle_num += 1
-    print('runtime_per_cicle:' + str((tot_time) / (circle_num)))
-    print('runtime_total:' + str((tot_time)))
-
-
-# test_print_pretty(NowPick[0], 'RocketSystem', [])
 
 if __name__ == '__main__':
-    with open(NowPick[1], 'r') as file:
-        json_data = json.load(file)
-    # test_from_main(NowPick[0], 'RocketSystem', json_data['inin'])  # 全部
-    test_from_main_two_edge(NowPick[0], 'RocketSystem', json_data['inin'])  # 上下沿全部
+    raise SystemExit(main(sys.argv[1:], project='rocket'))
+
+
+__all__ = ['DEFAULT_ROCKET_VARIANT', 'ROCKET_CASES', 'test_rocket2']

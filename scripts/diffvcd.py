@@ -23,6 +23,9 @@ parser.add_argument("-a", "--after", type=int, help="only compare after time")
 parser.add_argument("-b", "--before", type=int, help="only compare before time")
 args = parser.parse_args()
 
+if args.after is not None and args.before is not None and args.after > args.before:
+    parser.error(f"--after ({args.after}) 不能晚于 --before ({args.before})")
+
 
 def info(s: str):
     if args.verbose:
@@ -43,9 +46,9 @@ infoln(f"{len(vcd2.signals)} signals in second file")
 # Extract signals under the requested top-level instance.
 def filter_signals(signals: List[str], prefix: Optional[str]) -> Dict[str, str]:
     if prefix is None:
-        return dict((s, s) for s in signals)
+        return {s: s for s in signals}
     else:
-        return dict((s[len(prefix) :], s) for s in signals if s.startswith(prefix))
+        return {s[len(prefix) :]: s for s in signals if s.startswith(prefix)}
 
 
 filtered_signals1 = filter_signals(vcd1.signals, args.top1)
@@ -56,7 +59,7 @@ if args.top2 is not None:
     infoln(f"{len(filtered_signals2)} signals under `{args.top2}` in second file")
 
 # Find the common signals.
-common_signals = list()
+common_signals = []
 for key, sig1 in filtered_signals1.items():
     if sig2 := filtered_signals2.get(key):
         common_signals.append((key, sig1, sig2))
@@ -93,6 +96,29 @@ vcd1 = VCDVCD(args.file1, signals=[x[1] for x in common_signals])
 infoln("Reading second file")
 vcd2 = VCDVCD(args.file2, signals=[x[2] for x in common_signals])
 
+comparison_start = args.after if args.after is not None else 0
+comparison_end = min(vcd1.endtime, vcd2.endtime)
+if args.before is not None:
+    comparison_end = min(comparison_end, args.before)
+if comparison_start > comparison_end:
+    sys.stderr.write(f"VCD 时间窗口没有交集：start={comparison_start}, end={comparison_end}\n")
+    sys.exit(1)
+
+
+def values_match(value1: Optional[str], value2: Optional[str]) -> bool:
+    if value1 == value2:
+        return True
+
+    def is_zero(value: Optional[str]) -> bool:
+        return value is not None and bool(value) and set(value) == {"0"}
+
+    return value1 is None and is_zero(value2) or value2 is None and is_zero(value1)
+
+
+def display_value(value: Optional[str]) -> str:
+    return "None" if value is None else binary_string_to_hex(value)
+
+
 # Compare each signal.
 earliest_mismatches = []
 for signal, signame1, signame2 in common_signals:
@@ -100,25 +126,13 @@ for signal, signame1, signame2 in common_signals:
     signal1 = vcd1[signame1]
     signal2 = vcd2[signame2]
 
-    def skip_time(tv: List) -> List:
-        if args.after:
-            while tv and tv[0][0] < args.after:
-                tv = tv[1:]
-        return tv
-
-    tv1 = skip_time(signal1.tv)
-    tv2 = skip_time(signal2.tv)
-    for (t1, v1), (t2, v2) in zip(tv1, tv2):
-        if t1 == t2 and v1 == v2:
-            continue
-        t = min(t1, t2)
-        if args.before and t > args.before:
-            break
+    comparison_times = {comparison_start}
+    comparison_times.update(t for t, _ in signal1.tv if comparison_start <= t <= comparison_end)
+    comparison_times.update(t for t, _ in signal2.tv if comparison_start <= t <= comparison_end)
+    for t in sorted(comparison_times):
         v1 = signal1[t]
         v2 = signal2[t]
-        if v1 is None and int(v2) == 0 or v2 is None and int(v1) == 0:
-            continue
-        if v1 == v2:
+        if values_match(v1, v2):
             continue
         if earliest_mismatches and t < earliest_mismatches[0][0]:
             earliest_mismatches = []
@@ -127,6 +141,6 @@ for signal, signame1, signame2 in common_signals:
         break
 
 for t, sig1, sig2, name in earliest_mismatches:
-    print(f"{t}  {binary_string_to_hex(sig1)}  {binary_string_to_hex(sig2)}  {name}")
+    print(f"{t}  {display_value(sig1)}  {display_value(sig2)}  {name}")
 if earliest_mismatches:
     sys.exit(1)
