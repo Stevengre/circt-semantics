@@ -21,6 +21,11 @@ parser.add_argument("-l", "--list", action="store_true", help="list signals and 
 parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
 parser.add_argument("-a", "--after", type=int, help="only compare after time")
 parser.add_argument("-b", "--before", type=int, help="only compare before time")
+parser.add_argument(
+    "--ignore-missing-signals",
+    action="store_true",
+    help="跳过任一侧完全没有采样值的共同信号；不影响 --list 的声明列表",
+)
 args = parser.parse_args()
 
 if args.after is not None and args.before is not None and args.after > args.before:
@@ -121,10 +126,21 @@ def display_value(value: Optional[str]) -> str:
 
 # Compare each signal.
 earliest_mismatches = []
+compared_signals = 0
 for signal, signame1, signame2 in common_signals:
     infoln(f"Comparing {signal}")
     signal1 = vcd1[signame1]
     signal2 = vcd2[signame2]
+
+    if args.ignore_missing_signals and (not signal1.tv or not signal2.tv):
+        missing_files = []
+        if not signal1.tv:
+            missing_files.append(args.file1)
+        if not signal2.tv:
+            missing_files.append(args.file2)
+        infoln(f"跳过信号 {signal}：以下文件中没有采样值：{', '.join(missing_files)}")
+        continue
+    compared_signals += 1
 
     comparison_times = {comparison_start}
     comparison_times.update(t for t, _ in signal1.tv if comparison_start <= t <= comparison_end)
@@ -139,6 +155,10 @@ for signal, signame1, signame2 in common_signals:
         if not earliest_mismatches or t == earliest_mismatches[0][0]:
             earliest_mismatches.append((t, v1, v2, signal))
         break
+
+if args.ignore_missing_signals and compared_signals == 0:
+    sys.stderr.write("跳过缺少采样值的信号后，没有可比较的信号\n")
+    sys.exit(1)
 
 for t, sig1, sig2, name in earliest_mismatches:
     print(f"{t}  {display_value(sig1)}  {display_value(sig2)}  {name}")
