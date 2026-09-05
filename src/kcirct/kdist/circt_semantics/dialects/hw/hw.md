@@ -34,7 +34,7 @@ module HW
 
 rule 
 <setup> .K ~> "HW#NEW_INSTANCE" => .K ... </setup>
-<hw-setup-inst> Insts:List ListItem(_) => Insts </hw-setup-inst>
+<hw-setup-inst> Paths:List ListItem(_) => Paths </hw-setup-inst>
 ```
 
 ### Auto Connect
@@ -44,19 +44,19 @@ rule
 <setup> 
    ListItem(S:String) = Op (Args) {Attr:Map} : FT
 => "HARDWARE#CONNECT" 
-~> Abs(AbsSymbolName(L), ListItem(S)) 
-~> ListItem(Op (Abs(AbsSymbolName(L), Args)) {Attr:Map} : FT)
+~> Abs(P, ListItem(S))
+~> ListItem(Op (Abs(P, Args)) {Attr:Map} : FT)
 ... 
 </setup>
-<hw-setup-inst> L </hw-setup-inst>
+<hw-setup-inst> _:List ListItem(P:String) </hw-setup-inst>
 [priority(170)]
 ```
 
 ### Auto Procedure
 
 ```k
-rule <setup> Op:StdOp => "HARDWARE#PROCEDURE" ~> AbsOp(AbsSymbolName(L), Op) ... </setup>
-<hw-setup-inst> L </hw-setup-inst>
+rule <setup> Op:StdOp => "HARDWARE#PROCEDURE" ~> AbsOp(P, Op) ... </setup>
+<hw-setup-inst> _:List ListItem(P:String) </hw-setup-inst>
 [priority(160)]
 ```
 
@@ -94,18 +94,18 @@ rule
 <setup>
    "hw.module" (.List) {Attr:Map} _ ({_ (VTs) : Ops:StdOps .StdBlocks}:StdRegion) : (.Types) -> (.Types)
 ~> "HARDWARE#CONNECT" ~> "HARDWARE#OUTS" ~> INS:List
-=> "HARDWARE#CONNECT" ~> Abs(AbsSymbolName(L), VTs) ~> INS
+=> "HARDWARE#CONNECT" ~> Abs(P, VTs) ~> INS
 ~> Ops
 ...
 </setup>
-<hw-setup-inst> L </hw-setup-inst>
+<hw-setup-inst> _:List ListItem(P:String) </hw-setup-inst>
 (
     .Bag
 =>  <hw-instance>
-        <hw-id> AbsSymbolName(L) </hw-id>
+        <hw-id> P </hw-id>
         <hw-module> AbsSymbolName(ListItem(Attr["sym_name"])) </hw-module>
         <hw-inputs> getModuleInNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-inputs>
-        <hw-inports> Abs(AbsSymbolName(L), VTs) </hw-inports>
+        <hw-inports> Abs(P, VTs) </hw-inports>
         <hw-in-types> getModuleInTypes({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-in-types>
         <hw-outputs> getModuleOutNames({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-outputs>
         <hw-out-types> getModuleOutTypes({Attr["module_type"] orDefault !hw.modty < .ModulePortList >}:>HwModty) </hw-out-types>
@@ -121,20 +121,23 @@ rule
 <setup> 
     Outs = "hw.instance" (Args) {Attr:Map} : (T1) -> (T2) 
 => "hw.instance" (Args) {Attr} : (T1) -> (T2)
-~> "HARDWARE#CONNECT" ~> Abs(AbsSymbolName(L), Outs) ~> "HARDWARE#INS"
+~> "HARDWARE#CONNECT" ~> Abs(P, Outs) ~> "HARDWARE#INS"
 ...
 </setup>
-<hw-setup-inst> L </hw-setup-inst>
+<hw-setup-inst> _:List ListItem(P:String) </hw-setup-inst>
 
 rule 
 <setup> 
    "hw.instance" (Args) {Attr:Map} : (_) -> (_) 
 => "CIRCT#GET_OP" ~> Attr["moduleName"]
-~> "HARDWARE#CONNECT" ~> "HARDWARE#OUTS" ~> Abs(AbsSymbolName(L), Args)
+~> "HARDWARE#CONNECT" ~> "HARDWARE#OUTS" ~> Abs(P, Args)
 ~> "HW#NEW_INSTANCE"
 ... 
 </setup>
-<hw-setup-inst> L => L ListItem(Attr["instanceName"]) </hw-setup-inst>
+<hw-setup-inst>
+  Paths:List ListItem(P:String)
+  => Paths ListItem(P) ListItem(AbsSymbolName(ListItem(P) ListItem(Attr["instanceName"])))
+</hw-setup-inst>
 ```
 
 ## hw.output
@@ -150,13 +153,13 @@ rule
 ~> "HARDWARE#CONNECT" ~> OUTS ~> Abs(ABS_NAME, Args)
 ...
 </setup>
-<hw-setup-inst> L:List </hw-setup-inst>
+<hw-setup-inst> _:List ListItem(P:String) </hw-setup-inst>
 <hw-instance>
   <hw-id> ABS_NAME </hw-id>
   <hw-outports> .List => Abs(ABS_NAME, Args) </hw-outports>
   ...
 </hw-instance>
-requires ABS_NAME ==K AbsSymbolName(L) 
+requires ABS_NAME ==K P
 [priority(45)]
 
 rule
@@ -167,13 +170,13 @@ rule
 => .K ~> "HW#NEW_INSTANCE"
 ...
 </setup>
-<hw-setup-inst>  L:List  </hw-setup-inst>
+<hw-setup-inst> _:List ListItem(P:String) </hw-setup-inst>
 <hw-instance>
   <hw-id> ABS_NAME </hw-id>
   <hw-outports> .List => Abs(ABS_NAME, Args) </hw-outports>
   ...
 </hw-instance>
-requires ABS_NAME ==K AbsSymbolName(L) 
+requires ABS_NAME ==K P
 ```
 
 ## hw.aggregate_constant

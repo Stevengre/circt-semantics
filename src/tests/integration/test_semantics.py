@@ -18,7 +18,10 @@ TEST_PATH = NOW_PATH.parent.parent / 'kcirct' / 'kdist' / 'circt_semantics'
     'test_k_file, test_mlir',
     [
         (TEST_PATH / 'test-syntax.k', TEST_PATH / 'rocket-small-drop.mlir'),
-        (TEST_PATH / 'test-syntax.k', DATA_PATH / 'rocket-small-nodrop' / 'rocket-small-master.generic.mlir'),
+        (
+            TEST_PATH / 'test-syntax.k',
+            DATA_PATH / 'kcirct-arc-test' / 'mlir' / 'rocket' / 'rocket-small-master.generic.mlir',
+        ),
     ],
     ids=['drop', 'no-drop'],
 )

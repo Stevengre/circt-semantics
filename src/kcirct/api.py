@@ -434,12 +434,14 @@ class KCIRCT:
 
         return self.krun(state.top_down(_rewrite))
 
-    def read_ports_fast(self, state_file: Path) -> dict[str, tuple[int, int]]:
+    def read_ports_fast(self, state_file: Path, skip_missing: bool = False) -> dict[str, tuple[int, int]]:
         """Read the outputs from the Kore pattern."""
         signals = self.read_signals(state_file)
         signal_port_mapping = self.read_signal_port_mapping(state_file)
         ports = {}
         for signal in signal_port_mapping:
+            if skip_missing and signal not in signals:
+                continue
             value = signals[signal]
             if isinstance(value, dict):
                 for key, v in value.items():
