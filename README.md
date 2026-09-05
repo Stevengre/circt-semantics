@@ -86,6 +86,19 @@ chmod u+x src/kcirct/lib/diffvcd.py
 
 ## Test
 
+`scripts/diffvcd.py` 比较两份 VCD 共同声明的信号。可添加
+`--ignore-missing-signals`，跳过任一侧仅声明、但整份波形中完全没有采样值的信号：
+
+```bash
+poetry run python scripts/diffvcd.py test.vcd trace_vtor.vcd --ignore-missing-signals
+```
+
+该开关默认关闭，operation 测试显式启用它。它不会跳过两侧均有采样值的信号，
+也不会忽略真实的值差异；若所有信号都被跳过，比较仍会失败。
+`--after` / `--before` 窗口内没有跳变的稳定信号仍参与比较。
+使用 `--verbose` 可查看跳过的信号和缺少采样值的文件。
+只在一份 VCD 中声明的信号沿用原有逻辑，不参与比较。
+
 - src/tests/unit: Simple tests that do not require kompile
 - src/tests/integration: Tests that require kompile. `make circt-semantics` is required.
 - src/tests/profiling: Tests for profiling. `make circt-semantics` is required.

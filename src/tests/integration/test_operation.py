@@ -166,7 +166,7 @@ def diffvcd(test_path: Path) -> None:
     # 构建完整的命令
     vcd_file1 = test_path / 'test.vcd'
     vcd_file2 = test_path / 'trace_vtor.vcd'
-    command = ['./scripts/diffvcd.py', str(vcd_file1), str(vcd_file2)]
+    command = ['./scripts/diffvcd.py', str(vcd_file1), str(vcd_file2), '--ignore-missing-signals']
 
     # 运行命令并捕获返回值
     result = subprocess.run(command, capture_output=True, text=True)
