@@ -51,6 +51,7 @@ module BITS-SYNTAX
                   | BitsModu(List)          [function]
                   | Bits "moduBits" Bits    [function]
                   | BitsSlice(Bits, Int, Int) [function]
+                  | BitsReplace(Bits, Int, Bits) [function]
                   | BitsAbs(Bits)            [function]
                   | "~Bits" Bits             [function]
                   | "!Bits" Bits            [function]
@@ -276,6 +277,14 @@ module BITS
 
     rule BitsSlice(bits(X:Int, W:Int), Begin:Int, End:Int) => bits((X >>Int Begin) &Int (2 ^Int (End -Int Begin) -Int 1), End -Int Begin)
     rule BitsSlice(bits(V:XZValue, _:Int), Begin:Int, End:Int) => bits(V, End -Int Begin)
+
+    // 替换从低位偏移 Begin 开始的完整片段，保持总位宽及其余位不变。
+    // 仅定义二态且范围有效的情况，避免把未知值或越界静默变成零。
+    rule BitsReplace(bits(X:Int, W:Int), Begin:Int, bits(V:Int, EW:Int))
+      => BitsConcat(ListItem(BitsSlice(bits(X, W), Begin +Int EW, W))
+                    ListItem(BitsCast(bits(V, EW)))
+                    ListItem(BitsSlice(bits(X, W), 0, Begin)))
+      requires Begin >=Int 0 andBool EW >Int 0 andBool Begin +Int EW <=Int W
 
     // 0: posedge, 1: negedge, 2: edge
     // checkEdge(Event:Int, Current:Bits, History:Bits)
