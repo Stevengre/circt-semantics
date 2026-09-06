@@ -11,6 +11,7 @@ requires "../../hardware/bits.md"
 requires "../../mlir/builtin.md"
 requires "hw-config.md"
 requires "hw-helper.md"
+requires "hw-layout.md"
 module HW
   imports HW-SYNTAX
   imports MLIR-CONFIG
@@ -20,6 +21,7 @@ module HW
   imports MLIR-HELPER
   imports MAP
   imports HW-HELPER
+  imports HW-LAYOUT
   imports BOOL
   imports CIRCT
   imports BITS
@@ -202,6 +204,24 @@ rule
 ```
 
 ## HW Operations for Array
+
+### `hw.array_inject`
+
+数组元素 0 位于最低位。注入返回新的打包值，不修改作为输入的数组或寄存器；
+寄存器的状态更新仍由 seq.firreg 处理。当前只执行二态、索引有效的一维整数数组。
+索引宽度和元素类型必须匹配。索引按自身位宽解释为无符号数，随后检查数组边界；
+不对数组长度取模，也不为越界返回伪造的正常值。
+
+```k
+rule
+<current> "hw.array_inject" ( ListItem(bits(A:Int, AW:Int)) ListItem(bits(Idx:Int, IW:Int)) ListItem(bits(V:Int, EW:Int)) ) {_:Map}
+  : (!hw.array < N:SizeX T:IntegerType >, IT:SignlessIntegerType, T) -> (!hw.array < N T >)
+  => ListItem(BitsReplace(bits(A, AW), (Idx &Int (2 ^Int IW -Int 1)) *Int EW, bits(V, EW)))
+... </current>
+requires AW ==Int packedWidth(!hw.array < N T >) andBool EW ==Int getWidth(T)
+  andBool IW ==Int getWidth(IT) andBool validArrayIndexWidth(N, IW)
+  andBool (Idx &Int (2 ^Int IW -Int 1)) <Int SizeX2Int(N)
+```
 
 ### `hw.array_get`
 

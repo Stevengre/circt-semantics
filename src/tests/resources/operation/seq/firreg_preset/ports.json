@@ -1,0 +1,17 @@
+{
+  "inputs": [
+    {"name": "clk", "width": 1},
+    {"name": "reset", "width": 1},
+    {"name": "enable", "width": 1},
+    {"name": "d4", "width": 4},
+    {"name": "d8", "width": 8}
+  ],
+  "outputs": [
+    {"name": "q4", "width": 4},
+    {"name": "q8", "width": 8},
+    {"name": "qneg", "width": 8},
+    {"name": "qbit", "width": 1},
+    {"name": "plain", "width": 4},
+    {"name": "next4", "width": 4}
+  ]
+}

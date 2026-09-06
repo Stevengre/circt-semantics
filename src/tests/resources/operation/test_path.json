@@ -3,6 +3,7 @@
         {
             "name": "comb",
             "operation": [
+                "mux_array",
                 "add",
                 "and",
                 "concat",
@@ -27,6 +28,7 @@
         {
             "name": "hw",
             "operation": [
+                "array_inject",
                 "aggregate_constant",
                 "aggregate_constant2",
                 "aggregate_constant3",
@@ -102,9 +104,12 @@
         },{
             "name": "seq",
             "operation": [
+                "firreg_array",
+                "firreg_preset",
                 "firreg",
                 "firmem",
                 "from_clock",
+                "to_clock",
                 "firmem_mask",
                 "firmem_rx",
                 "firreg2"

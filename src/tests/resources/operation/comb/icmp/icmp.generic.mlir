@@ -6,7 +6,8 @@
     %6 = "comb.icmp"(%arg0, %arg1) <{predicate = 6 : i64, twoState}> : (i8, i8) -> i1
     %8 = "comb.icmp"(%arg0, %arg1) <{predicate = 8 : i64, twoState}> : (i8, i8) -> i1
     %9 = "comb.icmp"(%arg0, %arg1) <{predicate = 9 : i64, twoState}> : (i8, i8) -> i1
-    "hw.output"(%0, %1, %6, %8, %9) : (i1, i1, i1, i1, i1) -> ()
-  }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i1, output res1 : i1, output res6 : i1, output res8 : i1,output res9 : i1>, parameters = [],  sym_name = "Foo"} : () -> ()
+    %10 = "comb.icmp"(%arg0, %arg1) <{predicate = 10 : i64}> : (i8, i8) -> i1
+    %11 = "comb.icmp"(%arg0, %arg1) <{predicate = 11 : i64}> : (i8, i8) -> i1
+    "hw.output"(%0, %1, %6, %8, %9, %10, %11) : (i1, i1, i1, i1, i1, i1, i1) -> ()
+  }) {module_type = !hw.modty<input a : i8, input b : i8, output res : i1, output res1 : i1, output res6 : i1, output res8 : i1, output res9 : i1, output res10 : i1, output res11 : i1>, parameters = [],  sym_name = "Foo"} : () -> ()
 }) : () -> ()
-

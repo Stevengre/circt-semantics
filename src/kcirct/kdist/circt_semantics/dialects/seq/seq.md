@@ -7,6 +7,7 @@ requires "../../hardware/bits.md"
 requires "../../hardware/hardware.md"
 requires "../../mlir/builtin.md"
 requires "../../mlir/mlir-helper.md"
+requires "../hw/hw-layout.md"
 module SEQ
 imports SEQ-SYNTAX
 imports SEQ-HELPER
@@ -16,6 +17,17 @@ imports LIST
 imports MAP
 imports BUILTIN
 imports MLIR-HELPER
+imports HW-LAYOUT
+```
+
+## `seq.to_clock`
+
+时钟转换保留单比特信号的值；边沿检测仍由使用该时钟的寄存器读取历史值完成。
+
+```k
+rule
+<current> "seq.to_clock" ( ListItem(B:Bits) ) { _:Map } : ( T:SignlessIntegerType ) -> ( !seq.clock ) => ListItem(B) ... </current>
+requires getWidth(T) ==Int 1
 ```
 
 ## `seq.from_clock`
@@ -27,9 +39,41 @@ rule
 
 ## `seq.firreg`
 
+整数寄存器的显式 `preset` 仅在尚无历史值时作为初值；后续保持、更新和同步
+复位仍使用寄存器历史值与时钟沿。没有 `preset` 时沿用二态零初始化策略。
+数组寄存器复用二态零初始化和同步复位策略，数组的显式 preset 与异步复位尚未
+实现；遇到这些属性时在 setup 保留明确标记，防止静默使用错误的初值或边沿。
+
+```k
+syntax KItem ::= "#unsupportedArrayFirreg" "(" Map ")"
+
+rule
+<setup>
+  "HARDWARE#CONNECT" ~> ListItem(_) _:List
+  ~> ListItem("seq.firreg" (_:List) { Config:Map } : (_:Types) -> (T:HwArrayType)) _:List
+  => #unsupportedArrayFirreg(Config)
+...
+</setup>
+requires isPackedType(T) andBool ("preset" in_keys(Config) orBool "isAsync" in_keys(Config))
+[priority(30)]
+```
+
 ### Setup Current Signal Before Update
 
 ```k
+// 反馈读取也必须使用显式初值；connection 保留完整属性，无需扩大 register tuple。
+rule
+<current>
+   READ:List ~> "HARDWARE#READ_DIRECT" ~> ListItem(Port:String) L:List
+=> READ ListItem(ToBits(Preset, T)) ~> "HARDWARE#READ_DIRECT" ~> L
+...
+</current>
+<history> H:Map </history>
+<register> ... Port |-> (0, _:Int, _:Int, _:Int, _:String) ... </register>
+<connection> ... Port |-> "seq.firreg" (_:List) { "preset" |-> Preset:AttributeValue _:Map } : (_:Types) -> (T:SignlessIntegerType) ... </connection>
+requires notBool (Port in_keys(H))
+[priority(30)]
+
 rule
 <current> 
 (.K => ListItem(V) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
@@ -43,25 +87,37 @@ requires notBool (Port in_keys(Signals))
 [priority(30)]
 
 rule
-<current> 
-(.K => ListItem(bits(0, getWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
-~> "seq.firreg" ( ListItem(_:String) _:List ) { "firrtl.random_init_start" |-> V:Int : _:Type _:Map } : (_) -> (T:IntegerType) 
+<current>
+(.K => ListItem(ToBits(Preset, T)) ~> "HARDWARE#WRITE" ~> ListItem(Port))
+~> "seq.firreg" ( ListItem(_:String) _:List ) { "preset" |-> Preset:AttributeValue _:Map } : (_:Types) -> (T:SignlessIntegerType)
 ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
 <signals> Signals:Map </signals>
-requires notBool (Port in_keys(Signals))
+<history> H:Map </history>
+requires notBool (Port in_keys(Signals)) andBool notBool (Port in_keys(H))
+[priority(33)]
+
+rule
+<current> 
+(.K => ListItem(bits(0, packedWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port))
+~> "seq.firreg" ( ListItem(_:String) _:List ) { "firrtl.random_init_start" |-> V:Int : _:Type _:Map } : (_) -> (T:Type)
+~> "HARDWARE#WRITE" ~> ListItem(Port)
+...
+</current>
+<signals> Signals:Map </signals>
+requires notBool (Port in_keys(Signals)) andBool isPackedType(T)
 [priority(34)]
 
 rule
 <current> 
-(.K => ListItem(bits(0, getWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port)) 
-~> "seq.firreg" ( ListItem(_:String) _:List ) { _:Map } : (_) -> (T:IntegerType) 
+(.K => ListItem(bits(0, packedWidth(T))) ~> "HARDWARE#WRITE" ~> ListItem(Port))
+~> "seq.firreg" ( ListItem(_:String) _:List ) { _:Map } : (_) -> (T:Type)
 ~> "HARDWARE#WRITE" ~> ListItem(Port)
 ...
 </current>
 <signals> Signals:Map </signals>
-requires notBool (Port in_keys(Signals))
+requires notBool (Port in_keys(Signals)) andBool isPackedType(T)
 [priority(35)]
 ```
 
@@ -110,12 +166,13 @@ port |->
 ```k
 rule
 <setup> 
-   "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem( "seq.firreg" ( L:List ) { Config:Map } : (T1:Types) -> (T:IntegerType) ) L1:List
+   "HARDWARE#CONNECT" ~> ListItem(Out) L0:List ~> ListItem( "seq.firreg" ( L:List ) { Config:Map } : (T1:Types) -> (T:Type) ) L1:List
 => "HARDWARE#CONNECT" ~> L0 ~> L1
 ...
 </setup>
 <connection> M => M [Out <- "seq.firreg" ( L ) { Config } : (T1) -> (T)] </connection>
-<register> REG => REG [Out <- (0, getWidth(T), 0, 0, {Config["name"] orDefault "default_firreg"}:>String)] </register>
+<register> REG => REG [Out <- (0, packedWidth(T), 0, 0, {Config["name"] orDefault "default_firreg"}:>String)] </register>
+requires isPackedType(T)
 [priority(40)]
 
 rule

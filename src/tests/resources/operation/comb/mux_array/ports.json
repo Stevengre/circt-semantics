@@ -1,0 +1,282 @@
+{
+  "inputs": [
+    {
+      "name": "sel",
+      "width": 1
+    },
+    {
+      "name": "d0",
+      "width": 10
+    },
+    {
+      "name": "d1",
+      "width": 10
+    },
+    {
+      "name": "d2",
+      "width": 10
+    },
+    {
+      "name": "d3",
+      "width": 10
+    },
+    {
+      "name": "d4",
+      "width": 10
+    },
+    {
+      "name": "d5",
+      "width": 10
+    },
+    {
+      "name": "d6",
+      "width": 10
+    },
+    {
+      "name": "d7",
+      "width": 10
+    },
+    {
+      "name": "d8",
+      "width": 10
+    },
+    {
+      "name": "d9",
+      "width": 10
+    },
+    {
+      "name": "d10",
+      "width": 10
+    },
+    {
+      "name": "d11",
+      "width": 10
+    },
+    {
+      "name": "d12",
+      "width": 10
+    },
+    {
+      "name": "d13",
+      "width": 10
+    },
+    {
+      "name": "d14",
+      "width": 10
+    },
+    {
+      "name": "d15",
+      "width": 10
+    },
+    {
+      "name": "d16",
+      "width": 10
+    },
+    {
+      "name": "d17",
+      "width": 10
+    },
+    {
+      "name": "d18",
+      "width": 10
+    },
+    {
+      "name": "d19",
+      "width": 10
+    },
+    {
+      "name": "d20",
+      "width": 10
+    },
+    {
+      "name": "d21",
+      "width": 10
+    },
+    {
+      "name": "d22",
+      "width": 10
+    },
+    {
+      "name": "d23",
+      "width": 10
+    },
+    {
+      "name": "d24",
+      "width": 10
+    },
+    {
+      "name": "d25",
+      "width": 10
+    },
+    {
+      "name": "d26",
+      "width": 10
+    },
+    {
+      "name": "d27",
+      "width": 10
+    },
+    {
+      "name": "d28",
+      "width": 10
+    },
+    {
+      "name": "d29",
+      "width": 10
+    },
+    {
+      "name": "d30",
+      "width": 10
+    },
+    {
+      "name": "d31",
+      "width": 10
+    }
+  ],
+  "outputs": [
+    {
+      "name": "r4_0",
+      "width": 10
+    },
+    {
+      "name": "r4_1",
+      "width": 10
+    },
+    {
+      "name": "r4_2",
+      "width": 10
+    },
+    {
+      "name": "r4_3",
+      "width": 10
+    },
+    {
+      "name": "r32_0",
+      "width": 10
+    },
+    {
+      "name": "r32_1",
+      "width": 10
+    },
+    {
+      "name": "r32_2",
+      "width": 10
+    },
+    {
+      "name": "r32_3",
+      "width": 10
+    },
+    {
+      "name": "r32_4",
+      "width": 10
+    },
+    {
+      "name": "r32_5",
+      "width": 10
+    },
+    {
+      "name": "r32_6",
+      "width": 10
+    },
+    {
+      "name": "r32_7",
+      "width": 10
+    },
+    {
+      "name": "r32_8",
+      "width": 10
+    },
+    {
+      "name": "r32_9",
+      "width": 10
+    },
+    {
+      "name": "r32_10",
+      "width": 10
+    },
+    {
+      "name": "r32_11",
+      "width": 10
+    },
+    {
+      "name": "r32_12",
+      "width": 10
+    },
+    {
+      "name": "r32_13",
+      "width": 10
+    },
+    {
+      "name": "r32_14",
+      "width": 10
+    },
+    {
+      "name": "r32_15",
+      "width": 10
+    },
+    {
+      "name": "r32_16",
+      "width": 10
+    },
+    {
+      "name": "r32_17",
+      "width": 10
+    },
+    {
+      "name": "r32_18",
+      "width": 10
+    },
+    {
+      "name": "r32_19",
+      "width": 10
+    },
+    {
+      "name": "r32_20",
+      "width": 10
+    },
+    {
+      "name": "r32_21",
+      "width": 10
+    },
+    {
+      "name": "r32_22",
+      "width": 10
+    },
+    {
+      "name": "r32_23",
+      "width": 10
+    },
+    {
+      "name": "r32_24",
+      "width": 10
+    },
+    {
+      "name": "r32_25",
+      "width": 10
+    },
+    {
+      "name": "r32_26",
+      "width": 10
+    },
+    {
+      "name": "r32_27",
+      "width": 10
+    },
+    {
+      "name": "r32_28",
+      "width": 10
+    },
+    {
+      "name": "r32_29",
+      "width": 10
+    },
+    {
+      "name": "r32_30",
+      "width": 10
+    },
+    {
+      "name": "r32_31",
+      "width": 10
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# operation 运行产物；MLIR、CPP、输入和 Verilator 参考波形保留为测试资产。
+obj_dir/
+/*/*/V*
+*.sv
+pgm.kore
+preprocessed.kore
+setup.kore
+simulated.*.kore
+*.kore.prestate
+*.pretty
+state.json
+test.vcd

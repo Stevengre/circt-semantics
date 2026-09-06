@@ -134,10 +134,11 @@ rule <current> .StdOps => .K ... </current>
               //  | String "(" List ")" "{" Map "}" SuccessorList "(" StdRegions ")" ":" StdFT
 rule 
 <current> 
-   Op:String ( ListItem(Arg:String) Args:List ) { Attr:Map } : FT 
-=> "HARDWARE#READ" ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} : FT
+   Op:String ( Args:List ) { Attr:Map } : FT
+=> "HARDWARE#READ" ~> Args ~> Op (Args) {Attr} : FT
 ... 
 </current>
+requires size(Args) >Int 0 andThenBool isString(Args[0])
 [priority(40)]
 
 rule 
@@ -150,10 +151,11 @@ rule
 
 rule
 <current> 
-   Op:String ( ListItem(Arg:String) Args:List ) { Attr:Map } SL:SuccessorList ( RS:StdRegions ) : FT 
-=> "HARDWARE#READ" ~> ListItem(Arg) Args ~> Op (ListItem(Arg) Args) {Attr} SL (RS) : FT
+   Op:String ( Args:List ) { Attr:Map } SL:SuccessorList ( RS:StdRegions ) : FT
+=> "HARDWARE#READ" ~> Args ~> Op (Args) {Attr} SL (RS) : FT
 ... 
 </current>
+requires size(Args) >Int 0 andThenBool isString(Args[0])
 [priority(40)]
 
 rule 

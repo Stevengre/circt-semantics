@@ -39,13 +39,45 @@ rule <setup> "HARDWARE#PROCEDURE" ~> Op => .K ... </setup>
 
 ## Read
 
+参数列表按索引分两阶段处理：先按原顺序求值全部依赖，再按原顺序读取结果。
+原列表可能与 connection 中的 operation 共享，因此不对它做头尾解构；现有
+求值和 READ_DIRECT 规则只接收临时的单元素列表，继续复用寄存器历史值等规则。
+
 ```k
+syntax KItem ::= "#hardwareEvaluateInputs" "(" List "," Int ")"
+               | "#hardwareReadInputs" "(" List "," Int ")"
+
 rule
 <current> 
    "HARDWARE#READ" ~> L:List 
-=> L ~> .List ~> "HARDWARE#READ_DIRECT" ~> L
+=> #hardwareEvaluateInputs(L, 0) ~> .List ~> #hardwareReadInputs(L, 0)
 ... 
 </current>
+
+rule
+<current>
+   #hardwareEvaluateInputs(L:List, I:Int)
+=> ListItem(L[I]) ~> #hardwareEvaluateInputs(L, I +Int 1)
+...
+</current>
+requires I <Int size(L)
+
+rule
+<current> #hardwareEvaluateInputs(L:List, I:Int) => .K ... </current>
+requires I ==Int size(L)
+
+rule
+<current>
+   READ:List ~> #hardwareReadInputs(L:List, I:Int)
+=> READ ~> "HARDWARE#READ_DIRECT" ~> ListItem(L[I])
+   ~> #hardwareReadInputs(L, I +Int 1)
+...
+</current>
+requires I <Int size(L)
+
+rule
+<current> READ:List ~> #hardwareReadInputs(L:List, I:Int) => READ ... </current>
+requires I ==Int size(L)
 
 rule
 <current> 

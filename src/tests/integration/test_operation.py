@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import json
+import re
 import subprocess
+import sys
 import time
+from decimal import Decimal
 from pathlib import Path
 from typing import List
 
 import pytest
+from vcdvcd import VCDVCD
 
 from kcirct.api import KCIRCT
 from kcirct.vcd import KVCD
@@ -17,6 +22,7 @@ from ..resources.operation import (
     EXPECTED_TOP_MODULES,
     INPUTS,
     MLIR_GNERIC_FILES,
+    OPERATION_EVALUATIONS_PER_INPUT_2,
     OPERATION_ONLY_CHECK_DOWN_EDGE,
 )
 
@@ -43,6 +49,27 @@ def test_make_env() -> None:
     kcirct.ensure_env()
 
 
+def required_port_manifest(test_path: Path) -> dict:
+    manifest = json.loads((test_path / 'ports.json').read_text())
+    generic_files = list(test_path.glob('*.generic.mlir'))
+    assert len(generic_files) == 1, '端口清单案例必须有唯一 generic MLIR'
+    module_types = re.findall(r'\bmodule_type\s*=\s*!hw.modty<([^>]*)>', generic_files[0].read_text())
+    assert len(module_types) == 1, '端口清单案例必须声明唯一顶层模块'
+    actual_ports = []
+    for declaration in module_types[0].split(','):
+        match = re.fullmatch(r'\s*(input|output)\s+([A-Za-z_]\w*)\s*:\s*i([1-9][0-9]*)\s*', declaration)
+        assert match, f'端口清单案例要求顶层正位宽整数端口：{declaration}'
+        direction, name, width = match.groups()
+        actual_ports.append((direction, name, int(width)))
+    expected_ports = [
+        (direction, port['name'], port['width'])
+        for direction in ('input', 'output')
+        for port in manifest[direction + 's']
+    ]
+    assert actual_ports == expected_ports, 'ports.json 必须完整匹配 generic MLIR 的端口方向、顺序、名称与位宽'
+    return manifest
+
+
 @pytest.mark.parametrize(
     'mlir_file, top_module, inputs, replay_posedge',
     zip(TEST_MLIR_GNERIC_FILES, TEST_EXPECTED_TOP_MODULES, TEST_INPUT, REPLAY_POSEDGE, strict=True),
@@ -67,7 +94,37 @@ def test_evaluate_operation(
     vcd_path = mlir_file.parent / 'test.vcd'
     if vcd_path.exists():
         vcd_path.unlink()
-    vcd = KVCD(vcd_path=vcd_path, mlir_path=mlir_file)
+    strict_ports = (mlir_file.parent / 'ports.json').is_file()
+    repeat_every_input = mlir_file.parent.name in OPERATION_EVALUATIONS_PER_INPUT_2
+    state_json_path = None
+    required_ports = {}
+    if strict_ports:
+        # 顶层端口清单直接用于 VCD 声明，避免 arcilator 对数组反馈的转换限制。
+        # 每次 dump 仍要求 K 返回全部真实端口及正确位宽，清单不提供任何期望值。
+        manifest = required_port_manifest(mlir_file.parent)
+        states = []
+        for direction in ('input', 'output'):
+            for port in manifest[direction + 's']:
+                states.append({'name': port['name'], 'numBits': port['width'], 'type': direction})
+                required_ports[f"{top_module}/{port['name']}"] = port['width']
+        state_json_path = mlir_file.parent / 'state.json'
+        state_json_path.write_text(json.dumps([{'name': top_module, 'states': states}], indent=2) + '\n')
+    vcd = KVCD(
+        vcd_path=vcd_path,
+        mlir_path=mlir_file,
+        state_json_path=state_json_path,
+        time_scale='1ns' if strict_ports else '1s',
+    )
+
+    def dump_ports(state_path: Path) -> None:
+        ports = kcirct.read_ports_fast(state_path)
+        if strict_ports:
+            for name, width in required_ports.items():
+                assert name in ports, f'K 状态缺少必要端口 {name}'
+                assert ports[name][1] == width, f'K 端口 {name} 位宽错误'
+            ports = {name: ports[name] for name in required_ports}
+        vcd.dump(ports)
+
     vcd.time = 0
     rounds = 0
     if len(inputs) == 0:
@@ -75,7 +132,7 @@ def test_evaluate_operation(
         start_time = time.time()
         kcirct.krun_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{rounds&1}.kore')
         end_time = time.time()
-        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{rounds&1}.kore'))
+        dump_ports(mlir_file.parent / f'simulated.{rounds&1}.kore')
         rounds += 1
         print(str(vcd.time) + str(mlir_file))
         print('runtime:' + str(end_time - start_time))
@@ -89,15 +146,14 @@ def test_evaluate_operation(
         rounds += 1
         tot_time = end_time - start_time
 
-        if replay_posedge:
-            if vcd.time % 2 == 0:
-                kcirct.run_simulate_fast(
-                    mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
-                    mlir_file.parent / f'simulated.{rounds&1}.kore',
-                    input,
-                )
-                rounds += 1
-        vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore'))
+        if repeat_every_input or (replay_posedge and vcd.time % 2 == 0):
+            kcirct.run_simulate_fast(
+                mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
+                mlir_file.parent / f'simulated.{rounds&1}.kore',
+                input,
+            )
+            rounds += 1
+        dump_ports(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore')
 
         for input in inputs[1:]:
             vcd.time += 1
@@ -108,19 +164,21 @@ def test_evaluate_operation(
                 input,
             )
             rounds += 1
-            if replay_posedge:
-                if vcd.time % 2 == 0:
-                    kcirct.run_simulate_fast(
-                        mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
-                        mlir_file.parent / f'simulated.{rounds&1}.kore',
-                        input,
-                    )
-                    rounds += 1
+            if repeat_every_input or (replay_posedge and vcd.time % 2 == 0):
+                kcirct.run_simulate_fast(
+                    mlir_file.parent / f'simulated.{(rounds-1)&1}.kore',
+                    mlir_file.parent / f'simulated.{rounds&1}.kore',
+                    input,
+                )
+                rounds += 1
             end_time = time.time()
             tot_time += end_time - start_time
             # print(str(vcd.time) + str(mlir_file))
-            vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore'))
+            dump_ports(mlir_file.parent / f'simulated.{(rounds-1)&1}.kore')
         print('runtime:' + str((end_time - start_time) / len(inputs)))
+
+    # 确保后续 diffvcd 读取到完整波形，而不是尚未刷新的缓冲内容。
+    vcd.close()
 
 
 @pytest.mark.parametrize(
@@ -167,6 +225,39 @@ def diffvcd(test_path: Path) -> None:
     vcd_file1 = test_path / 'test.vcd'
     vcd_file2 = test_path / 'trace_vtor.vcd'
     command = ['./scripts/diffvcd.py', str(vcd_file1), str(vcd_file2), '--ignore-missing-signals']
+
+    ports_file = test_path / 'ports.json'
+    if ports_file.is_file():
+        # 明确枚举全部端口，防止只比较两份 VCD 的信号交集而误报成功。
+        manifest = required_port_manifest(test_path)
+        ports = manifest['inputs'] + manifest['outputs']
+        event_count = len(json.loads((test_path / 'test_data.json').read_text())['inputs'])
+        assert event_count > 0, '输入事件不能为空'
+        references = [
+            f"Foo.{port['name']}" + (f"[{port['width'] - 1}:0]" if port['width'] > 1 else '') for port in ports
+        ]
+        for vcd_file in (vcd_file1, vcd_file2):
+            waveform = VCDVCD(str(vcd_file))
+            assert waveform.timescale['timescale'] == Decimal('1e-9'), f'{vcd_file}: 必须使用 1ns'
+            assert waveform.begintime == 0 and waveform.endtime == event_count - 1, f'{vcd_file}: 时间窗口不完整'
+            for port, reference in zip(ports, references, strict=True):
+                assert reference in waveform.signals, f'{vcd_file}: 缺少必要端口 {reference}'
+                signal = waveform[reference]
+                assert int(signal.size) == port['width'], f'{vcd_file}: {reference} 位宽错误'
+                assert signal.tv and signal.tv[0][0] == 0, f'{vcd_file}: {reference} 没有初始采样'
+                for timestamp in range(event_count):
+                    value = signal[timestamp]
+                    assert (
+                        value and set(value) <= {'0', '1'} and len(value) <= port['width']
+                    ), f'{vcd_file}: {reference} 在事件 {timestamp} 未定义或位宽错误'
+        command = [
+            sys.executable,
+            './scripts/diffvcd.py',
+            str(vcd_file1),
+            str(vcd_file2),
+            '--filter',
+            '^(?:' + '|'.join(re.escape(reference) for reference in references) + ')$',
+        ]
 
     # 运行命令并捕获返回值
     result = subprocess.run(command, capture_output=True, text=True)

@@ -28,6 +28,20 @@ def _add_shared_args(shared_args: ArgumentParser) -> None:
     shared_args.add_argument('--debug', '-d', default=False, action='store_true', help='Enable debug output')
 
 
+def _add_simulate_args(parser: ArgumentParser) -> None:
+    parser.add_argument('input', nargs='?', type=Path, help='待仿真的 Generic MLIR 文件')
+    parser.add_argument('--describe', action='store_true', help='以 JSON 输出当前安装、源码和 K 工具链身份后退出')
+    parser.add_argument('--top-module', help='顶层 hw.module 名称')
+    parser.add_argument('--inputs', type=Path, help='按名称指定全部输入的 JSON 事件文件')
+    parser.add_argument('--output', type=Path, help='输出 VCD 文件，拒绝覆盖已有文件')
+    parser.add_argument('--work-dir', type=Path, help='新的工作目录，用于保存结果、命令和失败证据')
+    parser.add_argument('--evaluations-per-input', type=int, default=2, help='每个输入事件的连续求值次数，默认 2')
+    parser.add_argument('--definition-dir', type=Path, help='已编译的 LLVM 定义目录，默认使用 kdist target')
+    parser.add_argument('--parser', type=Path, help='可复用的 TopLevel parser，默认在工作目录生成')
+    parser.add_argument('--timeout', type=float, default=120, help='每次外部命令的超时秒数，默认 120')
+    parser.add_argument('--keep-states', action='store_true', help='用 gzip 保存每一次求值的 Kore 状态及索引')
+
+
 def _add_verify_args(verify_parser: ArgumentParser) -> None:
     verify_parser.add_argument(
         'input',
@@ -293,6 +307,9 @@ def create_arg_parser() -> ArgumentParser:
         required=False,
     )
 
+    simulate_parser = command_parser.add_parser('simulate', help='从 MLIR 和输入事件生成 VCD', parents=[shared_args])
+    _add_simulate_args(simulate_parser)
+
     pretty_parser = command_parser.add_parser(
         'pretty', help='Convert a Kore file to readable K syntax', parents=[shared_args]
     )
@@ -322,6 +339,38 @@ def create_arg_parser() -> ArgumentParser:
 
 
 def exec_generate(input: str, output: str = 'none', **kwargs: Any) -> None: ...
+
+
+def exec_simulate(**kwargs: Any) -> None:
+    import json
+
+    from ._simulate import describe_simulator, simulate
+
+    if kwargs.get('describe'):
+        print(json.dumps(describe_simulator(), ensure_ascii=False, indent=2))
+        return
+    required = ('input', 'top_module', 'inputs', 'output', 'work_dir')
+    missing = [name.replace('_', '-') for name in required if kwargs.get(name) is None]
+    if missing:
+        raise SystemExit(f'simulate 缺少必需参数：{", ".join(missing)}；用 --help 查看用法')
+    try:
+        result = simulate(
+            Path(kwargs['input']),
+            top_module=kwargs['top_module'],
+            inputs_file=Path(kwargs['inputs']),
+            output=Path(kwargs['output']),
+            work_dir=Path(kwargs['work_dir']),
+            evaluations_per_input=kwargs.get('evaluations_per_input', 2),
+            definition_dir=kwargs.get('definition_dir'),
+            parser=kwargs.get('parser'),
+            timeout=kwargs.get('timeout', 120),
+            keep_states=kwargs.get('keep_states', False),
+        )
+    except OSError as error:
+        raise SystemExit(f'simulate 无法建立独立工作目录：{error}') from error
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if result['status'] != 'pass':
+        raise SystemExit(1)
 
 
 def exec_pretty(input: str | Path, output: str | Path | None = None, **kwargs: Any) -> None:

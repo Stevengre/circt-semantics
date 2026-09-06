@@ -6,12 +6,14 @@ requires "../../hardware/bits.md"
 requires "../../hardware/hardware-config.md"
 requires "../../mlir/mlir-helper.md"
 requires "../../mlir/builtin.md"
+requires "../hw/hw-layout.md"
 module COMB
 imports COMB-SYNTAX
 imports BITS
 imports HARDWARE-CONFIG
 imports MLIR-HELPER
 imports BUILTIN
+imports HW-LAYOUT
 ```
 
 ## comb.add
@@ -138,12 +140,12 @@ rule
 
 ```k
 rule
-<current> "comb.mux" ( ListItem(bits(S:Int, 1)) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) =>  ListItem(BitsCast(B3, getWidth(T))) 
-... </current> requires S ==Int 0
+<current> "comb.mux" ( ListItem(bits(S:Int, 1)) ListItem(bits(_:BitsValue, W:Int)) ListItem(bits(B3:BitsValue, W)) ) {_:Map} : (C:SignlessIntegerType, T:Type, T) -> (T) => ListItem(bits(B3, W))
+... </current> requires S ==Int 0 andBool getWidth(C) ==Int 1 andBool isPackedType(T) andBool W ==Int packedWidth(T)
 
 rule
-<current> "comb.mux" ( ListItem(bits(S:Int, 1)) ListItem(B2:Bits) ListItem(B3:Bits) ) {_:Map} :  (_) -> (T:IntegerType) =>  ListItem(BitsCast(B2, getWidth(T))) 
-... </current> requires S =/=Int 0
+<current> "comb.mux" ( ListItem(bits(S:Int, 1)) ListItem(bits(B2:BitsValue, W:Int)) ListItem(bits(_:BitsValue, W)) ) {_:Map} : (C:SignlessIntegerType, T:Type, T) -> (T) => ListItem(bits(B2, W))
+... </current> requires S ==Int 1 andBool getWidth(C) ==Int 1 andBool isPackedType(T) andBool W ==Int packedWidth(T)
 ```
 
 ## comb.icmp

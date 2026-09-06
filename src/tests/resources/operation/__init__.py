@@ -30,6 +30,8 @@ OPERATION_ONLY_CHECK_DOWN_EDGE = [
     'firmem_rx',
     'firmem_mask',
 ]
+# 新时序案例在每个输入事件重复执行相同输入，再记录 VCD。
+OPERATION_EVALUATIONS_PER_INPUT_2 = {'firreg_array', 'firreg_preset'}
 DIALECT_OPERATIONS = {
     "comb": [
         "add",
@@ -50,6 +52,7 @@ DIALECT_OPERATIONS = {
         "sub",
         "xor",
         "mux",
+        "mux_array",
     ],
     "hw": [
         "aggregate_constant2",
@@ -60,10 +63,14 @@ DIALECT_OPERATIONS = {
         "module",
         "output",
         "array_create",
+        "array_inject",
     ],
     "seq": [
         "from_clock",
+        "to_clock",
         "firreg",
+        "firreg_array",
+        "firreg_preset",
         "firreg2",
         "firmem_rl",
         "firmem_rw",

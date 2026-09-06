@@ -93,6 +93,26 @@ class test_data:
         with open(self.output_file, 'w', encoding='utf-8') as file:
             json.dump(output_dict, file, indent=4)
 
+    def seededBuild(self):
+        """定向输入之后追加固定种子随机输入；约束只用于限定合法操作数。"""
+        generator = random.Random(self.config['seed'])
+        widths = self.config['type']
+        rows = copy.deepcopy(self.config.get('directed_inputs', []))
+        limits = self.config.get('max_values', {})
+        for _ in range(self.config['mode']):
+            rows.append([generator.randint(0, limits.get(str(i), (1 << width) - 1)) for i, width in enumerate(widths)])
+        pattern = self.config.get('clock_pattern')
+        for index, row in enumerate(rows):
+            if pattern:
+                row[0] = pattern[index % len(pattern)]
+            if len(row) != len(widths) or any(
+                type(value) is not int or not 0 <= value < (1 << width) for value, width in zip(row, widths)
+            ):
+                raise ValueError(f"{self.config['name']} 的定向输入不符合位宽契约")
+            if any(row[int(i)] > maximum for i, maximum in limits.items()):
+                raise ValueError(f"{self.config['name']} 的输入超过合法操作数范围")
+            self.output_data.append([[value, width] for value, width in zip(row, widths)])
+
     @staticmethod
     def random_data(data_size: int) -> Annotated[list[int], "length=2"]:
         box_size = 2**data_size
@@ -164,7 +184,9 @@ def make_test_data(random_config, test_path):
             if os.path.exists(output_filr[config['name']]) != True:
                 misson = test_data(config=config, output_file=output_filr[config['name']])
                 # 全枚举 &随机
-                if config['name'] == 'firmem':
+                if 'seed' in config:
+                    misson.seededBuild()
+                elif config['name'] == 'firmem':
                     misson.mk_firmem(withmask=False)
                 elif config['name'] == 'firmem_mask':
                     misson.mk_firmem(withmask=True)
