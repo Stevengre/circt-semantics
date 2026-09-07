@@ -15,6 +15,7 @@ from vcdvcd import VCDVCD
 
 import kcirct.__main__ as main_module
 import kcirct._simulate as simulator
+from kcirct.trace.model import DumpIndexEntry, RunManifest, StateIndexEntry
 
 _PORTS = 'input clk : i1, input a : i8, output q : i8'
 _IDLE = ''.join(f"Lbl'-LT-'{name}'-GT-'{{}}(dotk{{}}())" for name in ('prog', 'setup', 'cmd'))
@@ -276,3 +277,219 @@ def test_cli_rejects_invalid_events_with_nonzero_exit_and_evidence(tmp_path: Pat
     assert process.returncode == 1
     assert json.loads(process.stdout)['stage'] == 'validation'
     assert '非空事件数组' in (tmp_path / 'run' / 'error.txt').read_text()
+
+
+def _trace_index(work: Path) -> tuple[RunManifest, list[StateIndexEntry], list[DumpIndexEntry]]:
+    manifest = RunManifest.from_json((work / 'trace-run.json').read_text())
+    assert manifest.state_index is not None
+    index = work / manifest.state_index.path
+    assert hashlib.sha256(index.read_bytes()).hexdigest() == manifest.state_index.sha256
+    entries = [json.loads(line) for line in index.read_text().splitlines()]
+    states = [StateIndexEntry.from_dict(entry) for entry in entries if entry['phase'] != 'dump']
+    dumps = [DumpIndexEntry.from_dict(entry) for entry in entries if entry['phase'] == 'dump']
+    for artifact in manifest.artifacts.values():
+        path = work / artifact.path
+        assert path.stat().st_size == artifact.size_bytes
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact.sha256
+        if artifact.compression == 'gzip':
+            raw = gzip.decompress(path.read_bytes())
+            assert hashlib.sha256(raw).hexdigest() == artifact.uncompressed_sha256
+            assert len(raw) == artifact.uncompressed_size_bytes
+    return manifest, states, dumps
+
+
+@pytest.mark.parametrize('keep_states', [False, True])
+def test_trace_index_binds_real_state_positions_and_retention(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, keep_states: bool
+) -> None:
+    definition, parser, calls = _fake_backend(tmp_path, monkeypatch)
+    work = tmp_path / 'run'
+    result = simulator.simulate(
+        _design(tmp_path),
+        top_module='Demo',
+        inputs_file=_stimulus(tmp_path),
+        output=tmp_path / 'wave.vcd',
+        work_dir=work,
+        definition_dir=definition,
+        parser=parser,
+        keep_states=keep_states,
+    )
+    assert result['status'] == 'pass'
+    manifest, states, dumps = _trace_index(work)
+    assert manifest.run_id == result['run_id']
+    assert manifest.completion.status == 'completed'
+    assert manifest.identities['semantics_binding']['status'] == 'unverified'
+    assert len(calls) == 4
+    assert [state.state_id for state in states] == [
+        'setup',
+        'event-0.eval-1',
+        'event-0.eval-2',
+        'event-1.eval-1',
+        'event-1.eval-2',
+    ]
+    assert [state.predecessor for state in states] == [None] + [state.state_id for state in states[:-1]]
+    assert all(state.completion.status == 'completed' for state in states)
+    assert [(dump.state_id, dump.evaluation, dump.time) for dump in dumps] == [
+        ('event-0.eval-2', 2, 0),
+        ('event-1.eval-2', 2, 5),
+    ]
+    assert [dump.values['Demo/q'].unsigned for dump in dumps] == [7, 19]
+    assert all(state.content_sha256 is not None for state in states)
+    assert all('simulated.' not in ref.path for ref in manifest.artifacts.values())
+    if keep_states:
+        assert all(state.retention == 'retained' for state in states)
+    else:
+        assert [state.retention for state in states] == ['retained'] + ['not_retained'] * 3 + ['retained']
+        assert all(state.artifact is None for state in states[1:-1])
+        assert states[-1].artifact is not None
+        assert manifest.artifacts[states[-1].artifact].path == 'last-state.kore'
+
+
+def test_failed_terminal_check_is_archived_without_completion(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    definition, parser, _ = _fake_backend(tmp_path, monkeypatch)
+    original = simulator._check_finished
+
+    def unfinished(state: Path) -> None:
+        if state.name.startswith('simulated.'):
+            raise RuntimeError('保留未清空的 current cell')
+        original(state)
+
+    monkeypatch.setattr(simulator, '_check_finished', unfinished)
+    work = tmp_path / 'run'
+    result = simulator.simulate(
+        _design(tmp_path),
+        top_module='Demo',
+        inputs_file=_stimulus(tmp_path),
+        output=tmp_path / 'wave.vcd',
+        work_dir=work,
+        definition_dir=definition,
+        parser=parser,
+        keep_states=True,
+    )
+    assert result['status'] == 'execution_error'
+    manifest, states, dumps = _trace_index(work)
+    assert manifest.completion.status == 'incomplete'
+    assert manifest.state_coverage['calls_completed'] == 0
+    assert manifest.state_coverage['calls_returned'] == 1
+    assert states[-1].artifact is not None
+    assert states[-1].completion.status == 'incomplete'
+    assert not dumps
+
+
+@pytest.mark.parametrize('keep_states', [False, True])
+def test_timeout_binds_last_state_to_previous_successful_evaluation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, keep_states: bool
+) -> None:
+    definition, parser, _ = _fake_backend(tmp_path, monkeypatch, timeout_at=2)
+    work = tmp_path / 'run'
+    result = simulator.simulate(
+        _design(tmp_path),
+        top_module='Demo',
+        inputs_file=_stimulus(tmp_path),
+        output=tmp_path / 'wave.vcd',
+        work_dir=work,
+        definition_dir=definition,
+        parser=parser,
+        keep_states=keep_states,
+    )
+    assert result['status'] == 'timeout'
+    manifest, states, dumps = _trace_index(work)
+    assert states[-1].state_id == 'event-0.eval-2'
+    assert states[-1].completion.status == 'not_checked'
+    assert states[-1].retention == 'missing'
+    assert states[-2].state_id == 'event-0.eval-1'
+    assert states[-2].artifact is not None
+    assert manifest.artifacts[states[-2].artifact].path == (
+        'states/event-0000.eval-1.kore.gz' if keep_states else 'last-state.kore'
+    )
+    assert manifest.state_coverage['status'] == 'partial'
+    assert manifest.state_coverage['evaluations']['missing'] == 1
+    assert manifest.state_coverage['calls_completed'] == 1
+    assert not dumps
+
+
+def test_run_identity_is_unique_and_capture_does_not_change_evaluation_calls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    definition, parser, calls = _fake_backend(tmp_path, monkeypatch)
+    design, stimulus = _design(tmp_path), _stimulus(tmp_path)
+    results = [
+        simulator.simulate(
+            design,
+            top_module='Demo',
+            inputs_file=stimulus,
+            output=tmp_path / f'wave-{index}.vcd',
+            work_dir=tmp_path / f'run-{index}',
+            definition_dir=definition,
+            parser=parser,
+            keep_states=keep,
+        )
+        for index, keep in enumerate((False, True))
+    ]
+    assert all(result['status'] == 'pass' for result in results)
+    assert results[0]['run_id'] != results[1]['run_id']
+    assert calls[:4] == calls[4:]
+    assert results[0]['last_state_sha256'] == results[1]['last_state_sha256']
+    # VCD 的生成日期不是仿真行为；比较完整采样序列。
+    waves = [VCDVCD(str(tmp_path / f'wave-{index}.vcd')) for index in range(2)]
+    assert waves[0].signals == waves[1].signals
+    assert all(waves[0][name].tv == waves[1][name].tv for name in waves[0].signals)
+
+
+def test_interrupted_manifest_publication_never_publishes_false_completion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    definition, parser, _ = _fake_backend(tmp_path, monkeypatch)
+    atomic = simulator._atomic_text
+
+    def interrupted(path: Path, text: str) -> None:
+        if path.name == 'trace-run.json' and json.loads(text)['completion']['status'] == 'completed':
+            raise OSError('模拟原子发布前中断')
+        atomic(path, text)
+
+    monkeypatch.setattr(simulator, '_atomic_text', interrupted)
+    work = tmp_path / 'run'
+    result = simulator.simulate(
+        _design(tmp_path),
+        top_module='Demo',
+        inputs_file=_stimulus(tmp_path),
+        output=tmp_path / 'wave.vcd',
+        work_dir=work,
+        definition_dir=definition,
+        parser=parser,
+    )
+    assert result['status'] == 'execution_error'
+    assert result['stage'] == 'trace_export'
+    manifest = RunManifest.from_json((work / 'trace-run.json').read_text())
+    assert manifest.completion.status != 'completed'
+    assert manifest.state_index is not None
+    assert hashlib.sha256((work / manifest.state_index.path).read_bytes()).hexdigest() != manifest.state_index.sha256
+
+
+def test_default_capture_publishes_index_with_linear_total_bytes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    definition, parser, _ = _fake_backend(tmp_path, monkeypatch)
+    atomic = simulator._atomic_text
+    published: list[int] = []
+
+    def record(path: Path, text: str) -> None:
+        if path.name == 'trace-states.jsonl':
+            published.append(len(text.encode()))
+        atomic(path, text)
+
+    monkeypatch.setattr(simulator, '_atomic_text', record)
+    events = [{'time': index, 'inputs': {'clk': index % 2, 'a': index}} for index in range(32)]
+    work = tmp_path / 'run'
+    result = simulator.simulate(
+        _design(tmp_path),
+        top_module='Demo',
+        inputs_file=_stimulus(tmp_path, events),
+        output=tmp_path / 'wave.vcd',
+        work_dir=work,
+        definition_dir=definition,
+        parser=parser,
+    )
+    assert result['status'] == 'pass'
+    # 多次求值不能反复重写完整历史，使默认采集成本变成事件数的平方。
+    assert sum(published) <= 2 * (work / 'trace-states.jsonl').stat().st_size

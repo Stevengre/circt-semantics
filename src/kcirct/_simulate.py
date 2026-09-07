@@ -12,15 +12,25 @@ import signal
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from functools import partial
 from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from pyk.kdist import kdist
 
 from .api import KCIRCT
+from .trace.model import (
+    ArtifactRef,
+    BitVector,
+    CompletionEvidence,
+    DumpIndexEntry,
+    PortSpec,
+    RunManifest,
+    StateIndexEntry,
+)
 from .vcd import KVCD
 
 if TYPE_CHECKING:
@@ -39,6 +49,248 @@ def _sha256(path: Path) -> str:
 
 def _json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def _atomic_text(path: Path, text: str) -> None:
+    temporary = path.with_name(path.name + '.pending')
+    with temporary.open('w', encoding='utf-8') as stream:
+        stream.write(text)
+        stream.flush()
+        os.fsync(stream.fileno())
+    temporary.replace(path)
+
+
+class _TraceCapture:
+    """只增加运行身份与索引；索引中不发布滚动状态的持久引用。"""
+
+    def __init__(self, work: Path, top: str, keep_states: bool, evaluations: int) -> None:
+        self.work = work
+        self.keep_states = keep_states
+        self.artifacts: dict[str, ArtifactRef] = {}
+        self.states: list[StateIndexEntry | DumpIndexEntry] = []
+        self.current: int | None = None
+        self.materialized: int | None = None
+        self.manifest = RunManifest(
+            run_id=str(uuid4()),
+            top_module=top,
+            protocol={'evaluations_per_input': evaluations, 'sampling_phase': 'dump', 'status': 'not_checked'},
+            state_coverage={'keep_states': keep_states, 'status': 'not_checked'},
+        )
+
+    def artifact(self, key: str, path: Path, role: str, raw: Path | None = None) -> ArtifactRef:
+        ref = ArtifactRef(
+            role=role,
+            path=Path(os.path.relpath(path, self.work)).as_posix(),
+            sha256=_sha256(path),
+            size_bytes=path.stat().st_size,
+            compression='gzip' if raw is not None else 'none',
+            uncompressed_sha256=_sha256(raw) if raw is not None else None,
+            uncompressed_size_bytes=raw.stat().st_size if raw is not None else None,
+        )
+        self.artifacts[key] = ref
+        return ref
+
+    def configure(self, result: dict[str, Any], definition: Path, parser: Path) -> None:
+        """绑定实际文件，不执行额外 K 命令，不把包版本当作构建身份。"""
+        for key, path, role in (
+            ('execution_ir', self.work / 'design.generic.mlir', 'execution_ir'),
+            ('inputs', self.work / 'inputs.json', 'inputs'),
+            ('parser', parser, 'parser'),
+        ):
+            self.artifact(key, path, role)
+        for name in ('definition.kore', 'compiled.bin', 'backend.txt', 'interpreter'):
+            self.artifact('definition/' + name, definition / name, 'compiled_definition')
+        package = Path(__file__).resolve().parent
+        sources = self.work / 'trace-identity'
+        sources.mkdir()
+        semantic_hashes = {}
+        for path in sorted((package / 'kdist' / 'circt_semantics').rglob('*')):
+            if not path.is_file() or path.suffix not in {'.k', '.md'}:
+                continue
+            relative = path.relative_to(package / 'kdist' / 'circt_semantics')
+            destination = sources / 'semantics' / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, destination)
+            ref = self.artifact('semantics/' + relative.as_posix(), destination, 'semantics_source')
+            semantic_hashes[relative.as_posix()] = ref.sha256
+        component_hashes = {}
+        for path in sorted(package.rglob('*.py')):
+            relative = path.relative_to(package)
+            destination = sources / 'component' / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, destination)
+            ref = self.artifact('component/' + relative.as_posix(), destination, 'component_source')
+            component_hashes[relative.as_posix()] = ref.sha256
+        tools = {}
+        for name in ('krun', 'kast', 'kompile'):
+            try:
+                path = Path(_tool(name))
+                ref = self.artifact('tool/' + name, path, 'execution_tool')
+                tools[name] = {'path': str(path), 'sha256': ref.sha256}
+            except OSError as error:
+                tools[name] = {'status': 'unknown', 'reason': str(error)}
+        python_ref = self.artifact('python', Path(sys.executable).resolve(), 'python_executable')
+        ports = tuple(
+            PortSpec(name=port['name'], direction='input', width=port['width']) for port in result['ports']['inputs']
+        ) + tuple(
+            PortSpec(name=port['name'], direction='output', width=port['width']) for port in result['ports']['outputs']
+        )
+        self.manifest = replace(
+            self.manifest,
+            ports=ports,
+            protocol={
+                'status': 'declared',
+                'timescale': result['timescale'],
+                'evaluations_per_input': result['evaluations_per_input'],
+                'events_total': result['events_total'],
+                'sampling_phase': 'dump',
+                'event_order': 'input_file_order',
+                'clock_constraints': '由已绑定语义与设计连接限定；未作通用多时钟认证',
+            },
+            identities={
+                'package_version': result['package_version'],
+                'kframework_version': result['kframework_version'],
+                'component_hashes': component_hashes,
+                'semantics_hashes': semantic_hashes,
+                'semantics_binding': {
+                    'status': 'unverified',
+                    'source': 'installed_component',
+                    'definition_sha256': self.artifacts['definition/definition.kore'].sha256,
+                    'reason': '采集当前包源码身份；指定编译定义的规则来源由离线适配器另行核验',
+                },
+                'tools': tools,
+                'python': {'version': sys.version, 'sha256': python_ref.sha256},
+                'adapter': {'status': 'not_selected'},
+            },
+            parameters={'source': 'execution_ir', 'external_overrides': []},
+            initialization={'status': 'unknown', 'source': 'execution_ir_and_definition', 'external_overrides': []},
+        )
+        self.publish()
+
+    def begin(self, event: int | None = None, evaluation: int | None = None, timestamp: int | None = None) -> None:
+        predecessor = None
+        if self.current is not None:
+            previous = self.states[self.current]
+            assert isinstance(previous, StateIndexEntry)
+            predecessor = previous.state_id
+        self.states.append(
+            StateIndexEntry(
+                state_id='setup' if event is None else f'event-{event}.eval-{evaluation}',
+                phase='setup' if event is None else 'post_eval',
+                predecessor=predecessor,
+                event_index=event,
+                evaluation=evaluation,
+                time=timestamp,
+                time_unit=self.manifest.protocol.get('timescale') if timestamp is not None else None,
+                retention='missing',
+            )
+        )
+        self.current = len(self.states) - 1
+
+    def finish(self, state: Path, archive: Path | None = None) -> None:
+        assert self.current is not None
+        entry = self.states[self.current]
+        assert isinstance(entry, StateIndexEntry)
+        self.materialized = self.current
+        artifact = None
+        if archive is not None or entry.phase == 'setup':
+            artifact = 'state/' + entry.state_id
+            self.artifact(artifact, archive or state, 'state', state if archive is not None else None)
+        entry = replace(
+            entry,
+            artifact=artifact,
+            content_sha256=_sha256(state),
+            retention='retained' if artifact is not None else 'not_retained',
+        )
+        self.states[self.current] = entry
+        # 在 finally 一次发布索引；检查途中中断时磁盘上的 manifest 仍未完成。
+        try:
+            _check_finished(state)
+        except BaseException:
+            self.states[self.current] = replace(entry, completion=CompletionEvidence(status='incomplete'))
+            raise
+        self.states[self.current] = replace(
+            entry,
+            completion=CompletionEvidence(status='completed', details={'checker': 'simulate_terminal_cells_v1'}),
+        )
+
+    def dump(self, event: int, evaluation: int, timestamp: int, ports: dict[str, tuple[int, int]]) -> None:
+        assert self.current is not None
+        entry = self.states[self.current]
+        assert isinstance(entry, StateIndexEntry)
+        self.states.append(
+            DumpIndexEntry(
+                dump_id=f'dump-{event}',
+                state_id=entry.state_id,
+                event_index=event,
+                evaluation=evaluation,
+                time=timestamp,
+                time_unit=self.manifest.protocol['timescale'],
+                values={name: BitVector.from_int(value, width) for name, (value, width) in ports.items()},
+            )
+        )
+
+    def publish(self) -> None:
+        index = self.work / 'trace-states.jsonl'
+        _atomic_text(index, ''.join(json.dumps(item.to_dict(), ensure_ascii=False) + '\n' for item in self.states))
+        index_ref = ArtifactRef(
+            role='state_index', path=index.name, sha256=_sha256(index), size_bytes=index.stat().st_size
+        )
+        self.manifest = replace(self.manifest, artifacts=self.artifacts, state_index=index_ref)
+        _atomic_text(self.work / 'trace-run.json', self.manifest.to_json())
+
+    def close(self, result: dict[str, Any]) -> None:
+        if self.materialized is not None:
+            entry = self.states[self.materialized]
+            assert isinstance(entry, StateIndexEntry)
+            last = self.work / 'last-state.kore'
+            # 失败调用可能只保存此前状态；使用记录的实际位置，不能按相同值猜时间。
+            if last.is_file():
+                content_hash = _sha256(last)
+                if entry.content_sha256 != content_hash:
+                    raise ValueError('last-state 内容与记录的真实状态身份不一致')
+                if entry.artifact is None:
+                    key = 'state/' + entry.state_id
+                    self.artifact(key, last, 'state')
+                    self.states[self.materialized] = replace(entry, artifact=key, retention='retained')
+        for name, role in (
+            ('result.json', 'execution_result'),
+            ('commands.jsonl', 'commands'),
+            ('states.json', 'legacy_state_index'),
+            ('error.txt', 'execution_diagnostic'),
+        ):
+            path = self.work / name
+            if path.is_file():
+                self.artifact(name, path, role)
+        vcd = Path(result['vcd_path'])
+        if 'vcd_sha256' in result:
+            self.artifact('vcd', vcd, 'waveform')
+        commands = self.work / 'commands.jsonl'
+        command_list = (
+            tuple(tuple(json.loads(line)['argv']) for line in commands.read_text().splitlines())
+            if commands.is_file()
+            else ()
+        )
+        evaluations = [item for item in self.states if isinstance(item, StateIndexEntry) and item.phase == 'post_eval']
+        coverage = {
+            retention: sum(item.retention == retention for item in evaluations)
+            for retention in ('retained', 'not_retained', 'missing')
+        }
+        self.manifest = replace(
+            self.manifest,
+            commands=command_list,
+            completion=CompletionEvidence(status='completed' if result['status'] == 'pass' else 'incomplete'),
+            state_coverage={
+                'keep_states': self.keep_states,
+                'status': 'retained' if evaluations and coverage['retained'] == len(evaluations) else 'partial',
+                'evaluations': coverage,
+                'events_completed': result['events_completed'],
+                'calls_completed': sum(item.completion.status == 'completed' for item in evaluations),
+                'calls_returned': result['simulation_calls'],
+                'calls_attempted': result['simulation_calls_attempted'],
+            },
+        )
+        self.publish()
 
 
 def _tool(name: str) -> str:
@@ -361,6 +613,7 @@ def simulate(
     vcd: KVCD | None = None
     current_state: Path | None = None
     archive_index: list[dict[str, Any]] = []
+    trace: _TraceCapture | None = None
 
     def timed(name: str, operation: Callable[[], Any]) -> Any:
         section_start = time.perf_counter()
@@ -370,6 +623,10 @@ def simulate(
             result['timings'][name] += time.perf_counter() - section_start
 
     try:
+        trace = _TraceCapture(work_dir, top_module, keep_states, evaluations_per_input)
+        result['run_id'] = trace.manifest.run_id
+        result['trace_manifest'] = 'trace-run.json'
+        trace.publish()
         if type(evaluations_per_input) is not int or evaluations_per_input < 1:
             raise ValueError('evaluations-per-input 必须是正整数；统一时序协议使用 2')
         if not timeout > 0 or timeout == float('inf'):
@@ -422,6 +679,7 @@ def simulate(
             raise FileNotFoundError(f'parser 不存在或不可执行：{parser}')
         result['parser'] = str(parser)
         result['parser_sha256'] = _sha256(parser)
+        trace.configure(result, definition_dir, parser)
         kcirct = SimulatorKCIRCT(work_dir, definition_dir, parser, executor)
         compiled, preprocessed, setup = (
             work_dir / filename for filename in ('pgm.kore', 'preprocessed.kore', 'setup.kore')
@@ -432,9 +690,11 @@ def simulate(
             ('setup', lambda: kcirct.run_setup_fast(preprocessed, setup, top_module)),
         ):
             result['stage'] = name
+            if name == 'setup':
+                trace.begin()
             timed(name, action)
         current_state = setup
-        _check_finished(current_state)
+        trace.finish(current_state)
         state_json = work_dir / 'state.json'
         _json(
             state_json,
@@ -465,11 +725,13 @@ def simulate(
                 result['stage'] = 'execution'
                 result['evaluation'] = evaluation
                 result['simulation_calls_attempted'] += 1
+                trace.begin(event_index, evaluation, event['time'])
                 target: Path = states[int(result['simulation_calls']) % 2]
                 assert current_state is not None
                 timed('execution', partial(kcirct.run_simulate_fast, current_state, target, values))
                 current_state = target
                 result['simulation_calls'] += 1
+                archive = None
                 if keep_states:
                     archive_start = time.perf_counter()
                     archive = work_dir / 'states' / f'event-{event_index:04d}.eval-{evaluation}.kore.gz'
@@ -487,7 +749,7 @@ def simulate(
                     )
                     _json(work_dir / 'states.json', archive_index)
                     result['timings']['state_export'] += time.perf_counter() - archive_start
-                _check_finished(target)
+                trace.finish(target, archive)
             result['stage'] = 'read_ports'
             assert current_state is not None
             ports = timed(
@@ -498,6 +760,7 @@ def simulate(
                     raise ValueError(f'输入端口采样值与激励不一致：{port.name}')
             vcd.time = event['time']
             vcd.dump(ports)
+            trace.dump(event_index, evaluations_per_input, event['time'], ports)
             result['events_completed'] += 1
         result['status'] = 'pass'
         result['stage'] = 'complete'
@@ -516,4 +779,13 @@ def simulate(
             result['last_state_sha256'] = _sha256(last_state)
         result['timings']['total'] = time.perf_counter() - start
         _json(work_dir / 'result.json', result)
+        if trace is not None:
+            try:
+                trace.close(result)
+            except (Exception, KeyboardInterrupt, SystemExit) as error:
+                # 发布失败保留之前的不完整 manifest；不得把诊断记录失败包装成正常运行。
+                result['status'] = 'execution_error'
+                result['stage'] = 'trace_export'
+                result['error'] = f'{type(error).__name__}: {error}'
+                _json(work_dir / 'result.json', result)
     return result

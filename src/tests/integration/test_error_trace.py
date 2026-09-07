@@ -1,133 +1,136 @@
+"""用已有静态图验证旧查询兼容；不运行 K，也不改写 resources。
+
+原交互脚本引用的 simulated.0.kore 未归档，故这里仅验证保存的静态事实。
+真实 Kore 建图与新动态门面的联合验收由独立集成测试负责。
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
 from pathlib import Path
-from typing import List
 
-from kcirct.api import KCIRCT
 from kcirct.err_trace import KErrTrace
-from kcirct.vcd import KVCD
-from tests.resources import DATA_PATH
+from kcirct.trace import TraceRun
+from kcirct.trace.model import ArtifactRef, CompletionEvidence, RunManifest, StateIndexEntry
 
-# 解析Kore文本
-test_mlir_file = DATA_PATH / 'error_trace_test' / 'test.generic.mlir'
-input_kore = DATA_PATH / 'error_trace_test' / 'simulated.0.kore'
-err_trace_file = DATA_PATH / 'error_trace_test' / 'err_trace.json'
-test_output = [
-    DATA_PATH / 'error_trace_test' / name
-    for name in ('test1k.output', 'test1vcd.output', 'testlistk.output', 'testlistvcd.output')
-]
-test_differences_name = [
-    DATA_PATH / 'error_trace_test' / name for name in ('differencesname.txt', 'differencesnameK.txt')
-]
-rocket_kore = DATA_PATH / 'rocket-small' / 'setup.kore'
-rocket_tance_file = DATA_PATH / 'rocket-small' / 'err_trnce.json'
-rocket_test_output = DATA_PATH / 'rocket-small' / 'test.output'
-rocket_differences_name = DATA_PATH / 'rocket-small' / ('dfnames2.txt', 'differencesname.txt')[0]
+_FIXTURES = Path(__file__).resolve().parents[1] / 'resources' / 'error_trace_test'
 
 
-def test_build_grapth(input_kore: Path, err_tracne_file: Path) -> None:
-    k_err_trnce = KErrTrace()
-    k_err_trnce.build_grapth(input_kore, err_tracne_file)
+def _saved_graph() -> KErrTrace:
+    trace = KErrTrace()
+    trace.load_from_json(_FIXTURES / 'err_trace.json')
+    return trace
 
 
-def test_vcd_list_err_trace(input_list_file: Path, input_kore: Path, err_tracne_file: Path, test_output: Path) -> None:
-    k_err_trnce = KErrTrace()
-    k_err_trnce.set_signal_port_mapping(input_kore)
-    original_names = []
+def test_saved_static_graph_round_trip(tmp_path: Path) -> None:
+    original = _FIXTURES / 'err_trace.json'
+    before = hashlib.sha256(original.read_bytes()).hexdigest()
+    trace = _saved_graph()
+    copied = tmp_path / 'graph.json'
+    trace.save_to_json(copied)
 
-    with open(input_list_file, 'r', encoding='utf-8') as file:
-        lines = file.readlines()  # 读取所有行到列表中
-        for line in lines:
-            vcdname = line.strip()
-            original_names.append(vcdname)
-            k_err_trnce.differenes.append(k_err_trnce.change_vcdname2kname(vcdname))
-
-    k_err_trnce.load_from_json(err_tracne_file)
-
-    top = 0
-    while top < len(k_err_trnce.differenes):
-        print(original_names[top])
-        k_err_trnce.search_path_kname(k_err_trnce.differenes[top], test_output)
-        input()
-        top += 1
+    assert len(trace.node_map) == 30
+    assert len(trace.edge_map) == 114
+    assert trace.node_map['Foo/%20'].is_firreg
+    assert trace.node_map['Foo/%21'].is_firmem
+    assert trace.node_map['Foo/i0/%0'].is_constant
+    assert json.loads(copied.read_text()) == json.loads(original.read_text())
+    assert hashlib.sha256(original.read_bytes()).hexdigest() == before
 
 
-def test_k_list_err_trnce(input_list_file: Path, err_tracne_file: Path, test_output: Path) -> None:
-    k_err_trnce = KErrTrace()
+def test_saved_hierarchical_query_matches_legacy_output(tmp_path: Path) -> None:
+    trace = _saved_graph()
+    output = tmp_path / 'hierarchy.txt'
+    trace.search_path_kname('Foo/i0/%arg0', output)
 
-    with open(input_list_file, 'r', encoding='utf-8') as file:
-        lines = file.readlines()  # 读取所有行到列表中
-        for line in lines:
-            vcdname = line.strip()
-            k_err_trnce.differenes.append(vcdname)
-
-    k_err_trnce.load_from_json(err_tracne_file)
-
-    top = 0
-    while top < len(k_err_trnce.differenes):
-        print(k_err_trnce.differenes[top])
-        k_err_trnce.search_path_kname(k_err_trnce.differenes[top], test_output)
-        input()
-        top += 1
+    assert output.read_bytes() == (_FIXTURES / 'test1k.output').read_bytes()
+    assert output.read_text().splitlines() == [
+        'Foo/i0/%arg0 size: 4',
+        'depth:0   Foo/i0/%arg0',
+        'is constant :depth:1   Foo/i0/%0',
+        'depth:1   Foo/%arg1',
+        'depth:2   Foo/%arg2',
+    ]
 
 
-def test_err_trnce(
-    target: str, k_target: str, input_kore: Path, err_tracne_file: Path, test_output_k: Path, test_output_vcd: Path
-) -> None:
-    k_err_trnce = KErrTrace()
-    k_err_trnce.set_signal_port_mapping(input_kore)
-    k_err_trnce.load_from_json(err_tracne_file)
+def test_saved_vcd_alias_query_matches_k_query(tmp_path: Path) -> None:
+    trace = _saved_graph()
+    # 此别名来自 fixture 中 AddOne 的 io_a 参数与 Foo/i0 实例。
+    trace.signal_port_mapping['Foo/i0/io_a'] = 'Foo/i0/%arg0'
+    output = tmp_path / 'vcd-name.txt'
+    trace.search_path_vcdname('Foo.i0.io_a', output)
 
-    k_err_trnce.search_path_kname(k_target, test_output_k)
-
-    k_err_trnce.search_path_vcdname(target, test_output_vcd)
+    assert output.read_bytes() == (_FIXTURES / 'test1vcd.output').read_bytes()
 
 
-def trace_vcdname2kname() -> None:
-    # This is an example of transforming vcddiff output into kname format.
-    # The vcddiff output was generated with the --top1 flag, which removes the prefix from signal names.
-    k_err_trnce = KErrTrace()
-    k_err_trnce.load_from_json(rocket_tance_file)
-    k_err_trnce.set_signal_port_mapping(rocket_kore)
-    while 1:
-        vcdname = input("请输入vcdname:")
-        vcdname = 'RocketSystem.' + vcdname
-        print(k_err_trnce.change_vcdname2kname(vcdname))
+def test_saved_difference_list_runs_without_input_or_overwriting_outputs(tmp_path: Path) -> None:
+    trace = _saved_graph()
+    trace.differenes.extend((_FIXTURES / 'differencesnameK.txt').read_text().splitlines())
+    assert trace.differenes == ['Foo/i0/%arg0', 'Foo/%8']
+    outputs = []
+    for index, target in enumerate(trace.differenes):
+        output = tmp_path / f'difference-{index}.txt'
+        trace.search_path_kname(target, output)
+        outputs.append(output)
+
+    assert outputs[0].read_text().startswith('Foo/i0/%arg0 size: 4\nis defferenes : \n')
+    assert outputs[1].read_bytes() == (_FIXTURES / 'testlistk.output').read_bytes()
 
 
-def test_build_kore(mlir_file: Path, top_module: str, inputs: List[List[tuple[int, int]]]) -> None:
+def test_saved_memory_read_keeps_legacy_static_stop(tmp_path: Path) -> None:
+    trace = _saved_graph()
+    output = tmp_path / 'memory.txt'
+    trace.search_path_kname('Foo/%22', output)
 
-    kcirct = KCIRCT()
-
-    kcirct.ensure_env()
-    # KCIRCT Parsing: from mlir to kore
-    kcirct.compile_fast(mlir_file, mlir_file.parent / 'pgm.kore')
-    # KCIRCT Preprocessing
-    kcirct.run_preprocess_fast(mlir_file.parent / 'pgm.kore', mlir_file.parent / 'preprocessed.kore')
-    # KCIRCT Hardware Setup & Initialization
-    kcirct.run_setup_fast(mlir_file.parent / 'preprocessed.kore', mlir_file.parent / 'setup.kore', top_module)
-    # KCIRCT Simulation
-
-    vcd_path = mlir_file.parent / 'test.vcd'
-    if vcd_path.exists():
-        vcd_path.unlink()
-    vcd = KVCD(vcd_path=vcd_path, mlir_path=mlir_file)
-    vcd.time = 0
-    rounds = 0
-    input = inputs[0]
-    kcirct.run_simulate_fast(mlir_file.parent / 'setup.kore', mlir_file.parent / f'simulated.{rounds&1}.kore', input)
-    vcd.dump(kcirct.read_ports_fast(mlir_file.parent / f'simulated.{rounds&1}.kore'))
-    rounds += 1
-    print(str(vcd.time) + str(mlir_file))
+    assert output.read_text().splitlines() == [
+        'Foo/%22 size: 4',
+        'depth:0   Foo/%22',
+        'is firmem :depth:1   Foo/%21',
+        'is constant :depth:1   Foo/%2',
+        'depth:1   Foo/%arg0',
+    ]
+    # 静态查询在存储处停止，不伪装成已解释某次实际写入。
+    assert 'Foo/%10' not in output.read_text()
 
 
-if __name__ == '__main__':
-    test_build_kore(test_mlir_file, 'Foo', [[(1, 1), (192, 8), (87, 8)]])
-    test_build_grapth(input_kore, err_trace_file)
+def test_real_kore_graph_and_public_target_queries_do_not_pollute_each_other(tmp_path: Path) -> None:
+    legacy_source = _FIXTURES.parent / 'modules' / 'adder' / 'expected' / 'setup.kore'
+    graph = tmp_path / 'graph.json'
+    legacy = KErrTrace()
+    legacy.build_grapth(legacy_source, graph)
+    assert (len(legacy.node_map), len(legacy.edge_map)) == (4, 12)
 
-    # trace_vcdname2kname()
-    test_target = r'Foo.i0.io_a'  # accepts the port name format displayed by vcddiff.
-    test_k_target = r'Foo/i0/%arg0'  # accepts the k item name format.
-    test_err_trnce(test_target, test_k_target, input_kore, err_trace_file, test_output[0], test_output[1])
-    test_vcd_list_err_trace(test_differences_name[0], input_kore, err_trace_file, test_output[3])
-    test_k_list_err_trnce(test_differences_name[1], err_trace_file, test_output[2])
-    # During testing, press Enter in the console to output the next item's test result
-    # from the list into the output file each time.
+    source = _FIXTURES.parent / 'trace' / 'unit' / 'minimal-state.kore'
+    run_dir = tmp_path / 'run'
+    run_dir.mkdir()
+    setup = run_dir / 'setup.kore'
+    setup.write_bytes(source.read_bytes())
+    setup_ref = ArtifactRef('state', setup.name, hashlib.sha256(setup.read_bytes()).hexdigest(), setup.stat().st_size)
+    state = StateIndexEntry(
+        'setup',
+        'setup',
+        artifact='setup',
+        content_sha256=setup_ref.sha256,
+        retention='retained',
+        completion=CompletionEvidence('completed'),
+    )
+    index = run_dir / 'trace-states.jsonl'
+    index.write_text(json.dumps(state.to_dict()) + '\n')
+    index_ref = ArtifactRef(
+        'state_index',
+        index.name,
+        hashlib.sha256(index.read_bytes()).hexdigest(),
+        index.stat().st_size,
+    )
+    manifest = run_dir / 'trace-run.json'
+    manifest.write_text(RunManifest('real-trace-setup', 'Demo', {'setup': setup_ref}, state_index=index_ref).to_json())
+
+    before = tmp_path / 'before.txt'
+    after = tmp_path / 'after.txt'
+    legacy.search_path_kname('Adder/%0', before)
+    targets = TraceRun.open(manifest).list_targets()
+    legacy.search_path_kname('Adder/%0', after)
+    assert before.read_bytes() == after.read_bytes()
+    assert any('Demo/result' in target['aliases'] for target in targets)
+    assert json.loads(graph.read_text())['nodes']['Adder/%0']['is_constant'] is False

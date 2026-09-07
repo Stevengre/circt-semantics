@@ -8,7 +8,11 @@ It includes:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
+import os
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
@@ -40,6 +44,39 @@ def _add_simulate_args(parser: ArgumentParser) -> None:
     parser.add_argument('--parser', type=Path, help='可复用的 TopLevel parser，默认在工作目录生成')
     parser.add_argument('--timeout', type=float, default=120, help='每次外部命令的超时秒数，默认 120')
     parser.add_argument('--keep-states', action='store_true', help='用 gzip 保存每一次求值的 Kore 状态及索引')
+
+
+def _add_trace_args(parser: ArgumentParser) -> None:
+    actions = parser.add_subparsers(dest='trace_action', required=True, help='离线追踪动作')
+    query = actions.add_parser('query', help='从保存状态生成动态解释报告')
+    query.add_argument('--run', type=Path, required=True, help='trace-run.json 或受支持的旧 result.json')
+    query.add_argument('--request', type=Path, required=True, help='QueryRequest JSON')
+    query.add_argument('--output', type=Path, required=True, help='必须尚不存在的报告目录')
+    query.add_argument('--source-binding', type=Path, help='可选 SourceBinding JSON')
+    query.add_argument('--copy-evidence', action='store_true', help='复制本报告实际读取的证据并生成重定位清单')
+    query.add_argument('--relocations', type=Path, help='显式 trace_relocations JSON')
+    query.add_argument('--normalization-output', type=Path, help='旧 v1 result 的一次性规范化输出目录')
+
+    targets = actions.add_parser('targets', help='列出运行绑定的可查询目标')
+    targets.add_argument('--run', type=Path, required=True)
+    targets.add_argument('--output', type=Path, required=True)
+    targets.add_argument('--relocations', type=Path)
+    targets.add_argument('--normalization-output', type=Path)
+
+    checks = actions.add_parser('checks', help='从 CSV 或 VCD 及显式观测映射导入检查')
+    checks.add_argument('--run', type=Path, required=True)
+    checks.add_argument('--format', choices=('csv', 'vcd'), required=True)
+    checks.add_argument('--expected', type=Path, required=True)
+    checks.add_argument('--observations', type=Path, required=True)
+    checks.add_argument('--output', type=Path, required=True)
+    checks.add_argument('--relocations', type=Path)
+    checks.add_argument('--normalization-output', type=Path)
+
+    link = actions.add_parser('link', help='关联假设或后续测试、重放、回归结果')
+    link.add_argument('--report', type=Path, required=True)
+    link.add_argument('--output', type=Path, required=True)
+    link.add_argument('--hypothesis', type=Path)
+    link.add_argument('--outcome', type=Path)
 
 
 def _add_verify_args(verify_parser: ArgumentParser) -> None:
@@ -310,6 +347,9 @@ def create_arg_parser() -> ArgumentParser:
     simulate_parser = command_parser.add_parser('simulate', help='从 MLIR 和输入事件生成 VCD', parents=[shared_args])
     _add_simulate_args(simulate_parser)
 
+    trace_parser = command_parser.add_parser('trace', help='只读查询已保存的仿真证据', parents=[shared_args])
+    _add_trace_args(trace_parser)
+
     pretty_parser = command_parser.add_parser(
         'pretty', help='Convert a Kore file to readable K syntax', parents=[shared_args]
     )
@@ -342,8 +382,6 @@ def exec_generate(input: str, output: str = 'none', **kwargs: Any) -> None: ...
 
 
 def exec_simulate(**kwargs: Any) -> None:
-    import json
-
     from ._simulate import describe_simulator, simulate
 
     if kwargs.get('describe'):
@@ -371,6 +409,168 @@ def exec_simulate(**kwargs: Any) -> None:
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if result['status'] != 'pass':
         raise SystemExit(1)
+
+
+def _new_json(path: Path, document: dict[str, Any]) -> None:
+    from .trace.model import StopCode, TraceError
+
+    if path.exists():
+        raise TraceError(StopCode.INVALID_INPUT, '输出文件已存在，拒绝覆盖', path=str(path))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def _artifact(path: Path, carrier: Path, role: str) -> Any:
+    from .trace.model import ArtifactRef, StopCode, TraceError
+
+    try:
+        contents = path.read_bytes()
+    except OSError as error:
+        raise TraceError(StopCode.MISSING_ARTIFACT, '无法读取 CLI 输入工件', path=str(path)) from error
+    return ArtifactRef(
+        role,
+        Path(os.path.relpath(path.absolute(), carrier.absolute().parent)).as_posix(),
+        hashlib.sha256(contents).hexdigest(),
+        len(contents),
+    )
+
+
+def _trace_exit(error: Any) -> int:
+    from .trace.model import StopCode
+
+    if error.code in {
+        StopCode.HASH_MISMATCH,
+        StopCode.IDENTITY_MISMATCH,
+        StopCode.DUPLICATE_IDENTITY,
+        StopCode.INCOMPLETE_EXECUTION,
+        StopCode.METADATA_CORRUPTION,
+        StopCode.INCONSISTENT_EVIDENCE,
+    }:
+        return 4
+    if error.code in {
+        StopCode.NODE_BUDGET,
+        StopCode.STATE_BUDGET,
+        StopCode.TIME_BUDGET,
+        StopCode.STATE_BYTES_BUDGET,
+        StopCode.READ_BYTES_BUDGET,
+        StopCode.CACHE_BYTES_BUDGET,
+        StopCode.AST_NODES_BUDGET,
+        StopCode.AST_DEPTH_BUDGET,
+        StopCode.MISSING_ARTIFACT,
+        StopCode.NOT_RETAINED,
+        StopCode.HISTORY_GAP,
+        StopCode.WINDOW_BOUNDARY,
+        StopCode.INITIALIZATION,
+        StopCode.MISSING_VALUE,
+        StopCode.UNSUPPORTED_OPERATION,
+        StopCode.UNSUPPORTED_SHAPE,
+        StopCode.UNSUPPORTED_SEMANTICS,
+        StopCode.UNSUPPORTED_MEMORY_ORDER,
+        StopCode.UNSUPPORTED_CLOCK,
+        StopCode.UNSUPPORTED_INITIALIZATION,
+        StopCode.UNSUPPORTED_VALUE,
+        StopCode.SOURCE_MISMATCH,
+        StopCode.CYCLE,
+    }:
+        return 3
+    return 5 if error.code in {StopCode.INTERNAL_ERROR, StopCode.UNKNOWN} else 2
+
+
+def exec_trace(**kwargs: Any) -> None:
+    from .trace import TraceRun, link_report, load_check_reference
+    from .trace.model import ObservationMap, QueryRequest, StopCode, TraceError
+
+    action = kwargs['trace_action']
+    try:
+        if action == 'link':
+            report = link_report(
+                kwargs['report'],
+                kwargs['output'],
+                hypothesis_path=kwargs.get('hypothesis'),
+                outcome_path=kwargs.get('outcome'),
+            )
+            print(json.dumps({'report_id': report.report_id, 'output': str(kwargs['output'])}, ensure_ascii=False))
+            return
+        trace_run = TraceRun.open(
+            kwargs['run'],
+            relocations=kwargs.get('relocations'),
+            normalization_output=kwargs.get('normalization_output'),
+        )
+        if action == 'targets':
+            output = Path(kwargs['output'])
+            document = {
+                'schema_version': 1,
+                'kind': 'trace_targets',
+                'run_id': trace_run.run_id,
+                'run': trace_run.run_reference(output).to_dict(),
+                'targets': list(trace_run.list_targets()),
+            }
+            _new_json(output, document)
+            print(output)
+            return
+        if action == 'checks':
+            output, observations_path = Path(kwargs['output']), Path(kwargs['observations']).absolute()
+            observations = ObservationMap.from_json(observations_path.read_text(encoding='utf-8'))
+            checks = trace_run.import_checks(
+                kwargs['format'],
+                kwargs['expected'],
+                observations,
+                carrier=output,
+            )
+            document = {
+                'schema_version': 1,
+                'kind': 'trace_checks',
+                'run_id': trace_run.run_id,
+                'run': trace_run.run_reference(output).to_dict(),
+                'format': kwargs['format'],
+                'expected': _artifact(Path(kwargs['expected']).absolute(), output, 'check_source').to_dict(),
+                'observations': _artifact(observations_path, output, 'observation_map').to_dict(),
+                'checks': [item.to_dict() for item in checks],
+            }
+            _new_json(output, document)
+            print(output)
+            return
+        if action != 'query':
+            raise TraceError(StopCode.INVALID_INPUT, '未知 trace 动作', action=action)
+        request_path = Path(kwargs['request']).absolute()
+        request = QueryRequest.from_json(request_path.read_text(encoding='utf-8'))
+        check = load_check_reference(request.check, request_path, trace_run) if request.check is not None else None
+        check_carrier = trace_run.resolve_record(request.check, request_path) if request.check is not None else None
+        report = trace_run.query(
+            request,
+            check=check,
+            check_carrier=check_carrier,
+            source_binding=kwargs.get('source_binding'),
+            output=kwargs['output'],
+            copy_evidence=kwargs.get('copy_evidence', False),
+        )
+        print(json.dumps({'report_id': report.report_id, 'status': report.status.to_dict()}, ensure_ascii=False))
+        code = {'complete': 0, 'partial': 3, 'rejected': 4, 'error': 5}.get(report.status.query, 5)
+        if code:
+            raise SystemExit(code)
+    except TraceError as error:
+        print(
+            json.dumps(
+                {'schema_version': 1, 'error': error.code.value, 'message': error.message, 'details': error.details},
+                ensure_ascii=False,
+            ),
+            file=sys.stderr,
+        )
+        raise SystemExit(_trace_exit(error)) from error
+    except (OSError, ValueError) as error:
+        print(
+            json.dumps({'schema_version': 1, 'error': 'invalid_input', 'message': str(error)}, ensure_ascii=False),
+            file=sys.stderr,
+        )
+        raise SystemExit(2) from error
+    except Exception as error:
+        if kwargs.get('debug'):
+            _LOGGER.exception('trace 内部错误')
+        print(
+            json.dumps({'schema_version': 1, 'error': 'internal_error', 'message': str(error)}, ensure_ascii=False),
+            file=sys.stderr,
+        )
+        raise SystemExit(5) from error
 
 
 def exec_pretty(input: str | Path, output: str | Path | None = None, **kwargs: Any) -> None:

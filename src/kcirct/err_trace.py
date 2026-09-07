@@ -76,19 +76,23 @@ class PathNode:
 
 
 class KErrTrace:
-    node_map: dict[str, PathNode] = {}
-    edge_map: list[PathEdge] = []
+    """保留旧静态图接口；图、名称和日志均由当前实例持有。"""
+
+    node_map: dict[str, PathNode]
+    edge_map: list[PathEdge]
     logger: logging.Logger
-    differenes: list[str] = []
-    signal_port_mapping: dict[str, str] = {}
+    differenes: list[str]
+    signal_port_mapping: dict[str, str]
 
     def __init__(self) -> None:
-        self.logger = logging.getLogger('test_koreparser')
+        self.node_map = {}
+        self.edge_map = []
+        self.differenes = []
+        self.signal_port_mapping = {}
+        # 独立 Logger 不进入全局注册表；需要日志时由调用者显式添加 handler。
+        self.logger = logging.Logger('test_koreparser', level=logging.INFO)
         self.logger.propagate = False
-        self.logger.setLevel(logging.INFO)
-        file_handler = logging.FileHandler('txt.log', mode='w')
-        file_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        self.logger.addHandler(file_handler)
+        self.logger.addHandler(logging.NullHandler())
 
     def set_signal_port_mapping(self, sate_file: Path) -> None:
         par: dict[str, str] = KCIRCT.read_signal_port_mapping(sate_file)
@@ -227,6 +231,12 @@ class KErrTrace:
 
     def build_procedure_path(self, root) -> None:  # type: ignore
         _procedure_list_parttern = root.patterns[0]
+        if (
+            isinstance(_procedure_list_parttern, pyk.kore.syntax.App)
+            and _procedure_list_parttern.symbol == "Lbl'Stop'List"
+            and not _procedure_list_parttern.patterns
+        ):
+            return
         assert isinstance(_procedure_list_parttern, pyk.kore.syntax.LeftAssoc)
         assert _procedure_list_parttern.symbol == "Lbl'Unds'List'Unds'"
         for _, subpattern in enumerate(_procedure_list_parttern.patterns):

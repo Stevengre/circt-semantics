@@ -131,6 +131,12 @@ K 语义源码哈希及工具路径与版本，便于外部 runner 核实实际�
 最后成功状态，避免长时间仿真积累全部状态；命令日志中的 stdout 直接指向 Kore
 工件，不另存一份大型 stdout。以上状态用于普通仿真的失败复查，并未执行 Error-trace 分析。
 
+### 离线动态 Error-trace
+
+对使用 `--keep-states` 保存的运行，可用 `kcirct trace targets|checks|query|link`
+完成目标枚举、检查导入、动态解释和后续验证关联。完整流程、值视图、预算、退出码、
+证据重定位和当前支持边界见[动态 Error-trace 使用指南](docs/error-trace.md)。
+
 ### Pretty-print KORE 状态
 
 `kcirct pretty INPUT [-o OUTPUT]` 将 CIRCT semantics 生成的 KORE 状态转换为便于调试的 K pretty syntax。
