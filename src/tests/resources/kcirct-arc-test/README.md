@@ -73,8 +73,9 @@ poetry run python -m tests.integration.arc_test rocket --help
 
 Rocket 各配置保留旧脚本的输入文件映射。`master`、`v1.4` 和
 `v1.6-two-edge` 根据 `twoedge` 输入命名每条 input event 调用两次 simulate；
-`v1.6` 和 `v1.6-main` 每条调用一次。当前 Rocket 输入尚未接入，因此除旧脚本
-默认的 `v1.6-two-edge` 调用关系外，其余映射仍需随输入仓库一起复核。
+`v1.6` 和 `v1.6-main` 每条调用一次。2026-09-09 已接入默认 `v1.6-two-edge`
+的事件输入，另存 BOOM 风格 `test_data.json`；其余 variant 输入仍未取得。
+Rocket 的 `--cycles` 计 input event，不是硬件周期，详见输入仓库的计数记录。
 
 存在标准 VCD 的项目会在仿真后自动执行 `scripts/diffvcd.py`。比较器会验证时间
 窗口非空，并在 `--after` 边界比较该时刻已经稳定的值，避免空 transition 列表被
@@ -89,8 +90,12 @@ Rocket 各配置保留旧脚本的输入文件映射。`master`、`v1.4` 和
   `io_aggregator_*_reset` 上表现为 K=`1`、标准 VCD=`0`。该点正好是标准 VCD 的
   reset deassert 边界，因此默认比较从 `#201` 开始；100 周期 smoke test 尚未覆盖
   reset 之后的有效比较窗口，不能作为功能通过结论。
-- Rocket 的 MLIR 和配置已归位，但输入 JSON 与标准 VCD 尚未接入，所以没有运行
-  结果。
+- Rocket small-v1.6 原生 ARC / Verilator 各三次 Dhrystone 成功；K 长测完成
+  1170 条输入、585 个硬件周期。2026-09-10 已离线比较：`#1–#1170` 的8234个
+  共同内部信号一致，顶层仅 reset 在#200有采样边界差异；`#201–#1170` 的
+  8327个共同信号全部一致。未覆盖单侧声明信号或Dhrystone主循环；原模板日志
+  仍为skipped，本结论来自保存波形后的独立比较。
+  见 [`inputs/rocket/20260910-vcd-compare/README.md`](inputs/rocket/20260910-vcd-compare/README.md)。
 
 `inputs/` 是本次测试专用的新 submodule：
 `git@github.com:nn020701/k-circt-arc-test-input.git`，与现有
