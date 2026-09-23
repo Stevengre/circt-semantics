@@ -85,6 +85,7 @@ class KErrTrace:
     signal_port_mapping: dict[str, str]
 
     def __init__(self) -> None:
+        """初始化实例独占的静态图、差异标记与别名表；默认日志不创建文件或共享 handler。"""
         self.node_map = {}
         self.edge_map = []
         self.differenes = []
@@ -230,6 +231,10 @@ class KErrTrace:
                     self.build_firmem_write_edge(_list_parttern, op_name)
 
     def build_procedure_path(self, root) -> None:  # type: ignore
+        """从 procedures cell 提取 seq.firmem.write_port 的静态依赖；空列表直接结束。
+
+        非空输入须采用旧接口支持的 Kore 列表结构；这里只补充写端口边，不判断实际写入时刻。
+        """
         _procedure_list_parttern = root.patterns[0]
         if (
             isinstance(_procedure_list_parttern, pyk.kore.syntax.App)

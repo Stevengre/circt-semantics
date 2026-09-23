@@ -52,6 +52,7 @@ def _json(path: Path, value: Any) -> None:
 
 
 def _atomic_text(path: Path, text: str) -> None:
+    """先写入同目录的 .pending 文件并 fsync，再替换目标，避免读到半份索引或清单。"""
     temporary = path.with_name(path.name + '.pending')
     with temporary.open('w', encoding='utf-8') as stream:
         stream.write(text)
@@ -64,10 +65,12 @@ class _TraceCapture:
     """只增加运行身份与索引；索引中不发布滚动状态的持久引用。"""
 
     def __init__(self, work: Path, top: str, keep_states: bool, evaluations: int) -> None:
+        """为本次运行分配独立身份，初始化尚未核验的协议、状态链和工件引用。"""
         self.work = work
         self.keep_states = keep_states
         self.artifacts: dict[str, ArtifactRef] = {}
         self.states: list[StateIndexEntry | DumpIndexEntry] = []
+        # current 指向最近尝试，materialized 指向最近实际产出状态的尝试；超时时二者可能不同。
         self.current: int | None = None
         self.materialized: int | None = None
         self.manifest = RunManifest(
@@ -78,6 +81,7 @@ class _TraceCapture:
         )
 
     def artifact(self, key: str, path: Path, role: str, raw: Path | None = None) -> ArtifactRef:
+        """登记相对于工作目录的文件引用；提供 raw 时同时记录 gzip 归档的解压身份。"""
         ref = ArtifactRef(
             role=role,
             path=Path(os.path.relpath(path, self.work)).as_posix(),
@@ -91,7 +95,11 @@ class _TraceCapture:
         return ref
 
     def configure(self, result: dict[str, Any], definition: Path, parser: Path) -> None:
-        """绑定实际文件，不执行额外 K 命令，不把包版本当作构建身份。"""
+        """绑定输入、编译定义、parser 与工具身份，复制当前包源码，并发布采集清单。
+
+        result 必须已有端口、时序和版本信息。这里只记录文件身份，不额外执行 K 命令；
+        当前源码与指定编译定义的语义对应关系仍标为 unverified，留给离线适配器核验。
+        """
         for key, path, role in (
             ('execution_ir', self.work / 'design.generic.mlir', 'execution_ir'),
             ('inputs', self.work / 'inputs.json', 'inputs'),
@@ -168,6 +176,10 @@ class _TraceCapture:
         self.publish()
 
     def begin(self, event: int | None = None, evaluation: int | None = None, timestamp: int | None = None) -> None:
+        """在外部调用前登记一次状态尝试；event 为 None 表示 setup，否则记录事件及求值序号。
+
+        新条目先标为 missing，并链接上一状态条目；即使调用未返回，也能保留真实的历史缺口。
+        """
         predecessor = None
         if self.current is not None:
             previous = self.states[self.current]
@@ -188,6 +200,11 @@ class _TraceCapture:
         self.current = len(self.states) - 1
 
     def finish(self, state: Path, archive: Path | None = None) -> None:
+        """把返回的 Kore 绑定到当前尝试，并检查是否到达终态；未完成的状态仍保留身份。
+
+        setup 和显式归档可作为持久证据，滚动求值文件仅记内容哈希。终态检查失败时
+        将完成状态标为 incomplete 后重新抛出，由调用方统一收尾并发布索引。
+        """
         assert self.current is not None
         entry = self.states[self.current]
         assert isinstance(entry, StateIndexEntry)
@@ -215,6 +232,7 @@ class _TraceCapture:
         )
 
     def dump(self, event: int, evaluation: int, timestamp: int, ports: dict[str, tuple[int, int]]) -> None:
+        """将一次 VCD 采样绑定到当前状态；ports 的值为 (无符号值, 位宽)，采样不推进状态链。"""
         assert self.current is not None
         entry = self.states[self.current]
         assert isinstance(entry, StateIndexEntry)
@@ -231,6 +249,10 @@ class _TraceCapture:
         )
 
     def publish(self) -> None:
+        """先替换完整状态索引，再发布绑定其哈希的运行清单。
+
+        两个文件分别原子替换；若中途失败，旧清单可能与新索引哈希不符，读取方须拒绝该组合。
+        """
         index = self.work / 'trace-states.jsonl'
         _atomic_text(index, ''.join(json.dumps(item.to_dict(), ensure_ascii=False) + '\n' for item in self.states))
         index_ref = ArtifactRef(
@@ -240,6 +262,11 @@ class _TraceCapture:
         _atomic_text(self.work / 'trace-run.json', self.manifest.to_json())
 
     def close(self, result: dict[str, Any]) -> None:
+        """根据最终仿真结果登记末态和日志，汇总留存覆盖率后发布运行完成状态。
+
+        调用方先保存 result.json，有实际末态时同时保存 last-state.kore。未开启历史归档时，
+        仅把实际产出的最后状态提升为 retained；失败尝试仍保留 missing，不能借用此前状态填补历史。
+        """
         if self.materialized is not None:
             entry = self.states[self.materialized]
             assert isinstance(entry, StateIndexEntry)
@@ -583,7 +610,12 @@ def simulate(
     timeout: float = 120,
     keep_states: bool = False,
 ) -> dict[str, Any]:
-    """按输入事件重复求值后写入 VCD；失败也返回并保存结构化结果。"""
+    """依次执行输入事件，在每个事件的连续求值结束后采样一次，并保存离线追踪所需身份。
+
+    同一事件内固定输入和时间，连续求值 evaluations_per_input 次；keep_states 决定
+    是否逐次归档 Kore，但不改变求值协议。工作目录和 VCD 均要求使用新路径。
+    执行阶段捕获的错误会写入结构化结果；创建工作目录等前置错误及收尾 I/O 错误仍可能抛出。
+    """
     input_file, inputs_file, output, work_dir = (
         path.expanduser().absolute() for path in (input_file, inputs_file, output, work_dir)
     )
@@ -616,6 +648,7 @@ def simulate(
     trace: _TraceCapture | None = None
 
     def timed(name: str, operation: Callable[[], Any]) -> Any:
+        """执行一个阶段并累计其耗时；即使操作抛错，也把已消耗的时间计入结果。"""
         section_start = time.perf_counter()
         try:
             return operation()
@@ -725,6 +758,7 @@ def simulate(
                 result['stage'] = 'execution'
                 result['evaluation'] = evaluation
                 result['simulation_calls_attempted'] += 1
+                # 调用前建条目、返回后绑定内容，使超时尝试不会误领上一轮的状态。
                 trace.begin(event_index, evaluation, event['time'])
                 target: Path = states[int(result['simulation_calls']) % 2]
                 assert current_state is not None
@@ -749,6 +783,7 @@ def simulate(
                     )
                     _json(work_dir / 'states.json', archive_index)
                     result['timings']['state_export'] += time.perf_counter() - archive_start
+                # 先归档再核验终态，失败时也留下诊断所需的真实返回状态。
                 trace.finish(target, archive)
             result['stage'] = 'read_ports'
             assert current_state is not None

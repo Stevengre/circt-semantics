@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
 
 def _digest(path: Path) -> str:
+    """分块计算引用文件的 SHA-256；读取失败统一报告为工件缺失。"""
     value = hashlib.sha256()
     try:
         with path.open('rb') as stream:
@@ -38,7 +39,10 @@ def _digest(path: Path) -> str:
 
 
 def load_relocations(path: Path | str) -> dict[str, Path]:
-    """读取显式重定位文档；复制证据路径相对于该文档解析。"""
+    """读取并校验显式重定位文档，返回声明路径到本地副本的映射。
+
+    副本路径相对于重定位 JSON 解析；逐项核对文件哈希并拒绝重复声明路径。
+    """
     carrier = Path(path).absolute()
     try:
         document = json.loads(carrier.read_text(encoding='utf-8'))
@@ -70,6 +74,7 @@ def load_relocations(path: Path | str) -> dict[str, Path]:
 
 
 def _record(path: Path, carrier: Path, identity: str | None = None) -> RecordRef:
+    """为文件生成相对于承载文档的引用，并固定可选记录 ID 和当前文件哈希。"""
     return RecordRef(Path(os.path.relpath(path, carrier.parent)).as_posix(), identity, _digest(path))
 
 
@@ -83,6 +88,7 @@ class TraceRun:
         manifest_sha256: str,
         relocations: dict[str, Path],
     ) -> None:
+        """保存运行路径、运行 ID 和 manifest 哈希，并复制重定位映射以固定门面配置。"""
         self.path = path
         self.run_id = run_id
         self.manifest_sha256 = manifest_sha256
@@ -97,12 +103,21 @@ class TraceRun:
         normalization_output: Path | str | None = None,
         budget: Budget | None = None,
     ) -> TraceRun:
+        """打开并校验运行工件，记录运行身份后关闭此次读取会话。
+
+        接受直接传入的重定位映射或重定位 JSON；旧格式的规范化输出交由 RunArtifacts 处理。
+        返回的门面不持有打开的读取器，后续每个操作分别使用自己的读取预算。
+        """
         mapping = load_relocations(relocations) if isinstance(relocations, (str, Path)) else dict(relocations or {})
         normalized = Path(normalization_output).absolute() if normalization_output is not None else None
         with RunArtifacts.open(path, budget=budget, relocations=mapping, normalization_output=normalized) as run:
             return cls(run.path, run.manifest.run_id, run.manifest_sha256, mapping)
 
     def _open(self, budget: Budget | None = None) -> RunArtifacts:
+        """为一次操作创建独立读取器，并确认运行 ID 与 manifest 字节未自首次打开后改变。
+
+        身份不符时先关闭新读取器再报错；成功返回的读取器由调用方负责关闭。
+        """
         run = RunArtifacts.open(self.path, budget=budget, relocations=self.relocations)
         if run.manifest.run_id != self.run_id or run.manifest_sha256 != self.manifest_sha256:
             run.close()
@@ -110,9 +125,11 @@ class TraceRun:
         return run
 
     def run_reference(self, carrier: Path | str) -> RecordRef:
+        """生成相对于指定承载文件的运行引用，附带已固定的运行 ID 和文件当前哈希。"""
         return _record(self.path, Path(carrier).absolute(), self.run_id)
 
     def resolve_record(self, reference: RecordRef, carrier: Path | str) -> Path:
+        """相对承载文件解析记录引用，原文件缺失时尝试显式重定位并校验可选哈希。"""
         carrier = Path(carrier).absolute()
         path = (carrier.parent / reference.path).resolve()
         if not path.is_file():
@@ -124,6 +141,7 @@ class TraceRun:
         return path
 
     def list_targets(self, *, budget: Budget | None = None, kind: str | None = None) -> tuple[dict[str, Any], ...]:
+        """在独立读取预算内构建运行拓扑，返回按可选种类筛选的目标字典。"""
         with self._open(budget) as run:
             return tuple(item.to_dict() for item in TraceTopology.from_run(run).list_targets(kind))
 
@@ -137,6 +155,11 @@ class TraceRun:
         output: Path | str | None = None,
         copy_evidence: bool = False,
     ) -> TraceReport:
+        """执行一次离线查询，并按需附加源码位置或写出可复核报告目录。
+
+        查询及源码绑定共享本次 request 的读取预算；提供 output 时可同时复制引用证据，
+        未提供 output 时返回内存中的结构化报告。
+        """
         with self._open(request.budget) as run:
             topology = TraceTopology.from_run(run)
             report = _query(run, request, check=check, check_carrier=check_carrier)
@@ -166,6 +189,7 @@ class TraceRun:
         carrier: Path | None = None,
         budget: Budget | None = None,
     ) -> tuple[CheckRecord, ...]:
+        """按显式采样映射比较预期文件与运行观测，在独立预算内返回差异检查记录。"""
         with self._open(budget) as run:
             return _import_checks(
                 run,
@@ -178,6 +202,7 @@ class TraceRun:
 
 
 def list_targets(run: TraceRun, *, budget: Budget | None = None, kind: str | None = None) -> tuple[dict[str, Any], ...]:
+    """通过公共运行门面列出目标，保留调用方指定的种类过滤和读取预算。"""
     return run.list_targets(budget=budget, kind=kind)
 
 
@@ -191,6 +216,7 @@ def query(
     output: Path | str | None = None,
     copy_evidence: bool = False,
 ) -> TraceReport:
+    """将查询请求、检查来源和可选报告输出设置委托给对应的运行门面。"""
     return run.query(
         request,
         check=check,
@@ -210,11 +236,16 @@ def import_checks(
     carrier: Path | None = None,
     budget: Budget | None = None,
 ) -> tuple[CheckRecord, ...]:
+    """通过公共运行门面导入 CSV 或 VCD 差异，使用调用方给定的观测映射。"""
     return run.import_checks(format, expected, observations, carrier=carrier, budget=budget)
 
 
 def load_check_reference(reference: RecordRef, carrier: Path | str, trace_run: TraceRun) -> CheckRecord:
-    """加载 raw CheckRecord 或 trace_checks bundle，并固定其 run/check 身份。"""
+    """加载单条检查或 trace_checks 包，并唯一选中属于当前运行的检查记录。
+
+    检查包需校验运行及来源工件引用，再从原预期和观测映射重新导入，确认包内记录未失真。
+    未指定检查 ID 时也必须只匹配一条记录，避免默选多个差异中的某一条。
+    """
     carrier = Path(carrier).absolute()
     path = trace_run.resolve_record(reference, carrier)
     text = path.read_text(encoding='utf-8')
@@ -241,6 +272,7 @@ def load_check_reference(reference: RecordRef, carrier: Path | str, trace_run: T
             raise TraceError(StopCode.IDENTITY_MISMATCH, 'trace_checks.run 不属于当前运行')
 
         def artifact(ref: ArtifactRef, role: str) -> Path:
+            """解析检查包中的来源工件，并核对角色、文件大小和哈希后返回本地路径。"""
             candidate = (path.parent / ref.path).resolve()
             if (
                 ref.role != role
@@ -258,6 +290,7 @@ def load_check_reference(reference: RecordRef, carrier: Path | str, trace_run: T
         if not isinstance(records, list):
             raise TraceError(StopCode.INVALID_INPUT, 'trace_checks.checks 必须是数组')
         checks = tuple(CheckRecord._from_dict(item, require_version=False) for item in records)
+        # 文件引用正确还不足以证明包中结论真实，需按原预期和采样映射重新生成比对。
         regenerated = trace_run.import_checks(document['format'], expected_path, observations, carrier=path)
         if checks != regenerated:
             raise TraceError(StopCode.INCONSISTENT_EVIDENCE, 'trace_checks 内容与绑定来源重新导入结果不同')

@@ -41,6 +41,10 @@ def register_run(
     boolean_next: bool | None = None,
     evaluations: int = 1,
 ) -> Path:
+    """发布显式寄存器快照序列，可构造复位、反馈、preset 和时钟形状的测试变体。
+
+    当前提交值由用例提供，history 沿真实前驱传递；默认输出别名保留旧寄存器读取值。
+    """
     attrs = {'preset': preset} if preset is not None else {}
     if asynchronous:
         attrs['isAsync'] = 1
@@ -79,6 +83,7 @@ def register_run(
     }
 
     def expanded(values: dict[str, int]) -> dict[str, int]:
+        """为非空快照补齐普通输入和直连时钟、Next 默认值，保留用例显式覆盖项。"""
         if not values:
             return {}
         result = {'a': 0, 'c': 0, 'reset': 0, 'enable': 1, 'rv': 6}
@@ -95,6 +100,7 @@ def register_run(
             current['out'] = previous.get('r', preset if preset is not None else 0)
 
         def values_cell(values: dict[str, int]) -> Pattern:
+            """按时钟和控制信号的一位类型、其余信号的八位类型构造保存值 Map。"""
             return map_pattern(
                 *(
                     (item('Demo/%' + name), bits(value, 1 if name in ('c', 'clk', 'reset', 'enable') else 8))
@@ -116,6 +122,7 @@ def execute(
     budget: Budget | None = None,
     preset_supported: bool = False,
 ) -> TraceReport:
+    """在指定历史位置查询寄存器或自选目标，可独立控制窗口、预算及 preset 规则支持。"""
     request = QueryRequest(
         target or Target('register', name='Demo/count'),
         Observation(
@@ -134,6 +141,7 @@ def execute(
 
 
 def decisions(report: TraceReport) -> list[str]:
+    """按报告节点顺序提取寄存器提交决策，便于检查跨状态采样和保持链。"""
     return [str(node.facts['decision']) for node in report.nodes if 'decision' in node.facts]
 
 
@@ -148,6 +156,7 @@ def decisions(report: TraceReport) -> list[str]:
 def test_initial_hold_bootstrap_and_same_value_capture(
     tmp_path: Path, steps: list[dict[str, int]], decision: str, bootstrap: bool
 ) -> None:
+    """验证首轮保持、缺失时钟历史触发的采样和等值采样均有正确决策及来源。"""
     report = execute(register_run(tmp_path, steps))
     assert report.status.query == 'complete'
     assert report.nodes[0].facts['decision'] == decision
@@ -166,6 +175,7 @@ def test_initial_hold_bootstrap_and_same_value_capture(
 
 @pytest.mark.parametrize(('reset', 'expected', 'decision'), [(0, 9, 'capture_next'), (1, 6, 'capture_reset')])
 def test_sync_reset_selects_native_operand(tmp_path: Path, reset: int, expected: int, decision: str) -> None:
+    """验证时钟边沿上同步复位选择原生复位值实参，否则选择 Next 实参。"""
     report = execute(register_run(tmp_path, [{'a': 9, 'c': 1, 'reset': reset, 'r': expected}], reset=True))
     assert report.status.query == 'complete'
     assert decisions(report) == [decision]
@@ -176,6 +186,7 @@ def test_sync_reset_selects_native_operand(tmp_path: Path, reset: int, expected:
 
 
 def test_reset_does_not_override_no_edge_hold(tmp_path: Path) -> None:
+    """验证没有时钟边沿时同步复位不能覆盖保持决策。"""
     report = execute(register_run(tmp_path, [{'a': 9, 'c': 0, 'reset': 1, 'r': 0}], reset=True))
     assert report.status.query == 'complete'
     assert decisions(report) == ['no_edge_hold']
@@ -183,6 +194,7 @@ def test_reset_does_not_override_no_edge_hold(tmp_path: Path) -> None:
 
 
 def test_feedback_mux_is_next_logic_and_same_value_is_capture(tmp_path: Path) -> None:
+    """验证反馈 mux 属于 Next 组合逻辑，选择旧值时寄存器仍记录实际采样。"""
     path = register_run(tmp_path, [{'a': 9, 'c': 1, 'enable': 0, 'next': 0, 'r': 0}], feedback=True)
     report = execute(path)
     assert report.status.query == 'complete'
@@ -195,6 +207,7 @@ def test_feedback_mux_is_next_logic_and_same_value_is_capture(tmp_path: Path) ->
 
 @pytest.mark.parametrize('value', [False, True])
 def test_native_boolean_constant_on_capture_path(tmp_path: Path, value: bool) -> None:
+    """验证原生 Bool 常量可经已绑定转换规则作为整数寄存器的采样来源。"""
     path = register_run(tmp_path, [{'a': 9, 'c': 1, 'next': int(value), 'r': int(value)}], boolean_next=value)
     report = execute(path)
     assert report.status.query == 'complete'
@@ -203,6 +216,7 @@ def test_native_boolean_constant_on_capture_path(tmp_path: Path, value: bool) ->
 
 @pytest.mark.parametrize('value', [-256, -512])
 def test_stdbits_out_of_width_negative_is_not_modulo_repaired(tmp_path: Path, value: int) -> None:
+    """验证 StdBits 的负整位宽倍数越界结果被拒绝，常量和 preset 都不会被修正为零。"""
     with pytest.raises(TraceError) as caught:
         evaluate_comb(operation('hw.constant', (), 8, value=value), ())
     assert caught.value.code == StopCode.UNSUPPORTED_VALUE
@@ -212,6 +226,7 @@ def test_stdbits_out_of_width_negative_is_not_modulo_repaired(tmp_path: Path, va
 
 
 def test_typed_boolean_has_no_bound_toint_rule() -> None:
+    """验证带整数类型标注的 Bool 不被错误套用原生 Bool 的 ToInt 规则。"""
     attribute = Term(
         (
             _Node('DV', '', ('SortBool{}',), 'true', ()),
@@ -232,6 +247,7 @@ def test_typed_boolean_has_no_bound_toint_rule() -> None:
 
 
 def test_preset_old_operand_alias_and_new_committed_are_distinct(tmp_path: Path) -> None:
+    """验证 preset 旧读取值与寄存器新提交值并存，输出别名按 operand 视图追溯初值。"""
     path = register_run(tmp_path, [{'a': 9, 'c': 1, 'r': 9}], preset=4)
     committed = execute(path, preset_supported=True)
     observed = execute(path, target=Target('signal', name='Demo/result'), preset_supported=True)
@@ -246,6 +262,7 @@ def test_preset_old_operand_alias_and_new_committed_are_distinct(tmp_path: Path)
 
 @pytest.mark.parametrize(('preset', 'asynchronous'), [(5, False), (None, True)])
 def test_unsupported_initialization_is_explicit(tmp_path: Path, preset: int | None, asynchronous: bool) -> None:
+    """验证未绑定的 preset 或异步复位均产生明确的初始化停止原因。"""
     path = register_run(tmp_path, [{'a': 9, 'c': 0, 'r': 0}], preset=preset, asynchronous=asynchronous)
     report = execute(path)
     assert report.status.query == 'partial'
@@ -254,6 +271,7 @@ def test_unsupported_initialization_is_explicit(tmp_path: Path, preset: int | No
 
 def test_true_clock_id_can_disagree_with_external_input(tmp_path: Path) -> None:
     # 保存的 clk history 为 1，而当前外部输入历史为 0；不能拿 c 代替实际 ClkId。
+    """验证边沿判定使用真实 ClkId 的历史，即使它与外部时钟输入历史不同。"""
     path = register_run(tmp_path, [{'a': 9, 'c': 1, 'r': 3}], setup={'a': 3, 'c': 0, 'clk': 1, 'r': 3})
     report = execute(path)
     assert report.status.query == 'complete'
@@ -262,6 +280,7 @@ def test_true_clock_id_can_disagree_with_external_input(tmp_path: Path) -> None:
 
 
 def test_hold_traces_real_predecessors_across_events_and_evaluations(tmp_path: Path) -> None:
+    """验证连续保持能跨事件与同事件多轮求值，沿真实前驱找到最初采样。"""
     path = register_run(
         tmp_path,
         [{'a': 7, 'c': 1, 'r': 7}, {'a': 8, 'c': 1, 'r': 7}, {'a': 9, 'c': 0, 'r': 7}],
@@ -280,6 +299,7 @@ def test_hold_traces_real_predecessors_across_events_and_evaluations(tmp_path: P
 
 
 def test_preparation_follows_register_operand_view(tmp_path: Path) -> None:
+    """验证输出别名通过当前 operand 旧值连接到前驱 committed 值及其采样来源。"""
     path = register_run(tmp_path, [{'a': 7, 'c': 1, 'r': 7}, {'a': 9, 'c': 0, 'r': 7}])
     report = execute(path, 2, target=Target('signal', name='Demo/result'))
     assert report.status.query == 'complete'
@@ -291,6 +311,7 @@ def test_preparation_follows_register_operand_view(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(('mode', 'code'), [('window', StopCode.WINDOW_BOUNDARY), ('gap', StopCode.HISTORY_GAP)])
 def test_history_never_crosses_unavailable_predecessor(tmp_path: Path, mode: str, code: StopCode) -> None:
+    """验证寄存器追溯在窗口或丢失工件处停止，不越界声称找到了采样来源。"""
     path = register_run(tmp_path, [{'a': 7, 'c': 1, 'r': 7}, {'a': 9, 'c': 0, 'r': 7}])
     if mode == 'gap':
         (tmp_path / 'state1.kore').unlink()
@@ -301,6 +322,7 @@ def test_history_never_crosses_unavailable_predecessor(tmp_path: Path, mode: str
 
 
 def test_wrong_committed_value_rejected_without_replacement(tmp_path: Path) -> None:
+    """验证寄存器保存提交与规则不符时拒绝查询，并保留错误保存值。"""
     report = execute(register_run(tmp_path, [{'a': 9, 'c': 1, 'r': 8}]))
     assert report.status.query == 'rejected'
     assert report.nodes[0].value == BitVector(8, '8')
@@ -308,12 +330,14 @@ def test_wrong_committed_value_rejected_without_replacement(tmp_path: Path) -> N
 
 
 def test_generated_clock_outside_supported_shape(tmp_path: Path) -> None:
+    """验证任意组合生成时钟不被当作已核验的输入或 to_clock 链。"""
     report = execute(register_run(tmp_path, [{'a': 9, 'c': 1, 'r': 9}], generated_clock=True))
     assert report.status.query == 'partial'
     assert StopCode.UNSUPPORTED_CLOCK in {item.reason.code for item in report.frontier}
 
 
 def test_same_content_states_still_count_as_distinct_history_positions(tmp_path: Path) -> None:
+    """验证重复内容的寄存器状态仍按真实历史位置计入状态预算。"""
     path = register_run(tmp_path, [{'a': 0, 'c': 0, 'r': 0}] * 4, setup={'a': 0, 'c': 0, 'r': 0, 'out': 0})
     report = execute(path, 4, budget=Budget(max_states=3))
     assert report.status.query == 'partial'
@@ -332,6 +356,7 @@ def test_same_content_states_still_count_as_distinct_history_positions(tmp_path:
     ],
 )
 def test_bound_posedge_truth_table(current: int, prior: int | None, expected: tuple[bool, bool]) -> None:
+    """穷举当前位与缺失或已保存历史位，核对上升沿及 bootstrap 两项结果。"""
     assert (
         evaluate_posedge(BitVector.from_int(current, 1), BitVector.from_int(prior, 1) if prior is not None else None)
         == expected

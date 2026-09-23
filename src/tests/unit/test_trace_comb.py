@@ -13,10 +13,12 @@ from kcirct.trace.topology import Operation
 
 
 def _dv(value: str, sort: str) -> Term:
+    """构造指定 sort 的最小 Term 域值，供组合规则测试独立声明类型和属性。"""
     return Term((_Node('DV', '', (f'Sort{sort}{{}}',), value, ()),), 0)
 
 
 def operation(name: str, widths: tuple[int, ...], output: int, **attributes: int) -> Operation:
+    """按整数位宽和属性构造合成 Operation，避免依赖拓扑解析器生成待测输入。"""
     return Operation(
         name,
         tuple(f'%{index}' for index in range(len(widths))),
@@ -55,6 +57,7 @@ def operation(name: str, widths: tuple[int, ...], output: int, **attributes: int
 def test_independent_bit_operations(
     name: str, values: tuple[int, ...], widths: tuple[int, ...], output: int, attributes: dict[str, int], expected: int
 ) -> None:
+    """用手写整数期望核对各组合操作，覆盖中间截断、拼接和移位边界。"""
     result = evaluate_comb(
         operation(name, widths, output, **attributes),
         tuple(BitVector.from_int(value, width) for value, width in zip(values, widths, strict=True)),
@@ -64,6 +67,7 @@ def test_independent_bit_operations(
 
 @pytest.mark.parametrize('selector', [0, 1])
 def test_mux_actual_sources_and_unselected_candidate(selector: int) -> None:
+    """验证 mux 只选择一路数据，把 selector 标成控制、另一数据端标成静态候选。"""
     op = operation('comb.mux', (1, 8, 8), 8)
     result = evaluate_comb(op, (BitVector.from_int(selector, 1), BitVector.from_int(19, 8), BitVector.from_int(43, 8)))
     assert result.value.unsigned == (19 if selector else 43)
@@ -90,6 +94,7 @@ def test_mux_actual_sources_and_unselected_candidate(selector: int) -> None:
     ],
 )
 def test_bound_k_predicates(predicate: int, less: int, equal: int, greater: int) -> None:
+    """用小于、等于和大于三类输入核对已绑定 K 规则的全部数字比较谓词。"""
     op = operation('comb.icmp', (8, 8), 1, predicate=predicate)
     actual = [
         evaluate_comb(op, (BitVector.from_int(first, 8), BitVector.from_int(second, 8))).value.unsigned
@@ -99,6 +104,7 @@ def test_bound_k_predicates(predicate: int, less: int, equal: int, greater: int)
 
 
 def test_large_value_remains_exact() -> None:
+    """验证 256 位加法结果以精确十进制字符串保存，不丢失大整数精度。"""
     op = operation('comb.add', (256, 256), 256)
     result = evaluate_comb(op, (BitVector.from_int(2**255 + 9, 256), BitVector.from_int(5, 256)))
     assert result.value.value == str(2**255 + 14)
@@ -118,6 +124,7 @@ def test_large_value_remains_exact() -> None:
     ],
 )
 def test_unknown_or_resource_excess_shapes_stop(op: Operation) -> None:
+    """验证未知操作、非法形状和过大位宽均返回明确的不支持原因。"""
     values = tuple(BitVector.from_int(0, int(typ.value[1:])) for typ in op.input_types if typ.value)
     with pytest.raises(TraceError) as caught:
         evaluate_comb(op, values)

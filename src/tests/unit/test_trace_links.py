@@ -30,14 +30,17 @@ from kcirct.trace.report import link_report
 
 
 def _sha(path: Path) -> str:
+    """计算夹具文件实际字节的 SHA-256，供跨记录引用绑定内容身份。"""
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _ref(path: Path, carrier: Path, identity: str | None = None) -> RecordRef:
+    """按记录载体目录生成相对路径引用，并绑定可选记录 ID 与实际文件哈希。"""
     return RecordRef(Path(os.path.relpath(path, carrier.parent)).as_posix(), identity, _sha(path))
 
 
 def _manifest(root: Path, run_id: str, *, ir: bytes = b'same ir', inputs: bytes = b'same inputs') -> Path:
+    """创建带执行 IR、输入工件和固定采样协议的最小运行清单。"""
     root.mkdir()
     execution, events = root / 'design.mlir', root / 'inputs.json'
     execution.write_bytes(ir)
@@ -59,6 +62,7 @@ def _manifest(root: Path, run_id: str, *, ir: bytes = b'same ir', inputs: bytes 
 
 
 def _report(root: Path, run: Path, report_id: str, run_id: str) -> Path:
+    """创建引用给定运行的单节点报告，供假设及后续结果执行身份校验。"""
     root.mkdir()
     target = Target('signal', name='Demo/out')
     observation = Observation('post_eval', state_id='state1', evaluation=1)
@@ -81,6 +85,7 @@ def _report(root: Path, run: Path, report_id: str, run_id: str) -> Path:
 
 
 def _check(root: Path, run_id: str) -> Path:
+    """写入指定运行的一条独立可疑观察检查，供后续结果关联。"""
     path = root / 'check.json'
     path.write_text(
         CheckRecord(
@@ -96,6 +101,7 @@ def _check(root: Path, run_id: str) -> Path:
 
 
 def test_hypothesis_is_bound_to_existing_report_nodes_and_original_is_unchanged(tmp_path: Path) -> None:
+    """验证假设只关联现有报告节点，链接生成新报告且不改动原报告字节。"""
     run = _manifest(tmp_path / 'run', 'run-old')
     report = _report(tmp_path / 'original', run, 'report-old', 'run-old')
     original = report.read_bytes()
@@ -117,6 +123,7 @@ def test_hypothesis_is_bound_to_existing_report_nodes_and_original_is_unchanged(
 
 
 def test_hypothesis_wrong_report_hash_or_unknown_node_is_rejected(tmp_path: Path) -> None:
+    """验证错误报告哈希与不存在的节点分别触发内容或身份冲突。"""
     run = _manifest(tmp_path / 'run', 'run-old')
     report = _report(tmp_path / 'original', run, 'report-old', 'run-old')
     for name, reference, nodes, code in (
@@ -133,6 +140,7 @@ def test_hypothesis_wrong_report_hash_or_unknown_node_is_rejected(tmp_path: Path
 
 
 def test_replay_requires_same_ir_inputs_layout_and_sampling_contract(tmp_path: Path) -> None:
+    """验证兼容运行的 replay 可关联独立检查和观察，且重定位后所有引用仍可读取。"""
     original_run = _manifest(tmp_path / 'old-run', 'run-old')
     current_run = _manifest(tmp_path / 'new-run', 'run-new')
     original_report = _report(tmp_path / 'original', original_run, 'report-old', 'run-old')
@@ -164,6 +172,7 @@ def test_replay_requires_same_ir_inputs_layout_and_sampling_contract(tmp_path: P
 
 
 def test_changed_ir_is_rejected_for_replay_but_allowed_for_regression_link(tmp_path: Path) -> None:
+    """验证执行 IR 改变后不能声明 replay，但允许比较范围未知的 regression 关联。"""
     original_run = _manifest(tmp_path / 'old-run', 'run-old')
     changed_run = _manifest(tmp_path / 'changed-run', 'run-new', ir=b'changed ir')
     original_report = _report(tmp_path / 'original', original_run, 'report-old', 'run-old')
@@ -173,6 +182,7 @@ def test_changed_ir_is_rejected_for_replay_but_allowed_for_regression_link(tmp_p
     observation.write_text('{"actual": 0}\n')
 
     def outcome(relation: Literal['replay', 'regression'], carrier: Path) -> None:
+        """为指定 replay 或 regression 关系写入同一变更运行的独立后续结果记录。"""
         carrier.write_text(
             FollowUpResult(
                 'result-' + relation,

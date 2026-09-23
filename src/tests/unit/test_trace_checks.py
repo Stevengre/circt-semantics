@@ -34,6 +34,7 @@ CSV_CONTRACT = {'sample_index': 'zero_based_data_row', 'value_format': 'decimal'
 
 
 def _map(*, reverse_events: bool = True, vcd: bool = False) -> ObservationMap:
+    """构造两条显式观测映射，可选择逆事件顺序的 CSV 采样或带物理时间的 VCD dump 采样。"""
     entries = (
         (
             Observation('post_eval', event_index=1, evaluation=1, sample=0),
@@ -55,12 +56,14 @@ def _map(*, reverse_events: bool = True, vcd: bool = False) -> ObservationMap:
 
 
 def _csv(tmp_path: Path, text: str = 'answer,ignored\n1,9\n2,9\n') -> Path:
+    """写入带表头的独立 CSV 预期夹具，并返回其路径。"""
     path = tmp_path / 'expected.csv'
     path.write_text(text)
     return path
 
 
 def _vcd(tmp_path: Path, first: str = '10', second: str = '1', *, width: int = 8) -> Path:
+    """生成以 ps 为单位的两次信号变更，允许替换值和位宽以测试 VCD 边界。"""
     path = tmp_path / 'expected.vcd'
     path.write_text(
         '$timescale 1ps $end\n$scope module ref $end\n'
@@ -71,6 +74,7 @@ def _vcd(tmp_path: Path, first: str = '10', second: str = '1', *, width: int = 8
 
 
 def test_csv_mapping_does_not_assume_twice_the_sample_and_preserves_origin(tmp_path: Path) -> None:
+    """验证 CSV 依照显式映射命中真实状态，并保留行号、来源哈希和未知生成方式。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _csv(tmp_path)
     carrier = tmp_path / 'reports' / 'checks.json'
@@ -92,6 +96,7 @@ def test_csv_mapping_does_not_assume_twice_the_sample_and_preserves_origin(tmp_p
 
 
 def test_no_csv_difference_produces_empty_check_set(tmp_path: Path) -> None:
+    """验证所有映射观测与 CSV 预期一致时不生成差异检查。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _csv(tmp_path, 'answer\n3\n2\n')
     with RunArtifacts.open(path) as run:
@@ -100,6 +105,7 @@ def test_no_csv_difference_produces_empty_check_set(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize('token', ['', 'x', 'z', '-', '-1', '1.0', '0x1', '256'])
 def test_csv_rejects_unknown_missing_wrong_radix_and_oversized_values(tmp_path: Path, token: str) -> None:
+    """验证十进制 CSV 拒绝缺值、X/Z、负数、错误进制、非整数及超过位宽的值。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _csv(tmp_path, f'answer,other\n{token},0\n2,0\n')
     with RunArtifacts.open(path) as run, pytest.raises(TraceError):
@@ -119,6 +125,7 @@ def test_csv_rejects_unknown_missing_wrong_radix_and_oversized_values(tmp_path: 
     ],
 )
 def test_ambiguous_or_incomplete_observation_contract_is_rejected(tmp_path: Path, kind: str) -> None:
+    """验证采样契约缺项、重复采样、信号声明冲突和错误掩码均被拒绝。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _csv(tmp_path)
     mapping = _map()
@@ -141,6 +148,7 @@ def test_ambiguous_or_incomplete_observation_contract_is_rejected(tmp_path: Path
 
 
 def test_explicit_mask_only_compares_declared_bits(tmp_path: Path) -> None:
+    """验证掩码外的真实差异被忽略，只有明确声明的位参与比较。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _csv(tmp_path, 'answer\n1\n0\n')
     mapping = replace(_map(), comparison_masks={SIGNAL: BitVector(8, '1')})
@@ -149,6 +157,7 @@ def test_explicit_mask_only_compares_declared_bits(tmp_path: Path) -> None:
 
 
 def test_binary_and_hex_csv_have_explicit_radix(tmp_path: Path) -> None:
+    """验证按契约声明的二进制和十六进制 CSV 可与相同实际值比较通过。"""
     path, _, _ = _bundle(tmp_path / 'run')
     with RunArtifacts.open(path) as run:
         topology = TraceTopology.from_run(run)
@@ -159,6 +168,7 @@ def test_binary_and_hex_csv_have_explicit_radix(tmp_path: Path) -> None:
 
 
 def test_vcd_uses_exact_integer_units_and_only_bound_samples(tmp_path: Path) -> None:
+    """验证 ns 观测精确换算为 ps tick，并仅对映射 dump 中的差异生成检查。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _vcd(tmp_path)
     with RunArtifacts.open(path) as run:
@@ -171,6 +181,7 @@ def test_vcd_uses_exact_integer_units_and_only_bound_samples(tmp_path: Path) -> 
 
 @pytest.mark.parametrize('fault', ['x', 'z', 'wrong_width', 'absent_signal', 'duplicate_time', 'no_time'])
 def test_vcd_unknown_values_and_ambiguous_mapping_are_not_coerced(tmp_path: Path, fault: str) -> None:
+    """验证 VCD 的 X/Z、位宽或信号冲突，以及缺失或重复时间映射均明确失败。"""
     path, _, _ = _bundle(tmp_path / 'run')
     expected = _vcd(tmp_path, first=fault if fault in ('x', 'z') else '10', width=4 if fault == 'wrong_width' else 8)
     mapping = _map(reverse_events=False, vcd=True)
@@ -193,6 +204,7 @@ def test_vcd_unknown_values_and_ambiguous_mapping_are_not_coerced(tmp_path: Path
 def test_property_predicate_is_preserved_without_execution_or_expected(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """验证性质文本只被保留，实际值来自保存状态，且不会执行文本或补造预期值。"""
     path, _, _ = _bundle(tmp_path / 'run')
     record = CheckRecord(
         'property-1',
@@ -206,6 +218,7 @@ def test_property_predicate_is_preserved_without_execution_or_expected(
     )
 
     def reject_execution(*_args: Any, **_kwargs: Any) -> Any:
+        """替换系统执行入口，使任何意外执行性质文本的行为立即令测试失败。"""
         pytest.fail('检查文本不允许进入执行器')
 
     monkeypatch.setattr('os.system', reject_execution)
@@ -216,6 +229,7 @@ def test_property_predicate_is_preserved_without_execution_or_expected(
 
 
 def test_pure_observation_is_not_promoted_to_failure(tmp_path: Path) -> None:
+    """验证可疑观测仅补全实际值，保留其种类且不添加失败判据。"""
     path, _, _ = _bundle(tmp_path / 'run')
     record = CheckRecord(
         'manual',
@@ -232,6 +246,7 @@ def test_pure_observation_is_not_promoted_to_failure(tmp_path: Path) -> None:
 
 
 def test_recorded_actual_and_saved_dump_must_match_bound_state(tmp_path: Path) -> None:
+    """分别篡改记录的 actual 与 dump 值，验证二者都必须匹配绑定状态。"""
     path, manifest, records = _bundle(tmp_path / 'run')
     observation = Observation('dump', event_index=1)
     record = CheckRecord(
@@ -256,6 +271,7 @@ def test_recorded_actual_and_saved_dump_must_match_bound_state(tmp_path: Path) -
 
 
 def test_source_hash_and_run_identity_are_fixed(tmp_path: Path) -> None:
+    """验证来源记录的哈希错误与运行 ID 不匹配分别返回明确的身份校验错误。"""
     path, _, _ = _bundle(tmp_path / 'run')
     original = tmp_path / 'property.txt'
     original.write_text('original requirement')
@@ -278,6 +294,7 @@ def test_source_hash_and_run_identity_are_fixed(tmp_path: Path) -> None:
 
 
 def test_bit_range_selects_exact_saved_bits(tmp_path: Path) -> None:
+    """验证闭合位区间从保存值提取精确位宽和值，而非使用完整信号值。"""
     path, _, _ = _bundle(tmp_path / 'run')
     with RunArtifacts.open(path) as run:
         value = observed_value(
@@ -290,6 +307,7 @@ def test_bit_range_selects_exact_saved_bits(tmp_path: Path) -> None:
 
 
 def test_missing_schema_is_rejected_before_check_import() -> None:
+    """验证缺少 schema_version 的观测映射在导入检查前即被模型解析器拒绝。"""
     with pytest.raises(TraceError) as error:
         ObservationMap.from_dict({'run_id': 'run-a'})
     assert error.value.code == StopCode.UNSUPPORTED_SCHEMA

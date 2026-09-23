@@ -29,6 +29,7 @@ from .test_trace_query import small_run
 
 
 def _run(*arguments: object) -> subprocess.CompletedProcess[str]:
+    """通过当前 Python 解释器启动 kcirct CLI，捕获输出和退出码供断言。"""
     return subprocess.run(
         [sys.executable, '-m', 'kcirct', *(str(argument) for argument in arguments)],
         text=True,
@@ -38,14 +39,17 @@ def _run(*arguments: object) -> subprocess.CompletedProcess[str]:
 
 
 def _sha(path: Path) -> str:
+    """计算夹具文件原始字节哈希，用于创建和校验明确身份的记录引用。"""
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _relative(path: Path, carrier: Path) -> str:
+    """生成相对承载文件所在目录的 POSIX 引用路径。"""
     return Path(os.path.relpath(path, carrier.parent)).as_posix()
 
 
 def test_trace_help_lists_four_noninteractive_actions() -> None:
+    """验证 trace 帮助列出四个非交互子命令并正常退出。"""
     result = _run('trace', '--help')
     assert result.returncode == 0
     assert '{query,targets,checks,link}' in result.stdout
@@ -53,6 +57,7 @@ def test_trace_help_lists_four_noninteractive_actions() -> None:
 
 
 def test_targets_cli_matches_public_python_facade(tmp_path: Path) -> None:
+    """验证 targets CLI 的运行身份与目标列表同公共 Python 门面完全一致。"""
     manifest = small_run(tmp_path / 'run')
     output = tmp_path / 'targets.json'
     result = _run('trace', 'targets', '--run', manifest, '--output', output)
@@ -66,6 +71,7 @@ def test_targets_cli_matches_public_python_facade(tmp_path: Path) -> None:
 
 
 def test_query_partial_exit_code_and_report_match_python_facade(tmp_path: Path) -> None:
+    """验证部分查询返回退出码 3，且报告状态、请求及语义停止边界与 Python 门面一致。"""
     manifest = small_run(tmp_path / 'run')
     request_path = tmp_path / 'request.json'
     request = QueryRequest(
@@ -93,6 +99,7 @@ def test_query_partial_exit_code_and_report_match_python_facade(tmp_path: Path) 
 
 
 def test_checks_bundle_can_feed_query_without_private_api(tmp_path: Path) -> None:
+    """验证 checks CLI 产出的带哈希检查包可直接被 query 引用，并保留失败检查身份。"""
     manifest, _, _ = _bundle(tmp_path / 'run')
     expected = _csv(tmp_path)
     observations = tmp_path / 'observations.json'
@@ -141,6 +148,7 @@ def test_checks_bundle_can_feed_query_without_private_api(tmp_path: Path) -> Non
 
 
 def test_link_cli_and_error_exit_codes(tmp_path: Path) -> None:
+    """验证 link 可关联待执行结果，并确认试图覆盖已有输出时返回输入错误退出码 2。"""
     manifest = small_run(tmp_path / 'run')
     request = tmp_path / 'request.json'
     request.write_text(
@@ -170,6 +178,7 @@ def test_link_cli_and_error_exit_codes(tmp_path: Path) -> None:
 
 
 def test_facade_refuses_manifest_changed_after_open(tmp_path: Path) -> None:
+    """验证门面打开后即使 manifest 仅多出换行，也会因哈希变化拒绝后续操作。"""
     manifest = small_run(tmp_path / 'run')
     trace = TraceRun.open(manifest)
     manifest.write_text(manifest.read_text() + '\n')

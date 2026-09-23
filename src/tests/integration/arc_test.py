@@ -189,6 +189,7 @@ ROCKET_CASES = {
         top_module='RocketSystem',
         protocol=InputProtocol.EVENTS,
         simulation_calls_per_input=2,
+        initial_vcd_skip_missing=True,
     ),
 }
 
@@ -263,6 +264,7 @@ def _generate_top_state_json(case: ArcTestCase) -> Path:
             str(case.mlir_file),
             f'--state-file={all_state_json}',
             '--observe-ports',
+            *(['--async-resets-as-sync'] if case.project == 'rocket' else []),
         ],
         check=True,
         capture_output=True,
@@ -437,7 +439,12 @@ def _run_event_case(
                 input_evaluations += 1
             elif 'vcd_dump' in event:
                 vcd.time = int(event['vcd_dump'])
-                vcd.dump(kcirct.read_ports_fast(state_files[current_state]))
+                vcd.dump(
+                    kcirct.read_ports_fast(
+                        state_files[current_state],
+                        skip_missing=case.initial_vcd_skip_missing and simulation_calls == 0,
+                    )
+                )
                 vcd_samples += 1
                 last_vcd_time = vcd.time
                 print(f'vcd_dump:{vcd.time}', flush=True)

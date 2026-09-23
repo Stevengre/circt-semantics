@@ -100,6 +100,7 @@ def bind_semantics(run: RunArtifacts) -> SemanticsProfile:
 
 
 def attribute_int(op: Operation, name: str, *, allow_bool: bool = False) -> int:
+    """读取必需整数属性；可选接受原生 Bool，缺失或未知属性形状统一显式拒绝。"""
     if name not in op.attributes:
         raise TraceError(StopCode.UNSUPPORTED_SHAPE, '操作缺少整数属性', operation=op.name, attribute=name)
     try:
@@ -115,6 +116,7 @@ def attribute_int(op: Operation, name: str, *, allow_bool: bool = False) -> int:
 
 
 def bounded_width(width: int | None) -> int:
+    """校验本地位向量运算的位宽上限，防止后续移位分配无界大整数。"""
     # 限制解释器本地大整数分配；读取器的字节预算不能约束随后构造的 1 << width。
     if width is None or not 0 < width <= 1_048_576:
         raise TraceError(StopCode.UNSUPPORTED_VALUE, '解释位宽超出有限资源范围', width=width)
@@ -122,6 +124,7 @@ def bounded_width(width: int | None) -> int:
 
 
 def cast_value(value: int, width: int) -> BitVector:
+    """在有限合法位宽内按模截断整数，生成规范的无符号位向量。"""
     bounded_width(width)
     return BitVector.from_int(value % (1 << width), width)
 
@@ -264,6 +267,11 @@ def evaluate_memory_write(
     before: dict[int, BitVector],
     prior_clock: BitVector | None,
 ) -> MemoryDecision:
+    """按 address/clock/enable/data 和可选整字 mask 判定写入，并返回该地址的新旧值。
+
+    维度元组依次为深度、数据位宽和地址位宽；旧 Map 缺项按已绑定规则取零。
+    非全字掩码、越界地址或实参位宽不符均停止解释，不修改传入 Map。
+    """
     depth, width, address_width = dimensions
     expected_widths = (address_width, 1, 1, width) + ((1,) if len(values) == 5 else ())
     if len(values) not in (4, 5) or tuple(value.width for value in values) != expected_widths:
@@ -308,6 +316,7 @@ def evaluate_comb(op: Operation, values: tuple[BitVector, ...]) -> Evaluation:
         result = integers[0]
     elif name in {'comb.add', 'comb.and', 'comb.or', 'comb.xor'} and values:
         if name == 'comb.add':
+            # K 规则从右侧归约，并在每次相加后按当时两项的最大位宽截断。
             total = values[-1]
             for value in reversed(values[:-1]):
                 total = cast_value(value.unsigned + total.unsigned, max(value.width, total.width))
@@ -319,6 +328,7 @@ def evaluate_comb(op: Operation, values: tuple[BitVector, ...]) -> Evaluation:
         if values[0].width != 1 or values[1].width != width or values[2].width != width:
             raise TraceError(StopCode.UNSUPPORTED_SHAPE, 'mux 仅支持 i1 selector 和相同整数数据位宽')
         selected = 1 if integers[0] else 2
+        # 未选数据仍展示静态连接，但不能被查询器当作本次值的实际来源。
         result, data, controls, candidates = integers[selected], (selected,), (0,), (3 - selected,)
         facts = {'selector': integers[0], 'selected_operand': selected}
     elif name == 'comb.concat' and values:
@@ -348,6 +358,7 @@ def evaluate_comb(op: Operation, values: tuple[BitVector, ...]) -> Evaluation:
         )
         facts = {'effective_shift': shift}
     elif name == 'comb.icmp' and len(values) == 2 and width == 1:
+        # 数字 predicate 对应已绑定 K 规则，不能按常见 HDL 的有符号比较含义重解释。
         pred = attribute_int(op, 'predicate')
         first, second = integers
         predicates = {

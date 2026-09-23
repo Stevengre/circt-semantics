@@ -45,6 +45,7 @@ class Snapshot:
 
 
 def register_declaration(tag: int, width: int, read_latency: int, write_latency: int, name: str) -> Pattern:
+    """按原生五项属性序列构造存储声明，显式指定类别、位宽、读写延迟和名称。"""
     result = App(
         "Lbl'Stop'List'LBraQuotUndsCommUndsUnds'BUILTIN-SYNTAX'Unds'AttributeValueList"
         "'Unds'AttributeValue'Unds'AttributeValueList'QuotRBraUnds'AttributeValueList"
@@ -72,6 +73,7 @@ def memory_operation(
     output_types: tuple[Pattern, ...],
     **attributes: int,
 ) -> Pattern:
+    """复用操作外壳并替换函数类型，允许存储类型实参及无返回值写口。"""
     template = op(name, operands, (), **attributes)
     assert isinstance(template, App)
     function_type = App(
@@ -100,6 +102,10 @@ def memory_run(
     combined_port: bool = False,
     evaluations: int = 1,
 ) -> Path:
+    """发布由显式 Snapshot 序列构成的存储运行，可变更端口、掩码和延迟以覆盖边界。
+
+    signals 保存当前快照，history 保存前一快照；测试数据不调用待测解释器生成。
+    """
     address_width = address_width or max(1, (depth - 1).bit_length())
     dimensions = (item(str(depth), 'Int'), item(str(width), 'Int'))
     mem_type = App(
@@ -163,6 +169,7 @@ def memory_run(
     }
 
     def cells(snapshot: Snapshot | None) -> Pattern:
+        """把单个快照转换为信号 Map 和嵌套存储 Map；None 表示尚无保存值。"""
         if snapshot is None:
             return map_pattern()
         values = {
@@ -200,6 +207,7 @@ def execute(
     window: QueryWindow | None = None,
     budget: Budget | None = None,
 ) -> TraceReport:
+    """在指定状态位置执行合成规则查询，默认查看 store 地址 2，并透传窗口和预算。"""
     request = QueryRequest(
         target or Target('memory_cell', name='Demo/store', address='2'),
         Observation(
@@ -216,10 +224,12 @@ def execute(
 
 
 def write_nodes(report: TraceReport) -> list[TraceNode]:
+    """筛出以真实 procedure 位置表示的写口节点，便于核对实际写入来源。"""
     return [node for node in report.nodes if node.ref.result.startswith('procedure:')]
 
 
 def frontier_codes(report: TraceReport) -> set[StopCode]:
+    """提取报告中的停止码集合，使边界断言不依赖停止点的排列顺序。"""
     return {item.reason.code for item in report.frontier}
 
 
@@ -227,6 +237,7 @@ def frontier_codes(report: TraceReport) -> set[StopCode]:
 def test_dimensions_and_addresses_come_from_declared_shape(
     tmp_path: Path, depth: int, width: int, address: int, data: int
 ) -> None:
+    """验证不同深度和数据位宽的存储按声明解释地址，并建立有效写入来源。"""
     path = memory_run(
         tmp_path, [Snapshot(memory={address: data}, clock=1, address=address, data=data)], width=width, depth=depth
     )
@@ -241,6 +252,7 @@ def test_dimensions_and_addresses_come_from_declared_shape(
 
 @pytest.mark.parametrize(('type_mask', 'mask_operand'), [(None, False), (1, False), (1, True)])
 def test_type_mask_does_not_create_a_dynamic_operand(tmp_path: Path, type_mask: int | None, mask_operand: bool) -> None:
+    """验证类型中的 mask 不会补造写口实参，只有真实 mask 操作数进入依赖事实。"""
     path = memory_run(
         tmp_path, [Snapshot(memory={2: 9}, clock=1, address=2, data=9)], type_mask=type_mask, mask_operand=mask_operand
     )
@@ -263,6 +275,7 @@ def test_type_mask_does_not_create_a_dynamic_operand(tmp_path: Path, type_mask: 
 
 
 def test_same_value_write_still_has_write_source(tmp_path: Path) -> None:
+    """验证写入与原值相同时仍记录有效写口来源，不能按值未变判断为保持。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 9}, clock=1, address=2, data=9)], setup=Snapshot(memory={2: 9}))
     report = execute(path)
     assert report.status.query == 'complete'
@@ -276,6 +289,7 @@ def test_same_value_write_still_has_write_source(tmp_path: Path) -> None:
 def test_disabled_and_no_edge_do_not_produce_write_edges(
     tmp_path: Path, clock: int, enable: int, decision: str
 ) -> None:
+    """验证禁用或无边沿写口只产生保持决策，空存储读取零但不伪造写入来源。"""
     path = memory_run(tmp_path, [Snapshot(clock=clock, enable=enable, address=2, data=9)])
     port = execute(path, target=Target('memory_write_port', name='procedure:0'))
     assert port.status.query == 'complete'
@@ -290,6 +304,7 @@ def test_disabled_and_no_edge_do_not_produce_write_edges(
 
 @pytest.mark.parametrize('disabled', [False, True])
 def test_latest_same_address_write_skips_disabled_and_other_address(tmp_path: Path, disabled: bool) -> None:
+    """验证禁用写或其他地址写入不遮蔽历史中最近的同址有效写入。"""
     final = Snapshot(
         memory={2: 9} if disabled else {2: 9, 1: 6},
         clock=1,
@@ -308,6 +323,7 @@ def test_latest_same_address_write_skips_disabled_and_other_address(tmp_path: Pa
 
 
 def test_consecutive_same_address_writes_keep_last_commit_and_previous_query(tmp_path: Path) -> None:
+    """验证同址多次写入后最新查询命中最新提交，历史位置仍保留此前写入结果。"""
     path = memory_run(
         tmp_path,
         [
@@ -329,6 +345,7 @@ def test_consecutive_same_address_writes_keep_last_commit_and_previous_query(tmp
 
 @pytest.mark.parametrize(('mode', 'code'), [('gap', StopCode.HISTORY_GAP), ('window', StopCode.WINDOW_BOUNDARY)])
 def test_history_stops_before_unavailable_predecessor(tmp_path: Path, mode: str, code: StopCode) -> None:
+    """验证存储追溯在工件缺失或窗口边界前停止，不越过缺口推断写入来源。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 7}, clock=1, address=2, data=7), Snapshot(memory={2: 7})])
     if mode == 'gap':
         (tmp_path / 'state1.kore').unlink()
@@ -339,6 +356,7 @@ def test_history_stops_before_unavailable_predecessor(tmp_path: Path, mode: str,
 
 
 def test_write_address_reads_prior_firreg_value_not_new_commit(tmp_path: Path) -> None:
+    """验证写地址为寄存器时使用 operand 旧值，与本次新提交的地址值保持区分。"""
     path = memory_run(
         tmp_path,
         [Snapshot(memory={1: 42}, clock=1, address=3, register_value=3, data=42)],
@@ -369,6 +387,7 @@ def test_write_address_reads_prior_firreg_value_not_new_commit(tmp_path: Path) -
 
 @pytest.mark.parametrize('operands', [3, 4])
 def test_rl0_read_without_same_address_write_follows_proven_history(tmp_path: Path, operands: int) -> None:
+    """验证三或四实参 RL0 读口在读地址未写入时追溯已核验的历史存储值。"""
     path = memory_run(
         tmp_path,
         [Snapshot(memory={2: 7, 1: 9}, clock=1, address=1, data=9, read_address=2, read_value=7)],
@@ -385,6 +404,7 @@ def test_rl0_read_without_same_address_write_follows_proven_history(tmp_path: Pa
 
 @pytest.mark.parametrize(('old', 'new'), [(7, 9), (9, 9)])
 def test_same_eval_same_address_read_write_is_ambiguous_even_for_same_value(tmp_path: Path, old: int, new: int) -> None:
+    """验证同次求值同址读写缺少调度证据时停止读来源解释，即使新旧值相等。"""
     path = memory_run(
         tmp_path,
         [Snapshot(memory={2: new}, clock=1, address=2, data=new, read_address=2, read_value=new)],
@@ -399,6 +419,7 @@ def test_same_eval_same_address_read_write_is_ambiguous_even_for_same_value(tmp_
 
 
 def test_disabled_read_returns_saved_zero_without_claiming_memory_source(tmp_path: Path) -> None:
+    """验证禁用读只核对保存零值，不把未读取的存储内容加入来源图。"""
     path = memory_run(
         tmp_path,
         [Snapshot(memory={2: 9}, clock=1, address=2, data=9, read_address=2, read_enable=0, read_value=0)],
@@ -421,6 +442,7 @@ def test_disabled_read_returns_saved_zero_without_claiming_memory_source(tmp_pat
     ],
 )
 def test_unsupported_memory_shapes_stop_explicitly(tmp_path: Path, options: dict[str, Any]) -> None:
+    """验证多写口、未知延迟、部分掩码和合并端口均留下明确形状边界。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 9}, clock=1, address=2, data=9)], **options)
     report = execute(path)
     assert report.status.query == 'partial'
@@ -428,6 +450,7 @@ def test_unsupported_memory_shapes_stop_explicitly(tmp_path: Path, options: dict
 
 
 def test_dynamic_mask_must_be_full_word(tmp_path: Path) -> None:
+    """验证动态零掩码超出整字写支持范围，不能当作已支持的禁用写。"""
     path = memory_run(tmp_path, [Snapshot(clock=1, address=2, data=9, mask=0)], mask_operand=True)
     report = execute(path)
     assert report.status.query == 'partial'
@@ -435,6 +458,7 @@ def test_dynamic_mask_must_be_full_word(tmp_path: Path) -> None:
 
 
 def test_saved_memory_commit_mismatch_is_rejected(tmp_path: Path) -> None:
+    """验证写口重算与保存提交不符时拒绝解释，并保留原有错误值供审查。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 8}, clock=1, address=2, data=9)])
     report = execute(path)
     assert report.status.query == 'rejected'
@@ -443,6 +467,7 @@ def test_saved_memory_commit_mismatch_is_rejected(tmp_path: Path) -> None:
 
 
 def test_memory_history_counts_actual_states_under_budget(tmp_path: Path) -> None:
+    """验证相同存储内容的不同历史位置仍逐一占用状态预算。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 7})] * 4, setup=Snapshot(memory={2: 7}))
     report = execute(path, 4, budget=Budget(max_states=3))
     assert report.status.query == 'partial'
@@ -450,6 +475,7 @@ def test_memory_history_counts_actual_states_under_budget(tmp_path: Path) -> Non
 
 
 def test_derived_write_records_bind_every_source_state_hash(tmp_path: Path) -> None:
+    """验证派生写口记录逐项绑定所在状态的原始内容哈希和存储身份。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 7}, clock=1, address=2, data=7), Snapshot(memory={2: 7})])
     report = execute(path, 2)
     assert report.status.query == 'complete'
@@ -462,6 +488,7 @@ def test_derived_write_records_bind_every_source_state_hash(tmp_path: Path) -> N
 
 
 def test_write_cache_does_not_retain_full_memory_maps(tmp_path: Path) -> None:
+    """验证写口缓存仅保存决策摘要，避免历史追溯长期持有整份预期 Map。"""
     memory = {address: address for address in range(8)}
     path = memory_run(tmp_path, [Snapshot(memory=memory)], setup=Snapshot(memory=memory))
     request = QueryRequest(
@@ -478,6 +505,7 @@ def test_write_cache_does_not_retain_full_memory_maps(tmp_path: Path) -> None:
 
 
 def test_cached_history_never_hides_changed_source_bytes(tmp_path: Path) -> None:
+    """验证已查询过的历史文件发生字节变化后，下一次查询仍能检测哈希冲突。"""
     path = memory_run(tmp_path, [Snapshot(memory={2: 7}, clock=1, address=2, data=7), Snapshot(memory={2: 7})])
     request = QueryRequest(
         Target('memory_cell', name='Demo/store', address='2'),

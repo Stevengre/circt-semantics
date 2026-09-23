@@ -17,6 +17,7 @@ _HINTS: dict[type, dict[str, Any]] = {}
 
 
 def _hints(model: type) -> dict[str, Any]:
+    """缓存解析后的字段类型，供构造器与 JSON 入口执行相同的契约校验。"""
     if model not in _HINTS:
         _HINTS[model] = get_type_hints(model)
     return _HINTS[model]
@@ -68,6 +69,7 @@ class TraceError(ValueError):
     """保留机器可判定的原因，异常文字只用于中文诊断。"""
 
     def __init__(self, code: StopCode | str, message: str, **details: Any):
+        """规范化稳定停止码，并分别保存人可读诊断和机器可读细节。"""
         self.code = StopCode(code)
         self.message = message
         self.details = details
@@ -75,10 +77,12 @@ class TraceError(ValueError):
 
 
 def _invalid(message: str) -> TraceError:
+    """将模型契约校验失败包装成统一的 INVALID_INPUT 异常。"""
     return TraceError(StopCode.INVALID_INPUT, message)
 
 
 def _json_value(value: Any) -> Any:
+    """递归转成无损 JSON 值，展开模型与枚举并拒绝非有限数、非字符串键等不支持对象。"""
     if value is None or type(value) in (str, int, bool):
         return value
     if type(value) is float and math.isfinite(value):
@@ -95,6 +99,11 @@ def _json_value(value: Any) -> Any:
 
 
 def _decode(annotation: Any, value: Any, location: str) -> Any:
+    """按字段注解严格解码输入，递归构造模型、容器和枚举并保留字段诊断位置。
+
+    浮点字段额外接受有限整数；其他标量须精确匹配类型，避免 bool 被当作 int。
+    联合类型逐一尝试，全部失败时优先保留版本等专门错误码。
+    """
     origin, arguments = get_origin(annotation), get_args(annotation)
     if annotation is Any:
         return _json_value(value)
@@ -105,6 +114,7 @@ def _decode(annotation: Any, value: Any, location: str) -> Any:
                 return _decode(alternative, value, location)
             except TraceError as error:
                 errors.append(error)
+        # 不能用普通类型不匹配覆盖嵌套模型的不支持版本等专门停止原因。
         for candidate_error in errors:
             if candidate_error.code != StopCode.INVALID_INPUT:
                 raise candidate_error
@@ -154,6 +164,7 @@ class JsonModel:
     schema_version: int = SCHEMA_VERSION
 
     def __post_init__(self) -> None:
+        """校验版本并按类型注解规范化所有字段，最后运行子类的跨字段约束。"""
         if type(self.schema_version) is not int or self.schema_version != SCHEMA_VERSION:
             raise TraceError(StopCode.UNSUPPORTED_SCHEMA, f'不支持 schema_version={self.schema_version!r}')
         hints = _hints(type(self))
@@ -163,10 +174,15 @@ class JsonModel:
         self._validate()
 
     def _validate(self) -> None:
+        """预留跨字段语义校验钩子；无额外约束的模型只执行基类类型校验。"""
         pass
 
     @classmethod
     def _from_dict(cls: type[_Model], document: Any, *, require_version: bool) -> _Model:
+        """从对象构造严格模型，拒绝未知字段、缺失必填字段和不支持的版本。
+
+        公开文档入口要求显式版本；嵌套对象可省略版本并使用当前版本默认值。
+        """
         if not isinstance(document, dict) or any(type(key) is not str for key in document):
             raise _invalid(f'{cls.__name__} 必须是 JSON 对象')
         if require_version and 'schema_version' not in document:
@@ -190,11 +206,15 @@ class JsonModel:
 
     @classmethod
     def from_dict(cls: type[_Model], document: dict[str, Any]) -> _Model:
+        """读取带显式 schema_version 的公开 JSON 对象并构造当前模型。"""
         return cls._from_dict(document, require_version=True)
 
     @classmethod
     def from_json(cls: type[_Model], text: str) -> _Model:
+        """严格解析 JSON 文本并构造公开模型，拒绝重复字段与非有限常量。"""
+
         def unique_keys(items: list[tuple[str, Any]]) -> dict[str, Any]:
+            """逐项构造 JSON 对象，在重复键被字典覆盖前拒绝输入。"""
             result: dict[str, Any] = {}
             for key, value in items:
                 if key in result:
@@ -203,6 +223,7 @@ class JsonModel:
             return result
 
         def invalid_constant(value: str) -> Any:
+            """拒绝 JSON 解析器默认接受的 NaN 和 Infinity 扩展常量。"""
             raise _invalid(f'JSON 不允许非有限数：{value}')
 
         try:
@@ -212,28 +233,34 @@ class JsonModel:
         return cls._from_dict(value, require_version=True)
 
     def to_dict(self) -> dict[str, Any]:
+        """递归导出所有声明字段及版本，保留大整数等无损 JSON 表示。"""
         return {item.name: _json_value(getattr(self, item.name)) for item in fields(self)}
 
     def to_json(self) -> str:
+        """输出带换行和中文原文的缩进 JSON，禁止非有限数写入证据文件。"""
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=2, allow_nan=False) + '\n'
 
 
 def _nonempty(value: str, name: str) -> None:
+    """拒绝空串或仅含空白的必填文本，并指出字段名。"""
     if not value.strip():
         raise _invalid(f'{name} 不能为空')
 
 
 def _nonnegative(value: int | None, name: str) -> None:
+    """校验已提供的计数或位置非负，同时保留 None 表示的未知状态。"""
     if value is not None and value < 0:
         raise _invalid(f'{name} 不能小于零')
 
 
 def _digest(value: str | None, name: str) -> None:
+    """校验可选摘要为 64 位小写十六进制 SHA-256，None 表示未绑定摘要。"""
     if value is not None and re.fullmatch('[0-9a-f]{64}', value) is None:
         raise _invalid(f'{name} 必须是小写 SHA-256')
 
 
 def _relative_path(value: str) -> None:
+    """要求路径为相对承载 JSON 的非空 POSIX 路径，允许用 .. 引用相邻材料。"""
     if not value or PurePosixPath(value).is_absolute() or '\\' in value or '\x00' in value:
         raise _invalid('工件路径必须是相对于承载 JSON 的非空 POSIX 路径')
 
@@ -244,6 +271,7 @@ class BitVector(JsonModel):
     value: str
 
     def _validate(self) -> None:
+        """要求正位宽和规范无符号十进制字符串，并确认数值可完整容纳于声明位宽。"""
         if self.width <= 0 or re.fullmatch(r'0|[1-9][0-9]*', self.value) is None:
             raise _invalid('位向量需要正位宽和规范无符号十进制字符串')
         if int(self.value).bit_length() > self.width:
@@ -251,10 +279,12 @@ class BitVector(JsonModel):
 
     @property
     def unsigned(self) -> int:
+        """将无损十进制表示转换为 Python 任意精度整数。"""
         return int(self.value)
 
     @classmethod
     def from_int(cls, value: int, width: int) -> BitVector:
+        """从严格整数构造无符号位向量；负数或超宽数由模型校验拒绝，不做截断。"""
         if type(value) is not int:
             raise _invalid('位向量输入必须是整数')
         return cls(width=width, value=str(value))
@@ -266,6 +296,7 @@ class BitRange(JsonModel):
     high: int
 
     def _validate(self) -> None:
+        """校验两端包含的位范围满足 0 <= low <= high。"""
         if not 0 <= self.low <= self.high:
             raise _invalid('位范围应满足 0 <= low <= high（两端包含）')
 
@@ -281,6 +312,7 @@ class ArtifactRef(JsonModel):
     uncompressed_size_bytes: int | None = None
 
     def _validate(self) -> None:
+        """校验相对路径、摘要与非负大小，并要求 gzip 工件同时绑定解压内容摘要。"""
         _nonempty(self.role, 'role')
         _relative_path(self.path)
         _digest(self.sha256, 'sha256')
@@ -298,6 +330,7 @@ class RecordRef(JsonModel):
     sha256: str | None = None
 
     def _validate(self) -> None:
+        """校验记录相对路径及可选摘要，不要求引用时就能读取目标文件。"""
         _relative_path(self.path)
         _digest(self.sha256, 'sha256')
 
@@ -310,6 +343,7 @@ class PortSpec(JsonModel):
     aliases: tuple[str, ...] = ()
 
     def _validate(self) -> None:
+        """要求端口名称非空且位宽为正，方向和别名类型由基类校验。"""
         _nonempty(self.name, 'name')
         if self.width <= 0:
             raise _invalid('端口位宽必须为正整数')
@@ -337,6 +371,11 @@ class StateIndexEntry(JsonModel):
     completion: CompletionEvidence = field(default_factory=CompletionEvidence)
 
     def _validate(self) -> None:
+        """约束状态身份、阶段位置、成对时间字段以及保留标记与工件引用的一致性。
+
+        setup 不关联求值位置或前驱；post_eval 必须给出 event 和从 1 开始的 evaluation。
+        retained 必须有工件，not_retained 不得伪称可读取。
+        """
         _nonempty(self.state_id, 'state_id')
         _digest(self.content_sha256, 'content_sha256')
         _nonnegative(self.event_index, 'event_index')
@@ -369,6 +408,7 @@ class DumpIndexEntry(JsonModel):
     phase: Literal['dump'] = 'dump'
 
     def _validate(self) -> None:
+        """要求 dump 绑定非空状态身份、非负事件/时间和从 1 开始的真实求值位置。"""
         _nonempty(self.dump_id, 'dump_id')
         _nonempty(self.state_id, 'state_id')
         _nonnegative(self.event_index, 'event_index')
@@ -396,6 +436,7 @@ class RunManifest(JsonModel):
     origin_description: str | None = None
 
     def _validate(self) -> None:
+        """要求运行与顶层模块身份非空，并拒绝重复工件路径或端口名。"""
         _nonempty(self.run_id, 'run_id')
         _nonempty(self.top_module, 'top_module')
         if len({item.path for item in self.artifacts.values()}) != len(self.artifacts):
@@ -416,6 +457,11 @@ class Observation(JsonModel):
     dump_id: str | None = None
 
     def _validate(self) -> None:
+        """校验观测阶段所允许的位置字段及时间单位配对，保留零值位置。
+
+        post_eval 必须指定求值序号；非 setup 观测需提供至少一种定位依据，
+        dump_id 仅允许用于 dump，具体位置是否唯一由工件索引解析。
+        """
         for name in ('event_index', 'time', 'sample'):
             _nonnegative(getattr(self, name), name)
         if (self.time is None) != (self.time_unit is None):
@@ -444,6 +490,7 @@ class ObservationMap(JsonModel):
     comparison_masks: dict[str, BitVector] = field(default_factory=dict)
 
     def _validate(self) -> None:
+        """要求采样映射明确绑定一个非空运行身份。"""
         _nonempty(self.run_id, 'run_id')
 
 
@@ -456,6 +503,7 @@ class Target(JsonModel):
     bit_range: BitRange | None = None
 
     def _validate(self) -> None:
+        """要求名称或目标身份，并仅允许 memory_cell 使用规范非负十进制地址。"""
         if not self.name and not self.target_id:
             raise _invalid('目标必须指定 name 或 target_id')
         if self.kind == 'memory_cell':
@@ -491,6 +539,11 @@ class CheckRecord(JsonModel):
     premises: tuple[str, ...] = ()
 
     def _validate(self) -> None:
+        """按检查类别校验失败证据，避免把可疑观测写成已证明的设计失败。
+
+        数值差异须位宽一致且在比较掩码内确有差异；性质失败须保留谓词解释和失败结果。
+        其他类别不接受精确 expected、比较掩码或不适用的谓词字段。
+        """
         _nonempty(self.id, 'id')
         _nonempty(self.run_id, 'run_id')
         if not self.targets:
@@ -511,6 +564,7 @@ class CheckRecord(JsonModel):
         if self.kind == 'property_failure':
             if not self.predicate or self.predicate_interpretation is None or self.predicate_result is None:
                 raise _invalid('property_failure 必须保留原谓词、解释方式和测试侧结果')
+            # violation 为真、requirement 为假，才分别表达两种解释下的性质失败。
             if self.predicate_result != (self.predicate_interpretation == 'violation'):
                 raise _invalid('谓词结果没有表达性质失败')
         elif any(value is not None for value in (self.predicate, self.predicate_interpretation, self.predicate_result)):
@@ -529,6 +583,7 @@ class Budget(JsonModel):
     max_ast_depth: int = 4_096
 
     def __post_init__(self) -> None:
+        """沿用统一类型校验，将普通输入错误转换为专用 INVALID_BUDGET 停止码。"""
         try:
             super().__post_init__()
         except TraceError as error:
@@ -537,6 +592,7 @@ class Budget(JsonModel):
             raise
 
     def _validate(self) -> None:
+        """要求每项资源上限严格大于零，禁止零额度或负额度伪装成无限预算。"""
         for item in fields(self):
             if item.name != 'schema_version' and getattr(self, item.name) <= 0:
                 raise TraceError(StopCode.INVALID_BUDGET, f'{item.name} 必须大于零')
@@ -551,6 +607,7 @@ class QueryWindow(JsonModel):
     last_event: int | None = None
 
     def _validate(self) -> None:
+        """校验可选事件边界非负，且已同时指定的起点不得晚于终点。"""
         _nonnegative(self.first_event, 'first_event')
         _nonnegative(self.last_event, 'last_event')
         if self.first_event is not None and self.last_event is not None and self.first_event > self.last_event:
@@ -578,6 +635,7 @@ class ValueRef(JsonModel):
     bit_range: BitRange | None = None
 
     def _validate(self) -> None:
+        """要求值的运行、状态和操作身份完整，并校验可选地址为无损十进制字符串。"""
         for name in ('run_id', 'state_id', 'instance', 'operation', 'result'):
             _nonempty(getattr(self, name), name)
         if self.address is not None and re.fullmatch(r'0|[1-9][0-9]*', self.address) is None:
@@ -600,6 +658,7 @@ class SourceLocation(JsonModel):
     raw_location: str | None = None
 
     def _validate(self) -> None:
+        """要求已知行列从 1 开始，且 exact 精度必须同时绑定源文件和行号。"""
         for name in ('line', 'column', 'end_line', 'end_column'):
             value = getattr(self, name)
             if value is not None and value <= 0:
@@ -617,6 +676,7 @@ class SourceBinding(JsonModel):
     sources: tuple[ArtifactRef, ...] = ()
 
     def _validate(self) -> None:
+        """要求绑定运行身份，并确认执行 IR、调试 IR、映射及源码工件角色匹配。"""
         _nonempty(self.run_id, 'run_id')
         for item, role in (
             (self.execution_ir, 'execution_ir'),
@@ -636,6 +696,7 @@ class StopReason(JsonModel):
     details: dict[str, Any] = field(default_factory=dict)
 
     def _validate(self) -> None:
+        """要求停止原因含非空说明，稳定错误码由枚举类型校验。"""
         _nonempty(self.message, 'message')
 
 
@@ -687,6 +748,7 @@ class QueryCost(JsonModel):
     peak_cache_bytes: int = 0
 
     def _validate(self) -> None:
+        """要求实际开销非负，允许零表示尚未发生对应读取或计算。"""
         for item in fields(self):
             if item.name != 'schema_version' and getattr(self, item.name) < 0:
                 raise _invalid(f'{item.name} 不能小于零')
@@ -711,6 +773,7 @@ class HypothesisRecord(JsonModel):
     oracle_status: Literal['needs_oracle', 'provided'] = 'needs_oracle'
 
     def _validate(self) -> None:
+        """要求假设身份与描述；宣称提供 oracle 时必须同时给出设计要求、来源和检查依据。"""
         _nonempty(self.id, 'id')
         _nonempty(self.text, 'text')
         if self.oracle_status == 'provided' and (
@@ -734,6 +797,7 @@ class FollowUpResult(JsonModel):
     details: dict[str, Any] = field(default_factory=dict)
 
     def _validate(self) -> None:
+        """要求已执行结果关联运行、检查和报告；支持或否定假设还需提交者与新观测证据。"""
         _nonempty(self.id, 'id')
         if self.outcome != 'not_run' and (self.run is None or self.check is None or self.report is None):
             raise _invalid('已执行的后续结果必须关联 run、check 和 report')
@@ -760,6 +824,10 @@ class TraceReport(JsonModel):
     follow_up_results: tuple[FollowUpResult, ...] = ()
 
     def _validate(self) -> None:
+        """校验报告节点、边和检查记录的身份一致性，防止跨运行证据混用。
+
+        边必须引用已保存节点；design_check=failed 只能由数值差异或性质失败记录支持。
+        """
         _nonempty(self.report_id, 'report_id')
         _nonempty(self.run_id, 'run_id')
         ids = {node.id for node in self.nodes}

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
 
 def _unsupported(message: str, **details: Any) -> TraceError:
+    """将无法安全解析的 IR 或源码形状包装为统一的 UNSUPPORTED_SHAPE 错误。"""
     return TraceError(StopCode.UNSUPPORTED_SHAPE, message, **details)
 
 
@@ -72,12 +73,18 @@ class GenericIR:
 
 
 def _lex(text: str, budget: Budget, check: Callable[[], None]) -> tuple[_Token, ...]:
+    """将支持的 generic IR 文本分词，同时保留每个 token 的原始行列和文本偏移。
+
+    忽略空白与注释，解码字符串转义；检查 token 数、注释深度和调用方截止时间。
+    遇到不支持的符号或未闭合结构立即拒绝，避免继续生成不完整的结构指纹。
+    """
     tokens: list[_Token] = []
     index = 0
     line = column = 1
     word = re.compile(r'[%@#^!]?[A-Za-z0-9_.$-]+(?:#[0-9]+)?')
 
     def advance(end: int) -> None:
+        """消费当前位置到 end 的文本，并同步更新字符偏移及从 1 开始的行列坐标。"""
         nonlocal index, line, column
         piece = text[index:end]
         newlines = piece.count('\n')
@@ -162,6 +169,7 @@ def _lex(text: str, budget: Budget, check: Callable[[], None]) -> tuple[_Token, 
 
 
 def _matches(tokens: tuple[_Token, ...], budget: Budget) -> dict[int, int]:
+    """建立起始括号到结束括号的索引，拒绝错配、未闭合及超出预算的嵌套。"""
     matching = {}
     stack = []
     pairs = {')': '(', ']': '[', '}': '{', '>': '<'}
@@ -183,6 +191,7 @@ def _matches(tokens: tuple[_Token, ...], budget: Budget) -> dict[int, int]:
 
 
 def _split(tokens: tuple[_Token, ...], start: int, end: int, matching: dict[int, int]) -> list[tuple[int, int]]:
+    """按 token 半开区间内的顶层逗号分段，利用括号配对跳过嵌套内容。"""
     result = []
     first = index = start
     while index < end:
@@ -196,13 +205,18 @@ def _split(tokens: tuple[_Token, ...], start: int, end: int, matching: dict[int,
 
 
 def parse_generic(text: str, budget: Budget, *, check: Callable[[], None] = lambda: None) -> GenericIR:
-    """识别当前 generic 语法；位置以外的每一个 token 都参与结构比较。"""
+    """解析受支持的 generic IR，返回忽略位置差异的完整结构及操作身份。
+
+    先展开并校验位置别名，再提取操作、SSA 结果、区域和所属模块；所有非位置 token
+    都参与结构比较。区域或根模块外存在未解析内容时拒绝，预算与截止时间由调用方提供。
+    """
     tokens = _lex(text, budget, check)
     matching = _matches(tokens, budget)
     values = [token.value for token in tokens]
     aliases: dict[str, tuple[int, int]] = {}
     omitted: set[int] = set()
     loc_spans: dict[int, int] = {}
+    # 只有顶层别名定义可从结构指纹中整体移除，避免把嵌套属性误判为声明。
     top_level = set()
     depth = 0
     for position, token in enumerate(tokens):
@@ -238,9 +252,15 @@ def parse_generic(text: str, budget: Budget, *, check: Callable[[], None] = lamb
         else:
             index += 1
 
+    # 递归深度不足以限制重复别名的扇出，因此同时约束总展开量。
     remaining_locations = min(budget.max_ast_nodes, 4 * len(tokens))
 
     def location(start: int, end: int, seen: tuple[str, ...] = (), nesting: int = 0) -> _Location:
+        """将位置 token 区间解析为 unknown、文件范围或 fused 树，并展开已声明别名。
+
+        记录别名访问链以拒绝循环，同时限制递归深度和总展开次数，避免共享别名指数展开。
+        文件行列必须为正，范围终点不得早于起点；不支持的 location 形状明确报错。
+        """
         nonlocal remaining_locations
         check()
         remaining_locations -= 1
@@ -318,6 +338,7 @@ def parse_generic(text: str, budget: Budget, *, check: Callable[[], None] = lamb
             )
             index += 1
 
+    # 位置归一化与操作识别分开：普通字符串属性仍须完整保留在结构指纹中。
     operations: list[IRInstruction] = []
     operation_ranges: dict[int, int] = {}
     region_ranges: list[tuple[int, int]] = []
@@ -417,6 +438,7 @@ def parse_generic(text: str, budget: Budget, *, check: Callable[[], None] = lamb
     for position in range(len(tokens)):
         if not root.start_token <= position < root.end_token and position not in omitted:
             raise _unsupported('builtin.module 之外存在未解析内容', line=tokens[position].line)
+    # 每个 region 必须被操作或 block 标记完整消费，不能静默跳过未知指令。
     for first, last in region_ranges:
         cursor = first
         while cursor < last:
@@ -432,6 +454,7 @@ def parse_generic(text: str, budget: Budget, *, check: Callable[[], None] = lamb
                 cursor += 1
             else:
                 raise _unsupported('generic region 中存在未解析内容', line=tokens[cursor].line)
+    # 嵌套模块取包含操作的最小区间，使重复 SSA 名始终在正确模块内匹配。
     bound = []
     for operation in operations:
         candidates = [(end - start, name) for start, end, name in modules if start <= operation.start_token < end]
@@ -455,6 +478,7 @@ class SourceIndex:
     def _ir_location(
         self, precision: SourcePrecision, instruction: IRInstruction | None = None, raw: str | None = None
     ) -> SourceLocation:
+        """构造指向执行 IR 的降级位置，保留已知操作行列及未成功解析的原始位置描述。"""
         return SourceLocation(
             precision=precision,
             source=self.execution_ir,
@@ -473,6 +497,10 @@ class SourceIndex:
         operands: tuple[str, ...] | None = None,
         ordinal: int | None = None,
     ) -> IRInstruction | None:
+        """按模块和已提供的结果、操作名、实参或序号约束寻找唯一执行 IR 操作。
+
+        未解析 IR、无候选或多候选均返回 None，不依赖遍历顺序消除歧义。
+        """
         if self.ir is None:
             return None
         candidates = [
@@ -495,6 +523,10 @@ class SourceIndex:
         operands: tuple[str, ...] | None = None,
         ordinal: int | None = None,
     ) -> tuple[SourceLocation, ...]:
+        """为唯一匹配的执行 IR 操作返回源码候选，缺少依据时返回注明精度的 IR 位置。
+
+        只有结构已核验的 debug IR 才按相同操作序号提供源码 location；缺位置信息显式标为 unknown。
+        """
         instruction = self.match(
             module_symbol, result_ssa, operation_name=operation_name, operands=operands, ordinal=ordinal
         )
@@ -512,6 +544,7 @@ class SourceIndex:
         return self._locations(location, instruction)
 
     def for_operation(self, operation: Operation) -> tuple[SourceLocation, ...]:
+        """把运行拓扑操作转换成源码检索条件，无 SSA 结果的过程额外使用实参序列消除歧义。"""
         operands = None if operation.result_ssa else tuple(value.rsplit('/', 1)[-1] for value in operation.operands)
         return self.locations(
             operation.module_symbol, operation.result_ssa, operation_name=operation.name, operands=operands
@@ -520,6 +553,11 @@ class SourceIndex:
     def _locations(
         self, location: _Location, instruction: IRInstruction, fused: bool = False
     ) -> tuple[SourceLocation, ...]:
+        """展开 fused 位置并校验绑定源文件与坐标，返回带真实定位精度的候选元组。
+
+        缺失、损坏或越界时保留降级原因；源码列按 UTF-8 字节长度检查。声明和简单输出别名
+        使用 declaration 精度，fused 子位置保留 fused 标记，均不升级为根因结论。
+        """
         if location.kind == 'fused':
             return tuple(item for child in location.children for item in self._locations(child, instruction, True)) or (
                 self._ir_location('unknown', instruction, location.raw),
@@ -571,7 +609,11 @@ class SourceIndex:
 def bind_sources(
     run: RunArtifacts, binding: SourceBinding | Path | str | None = None, *, base_dir: Path | None = None
 ) -> SourceIndex:
-    """绑定文件相对于自身 JSON；失败时保留有依据的 IR 并注明源码降级原因。"""
+    """为本次运行校验执行 IR、debug IR 与源码绑定，构造可降级的源码索引。
+
+    各引用相对其承载 JSON 解析，并核对哈希、完整 IR 结构及可选 source-map 操作记录。
+    普通绑定失败保留已解析的执行 IR 和原因；单个源码失败单独降级，超时则直接向上传播。
+    """
     execution = [ref for ref in run.manifest.artifacts.values() if ref.role == 'execution_ir']
     if len(execution) != 1:
         raise TraceError(StopCode.MISSING_ARTIFACT, '运行需要唯一 execution_ir 才能定位 IR')
@@ -579,10 +621,15 @@ def bind_sources(
     carrier = (base_dir / 'source-binding.json') if base_dir else run.path
 
     def check() -> None:
+        """检查源码绑定与运行读取器共享的截止时间，超时中止整个绑定过程。"""
         if time.monotonic() >= run.reader.deadline:
             raise TraceError(StopCode.TIME_BUDGET, '源码绑定已到查询截止时间')
 
     def read(ref: ArtifactRef, parent: Path) -> str:
+        """读取已解析引用的未压缩 UTF-8 工件，限制字节数并复核读取后大小与哈希。
+
+        成功核验的本地路径登记到索引，供后续报告引用重定位或证据复制使用。
+        """
         check()
         if ref.compression != 'none':
             raise _unsupported('源码绑定只接受未压缩的文本工件', role=ref.role)
@@ -598,6 +645,7 @@ def bind_sources(
         return data.decode('utf-8')
 
     def unique(items: list[tuple[str, Any]]) -> dict[str, Any]:
+        """作为 JSON 对象钩子拒绝 source-map 重复字段，避免后值覆盖校验依据。"""
         result = {}
         for key, value in items:
             if key in result:
@@ -606,6 +654,7 @@ def bind_sources(
         return result
 
     def map_results(raw: Any, count: int) -> tuple[str, ...]:
+        """解析 source-map 的逗号分隔 SSA 结果，展开受结果数约束的多结果缩写。"""
         if not isinstance(raw, str):
             raise TraceError(StopCode.SOURCE_MISMATCH, 'source-map SSA 字段必须是字符串')
         names = []
@@ -639,6 +688,7 @@ def bind_sources(
         if binding.debug_ir is None:
             return result
         debug = parse_generic(read(binding.debug_ir, carrier), run.reader.budget, check=check)
+        # 只有去除位置后的完整结构相同，两个文件的操作序号才可用于一一对应。
         if result.ir.structure != debug.structure:
             raise TraceError(StopCode.SOURCE_MISMATCH, '执行和 debug IR 去除位置后的完整结构不一致')
         if len(result.ir.operations) != len(debug.operations):
@@ -682,6 +732,7 @@ def bind_sources(
             raise TraceError(StopCode.SOURCE_MISMATCH, 'source_files 必须显式引用已绑定的 sources 路径')
         result.source_files = {ref.path: ref for ref in binding.sources}
         result.source_files.update({name: references[path] for name, path in source_files.items()})
+        # 单个源码损坏不丢弃其他已核验位置；截止时间则属于整个查询的停止条件。
         for ref in binding.sources:
             try:
                 result.source_texts[ref.path] = tuple(read(ref, carrier).splitlines())

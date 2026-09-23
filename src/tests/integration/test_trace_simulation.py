@@ -16,6 +16,7 @@ _RESOURCE = Path(__file__).parents[1] / 'resources/trace/simulation'
 
 
 def _runtime() -> tuple[Path, Path]:
+    """读取显式指定的编译定义和 parser 路径；未配置真实运行环境时跳过本组验收。"""
     definition = os.getenv('KCIRCT_TRACE_DEFINITION_DIR')
     parser = os.getenv('KCIRCT_TRACE_PARSER')
     if definition is None or parser is None:
@@ -24,6 +25,7 @@ def _runtime() -> tuple[Path, Path]:
 
 
 def test_real_simulation_dump_traces_back_to_first_evaluation_commit(tmp_path: Path) -> None:
+    """验证双求值协议下的真实 dump 可回溯到首次求值的寄存器提交，并保留准确的状态索引。"""
     definition, parser = _runtime()
     work = tmp_path / 'simulation'
     result = simulate(

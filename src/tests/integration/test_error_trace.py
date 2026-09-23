@@ -18,12 +18,14 @@ _FIXTURES = Path(__file__).resolve().parents[1] / 'resources' / 'error_trace_tes
 
 
 def _saved_graph() -> KErrTrace:
+    """每次从只读 fixture 加载一份独立静态图，防止查询注记在测试之间残留。"""
     trace = KErrTrace()
     trace.load_from_json(_FIXTURES / 'err_trace.json')
     return trace
 
 
 def test_saved_static_graph_round_trip(tmp_path: Path) -> None:
+    """验证既有静态图的节点属性和连接可无损另存，原始 fixture 的内容保持不变。"""
     original = _FIXTURES / 'err_trace.json'
     before = hashlib.sha256(original.read_bytes()).hexdigest()
     trace = _saved_graph()
@@ -40,6 +42,7 @@ def test_saved_static_graph_round_trip(tmp_path: Path) -> None:
 
 
 def test_saved_hierarchical_query_matches_legacy_output(tmp_path: Path) -> None:
+    """验证层次化 K 名称查询仍输出既有节点顺序、深度和常量标记。"""
     trace = _saved_graph()
     output = tmp_path / 'hierarchy.txt'
     trace.search_path_kname('Foo/i0/%arg0', output)
@@ -55,6 +58,7 @@ def test_saved_hierarchical_query_matches_legacy_output(tmp_path: Path) -> None:
 
 
 def test_saved_vcd_alias_query_matches_k_query(tmp_path: Path) -> None:
+    """验证 VCD 层次名称经别名映射后得到与旧 K 名称查询相同的输出。"""
     trace = _saved_graph()
     # 此别名来自 fixture 中 AddOne 的 io_a 参数与 Foo/i0 实例。
     trace.signal_port_mapping['Foo/i0/io_a'] = 'Foo/i0/%arg0'
@@ -65,6 +69,7 @@ def test_saved_vcd_alias_query_matches_k_query(tmp_path: Path) -> None:
 
 
 def test_saved_difference_list_runs_without_input_or_overwriting_outputs(tmp_path: Path) -> None:
+    """按保存的差异列表逐项查询，验证无需交互输入且各项结果写入独立文件。"""
     trace = _saved_graph()
     trace.differenes.extend((_FIXTURES / 'differencesnameK.txt').read_text().splitlines())
     assert trace.differenes == ['Foo/i0/%arg0', 'Foo/%8']
@@ -79,6 +84,7 @@ def test_saved_difference_list_runs_without_input_or_overwriting_outputs(tmp_pat
 
 
 def test_saved_memory_read_keeps_legacy_static_stop(tmp_path: Path) -> None:
+    """验证旧读端口查询在存储节点停止，不把静态依赖扩展成实际写入历史。"""
     trace = _saved_graph()
     output = tmp_path / 'memory.txt'
     trace.search_path_kname('Foo/%22', output)
@@ -95,6 +101,7 @@ def test_saved_memory_read_keeps_legacy_static_stop(tmp_path: Path) -> None:
 
 
 def test_real_kore_graph_and_public_target_queries_do_not_pollute_each_other(tmp_path: Path) -> None:
+    """从已归档 Kore 建旧图并交错调用新门面，验证动态目标枚举不改变旧图查询结果。"""
     legacy_source = _FIXTURES.parent / 'modules' / 'adder' / 'expected' / 'setup.kore'
     graph = tmp_path / 'graph.json'
     legacy = KErrTrace()

@@ -40,10 +40,12 @@ _CLOCK = "Lbl'Bang'seq'Stop'clock'Unds'SEQ-SYNTAX'Unds'SeqClockType"
 
 
 def _shape(message: str, **details: Any) -> TraceError:
+    """构造携带局部形状诊断的异常，供解析层保留不支持边界。"""
     return TraceError(StopCode.UNSUPPORTED_SHAPE, message, **details)
 
 
 def _sequence(term: Term, cons: str, empty: str) -> tuple[Term, ...]:
+    """按指定 cons/empty 构造迭代读取有序链表，拒绝未知或非空终结节点。"""
     values = []
     current = unwrap(term)
     while current.symbol == cons and len(current.args) == 2:
@@ -87,6 +89,7 @@ def integer_type_width(term: Term) -> int | None:
 
 
 def memory_shape(term: Term) -> dict[str, int] | None:
+    """提取 firmem 的深度、位宽和可选 mask；未知类型返回 None，非法维度报错。"""
     value = unwrap(term)
     count = 3 if value.symbol == _MASKED_MEMORY else 2 if value.symbol == _MEMORY else 0
     if not count or len(value.args) != count:
@@ -121,6 +124,11 @@ class Operation:
 
     @classmethod
     def from_term(cls, term: Term, *, result: str | None = None, procedure_index: int | None = None) -> Operation:
+        """解析 StdOp 的原生操作数、属性和函数类型，保留原始 term 与局部不支持原因。
+
+        结果信号和 procedure 位置由所在配置提供；未知形状不会令其他操作丢失，
+        已解析出的字段仍可用于展示静态目录。
+        """
         op = unwrap(term)
         name = None
         raw: tuple[Term, ...] = ()
@@ -220,6 +228,7 @@ class TargetBinding:
     unsupported: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """导出可序列化的目标信息，并指出存储目标是否仍需用户指定地址。"""
         result = asdict(self)
         result['aliases'] = list(self.aliases)
         result['requires_address'] = self.kind == 'memory_cell' and self.address is None
@@ -230,6 +239,11 @@ class TraceTopology:
     """一次运行 setup 的静态目录；名称查找不会折叠 direct 路径。"""
 
     def __init__(self, run_id: str, setup: DecodedState, *, deadline: float | None = None) -> None:
+        """从完成的 setup 构建保留实例边界的节点、候选边和可查询目标目录。
+
+        端口、连接和存储声明共同决定名称与位宽；局部未知形状附着于节点，
+        同一信号的相互矛盾位宽则拒绝整个目录。
+        """
         if not run_id.strip():
             raise TraceError(StopCode.INVALID_INPUT, '拓扑必须绑定非空 run_id')
         if setup.completion.status != 'completed':
@@ -262,6 +276,7 @@ class TraceTopology:
                     unsupported_ports.add(port.signal_id)
         operations = {}
         directs = {}
+        # direct 是实例间或别名连接，保留独立节点后才能在查询时核验实际读取视图。
         for signal, raw in connections.items():
             self._deadline()
             value = unwrap(raw)
@@ -361,6 +376,7 @@ class TraceTopology:
             if node.operation is not None:
                 edges.extend(self._operand_edges(node.operation, node.signal_id))
         for op in self.procedures:
+            # procedure 的保存位置也是写口身份；其他无返回值操作占用的位置不能省略。
             edges.extend(self._operand_edges(op, f'procedure:{op.procedure_index}'))
         self.edges = tuple(edges)
         self._targets = self._catalog()
@@ -368,10 +384,12 @@ class TraceTopology:
 
     @classmethod
     def from_state(cls, run_id: str, setup: DecodedState, *, deadline: float | None = None) -> TraceTopology:
+        """以显式运行身份和已解码 setup 建立目录，可复用外层查询的截止时间。"""
         return cls(run_id, setup, deadline=deadline)
 
     @classmethod
     def from_run(cls, run: RunArtifacts) -> TraceTopology:
+        """从运行工件读取 setup，并核对顶层模块及有记录的端口声明与 manifest 一致。"""
         topology = cls.from_state(run.manifest.run_id, run.read_state(run.setup_id), deadline=run.reader.deadline)
         if topology.top_module != run.manifest.top_module:
             raise TraceError(StopCode.IDENTITY_MISMATCH, 'setup 与 manifest 的顶层模块不同')
@@ -392,10 +410,12 @@ class TraceTopology:
         return topology
 
     def _deadline(self) -> None:
+        """在构建和遍历目录时执行外层截止时间，避免拓扑工作绕过查询预算。"""
         if self.deadline is not None and time.monotonic() >= self.deadline:
             raise TraceError(StopCode.TIME_BUDGET, '拓扑读取达到查询截止时间')
 
     def _instance(self, signal: str | None) -> tuple[str | None, str | None]:
+        """按最长实例路径前缀定位信号归属，避免嵌套实例被误归到父实例。"""
         if signal is None:
             return None, None
         matches = [name for name in self.instances if signal.startswith(name + '/')]
@@ -403,16 +423,19 @@ class TraceTopology:
         return instance_id, self.instances[instance_id].module if instance_id else None
 
     def _own(self, op: Operation, signal: str | None) -> Operation:
+        """用结果信号或首操作数的归属补充操作的实例和模块身份。"""
         instance_id, module = self._instance(signal)
         return replace(op, instance_id=instance_id, module_symbol=module)
 
     def _operand_edges(self, op: Operation, target: str) -> tuple[TopologyEdge, ...]:
+        """按原生操作数位置生成候选边，同一信号的多次引用分别保留。"""
         return tuple(
             TopologyEdge(signal, target, 'operand', index, op.name, self.nodes[signal].instance_id, op.instance_id)
             for index, signal in enumerate(op.operands)
         )
 
     def _storage_aliases(self, signal: str) -> tuple[str, ...]:
+        """沿 direct 的下游收集存储对外暴露的全部别名，以已访问集合终止环路。"""
         pending, seen = [signal], set()
         aliases: set[str] = set()
         while pending:
@@ -426,10 +449,16 @@ class TraceTopology:
         return tuple(sorted(aliases))
 
     def _id(self, kind: str, signal: str | None, procedure: int | None = None) -> str:
+        """将运行、setup 内容、目标类别和原始位置绑定为稳定目标身份。"""
         identity = json.dumps([self.run_id, self.setup_sha256, kind, signal, procedure], ensure_ascii=False)
         return 'target:' + hashlib.sha256(identity.encode()).hexdigest()
 
     def _catalog(self) -> tuple[TargetBinding, ...]:
+        """列出信号、存储地址族及独立写口，保留每类目标自己的身份和别名。
+
+        存储地址族暂不绑定具体地址；写口使用保存的 procedure 索引区分同一存储
+        的多个端口，不依赖别名顺序推断身份。
+        """
         result = []
         for node in self.nodes.values():
             self._deadline()
@@ -479,9 +508,11 @@ class TraceTopology:
         return tuple(result)
 
     def list_targets(self, kind: str | None = None) -> tuple[TargetBinding, ...]:
+        """返回完整目录或指定类别的目标，保持构建时的确定顺序。"""
         return tuple(target for target in self._targets if kind is None or target.kind == kind)
 
     def _names(self, target: TargetBinding) -> set[str]:
+        """汇集目标可接受的完整名称与点分写法；写口用 procedure 名称避免与存储混淆。"""
         names = {target.name, *target.aliases}
         if target.signal_id is not None and target.kind != 'memory_write_port':
             names.add(target.signal_id)

@@ -1,7 +1,10 @@
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+from kcirct.api import KCIRCT
+from tests.integration import arc_test
 from tests.integration.arc_test import (
     ARC_TEST_ROOT,
     BOOM_CASE,
@@ -10,6 +13,7 @@ from tests.integration.arc_test import (
     ROCKET_CASES,
     ArcTestResult,
     _compare_vcd,
+    _run_event_case,
     get_case,
 )
 from tests.resources import DATA_PATH
@@ -75,3 +79,84 @@ def test_compare_rejects_after_beyond_last_sample() -> None:
 
     with pytest.raises(RuntimeError, match='空窗口'):
         _compare_vcd(BOOM_CASE, result, compare_after=20)
+
+
+def _fake_event_runner(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, missing_after_simulation: bool = False
+) -> tuple[KCIRCT, Path, list[tuple[Any, ...]]]:
+    monkeypatch.setattr(arc_test, 'MLIR_ROOT', tmp_path)
+    get_case('rocket').work_dir.mkdir(parents=True)
+    setup_file = tmp_path / 'setup.kore'
+    setup_file.write_text('0')
+    calls: list[tuple[Any, ...]] = []
+
+    def simulate(input_file: Path, output_file: Path, input_data: Any) -> None:
+        step = int(input_file.read_text())
+        calls.append(('simulate', step, input_data))
+        output_file.write_text(str(step + 1))
+
+    def read_ports(state_file: Path, skip_missing: bool = False) -> dict[str, tuple[int, int]]:
+        step = int(state_file.read_text())
+        calls.append(('read', step, skip_missing))
+        if step == 0 or missing_after_simulation:
+            if not skip_missing:
+                raise KeyError('RocketSystem/clock')
+            return {}
+        return {'RocketSystem/clock': (1, 1)}
+
+    class FakeVCD:
+        time = 0
+
+        def dump(self, ports: dict[str, tuple[int, int]]) -> None:
+            calls.append(('dump', self.time, ports))
+
+        def close(self) -> None:
+            calls.append(('close',))
+
+    kcirct = object.__new__(KCIRCT)
+    monkeypatch.setattr(kcirct, 'run_simulate_fast', simulate)
+    monkeypatch.setattr(kcirct, 'read_ports_fast', read_ports)
+    monkeypatch.setattr(arc_test, '_open_vcd', lambda _case: FakeVCD())
+    return kcirct, setup_file, calls
+
+
+def test_rocket_initial_dump_skips_missing_then_samples_after_two_simulations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kcirct, setup_file, calls = _fake_event_runner(tmp_path, monkeypatch)
+    input_data = [[0, 1], [1, 1]]
+    events = [{'vcd_dump': 0}, {'input': input_data}, {'vcd_dump': 1}]
+
+    result = _run_event_case(get_case('rocket'), kcirct, setup_file, events, cycles=None)
+
+    assert calls == [
+        ('read', 0, True),
+        ('dump', 0, {}),
+        ('simulate', 0, input_data),
+        ('simulate', 1, input_data),
+        ('read', 2, False),
+        ('dump', 1, {'RocketSystem/clock': (1, 1)}),
+        ('close',),
+    ]
+    assert (result.cycles, result.input_evaluations, result.simulation_calls) == (1, 1, 2)
+    assert (result.vcd_samples, result.last_vcd_time) == (2, 1)
+
+
+def test_rocket_missing_signal_after_simulation_still_fails_and_closes_vcd(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kcirct, setup_file, calls = _fake_event_runner(tmp_path, monkeypatch, missing_after_simulation=True)
+    input_data = [[0, 1], [1, 1]]
+    events = [{'vcd_dump': 0}, {'input': input_data}, {'vcd_dump': 1}]
+
+    with pytest.raises(KeyError, match='RocketSystem/clock'):
+        _run_event_case(get_case('rocket'), kcirct, setup_file, events, cycles=None)
+
+    assert calls == [
+        ('read', 0, True),
+        ('dump', 0, {}),
+        ('simulate', 0, input_data),
+        ('simulate', 1, input_data),
+        ('read', 2, False),
+        ('close',),
+    ]

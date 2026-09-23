@@ -29,10 +29,12 @@ from .test_trace_query import PROFILE, _Query, small_run
 
 
 def _sha(path: Path) -> str:
+    """计算夹具文件的字节哈希，用于证明报告生成未修改原始工件。"""
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _report(path: Path) -> tuple[RunArtifacts, TraceTopology, TraceReport]:
+    """从小型运行构造目标查询和报告，并返回仍打开的读取器供测试显式关闭。"""
     run = RunArtifacts.open(path)
     topology = TraceTopology.from_run(run)
     request = QueryRequest(
@@ -44,6 +46,7 @@ def _report(path: Path) -> tuple[RunArtifacts, TraceTopology, TraceReport]:
 
 
 def test_report_json_summary_and_request_share_the_same_facts(tmp_path: Path) -> None:
+    """验证报告 JSON、请求与摘要来自同一组事实，且生成过程保持原运行工件字节不变。"""
     manifest = small_run(tmp_path / 'run')
     before = {path.name: _sha(path) for path in manifest.parent.iterdir()}
     run, topology, report = _report(manifest)
@@ -64,6 +67,7 @@ def test_report_json_summary_and_request_share_the_same_facts(tmp_path: Path) ->
 
 
 def test_report_rebases_and_copies_only_verified_evidence(tmp_path: Path) -> None:
+    """验证报告引用按新目录重定位，证据副本哈希正确，且 manifest 副本保留原始字节。"""
     manifest = small_run(tmp_path / 'run')
     check_dir = tmp_path / 'checks'
     check_dir.mkdir()
@@ -118,6 +122,7 @@ def test_report_rebases_and_copies_only_verified_evidence(tmp_path: Path) -> Non
 
 
 def test_existing_output_and_missing_check_source_are_rejected_without_partial_directory(tmp_path: Path) -> None:
+    """验证已有输出被拒绝，检查来源缺失时清理新目录，避免遗留部分报告。"""
     manifest = small_run(tmp_path / 'run')
     run, topology, report = _report(manifest)
     existing = tmp_path / 'existing'
@@ -152,6 +157,7 @@ def test_existing_output_and_missing_check_source_are_rejected_without_partial_d
 
 
 def test_summary_keeps_partial_boundaries_and_does_not_claim_root_cause(tmp_path: Path) -> None:
+    """验证部分报告摘要保留不支持操作的停止边界，不将追踪结果宣称为根因。"""
     manifest = small_run(tmp_path / 'run', unknown=True)
     run, _, report = _report(manifest)
     run.close()

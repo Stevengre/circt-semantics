@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 
 def _digest(path: Path) -> str:
+    """分块计算报告引用工件的 SHA-256，读取失败统一报告为工件缺失。"""
     value = hashlib.sha256()
     try:
         with path.open('rb') as stream:
@@ -40,10 +41,12 @@ def _digest(path: Path) -> str:
 
 
 def _relative(path: Path, carrier: Path) -> str:
+    """将文件路径改写为相对于承载文档所在目录的 POSIX 路径。"""
     return Path(os.path.relpath(path.absolute(), carrier.absolute().parent)).as_posix()
 
 
 def _resolve_record(ref: RecordRef, carrier: Path) -> Path:
+    """相对承载文档定位已有记录并校验可选哈希，返回解析后的绝对路径。"""
     path = (carrier.absolute().parent / ref.path).resolve()
     if not path.is_file():
         raise TraceError(StopCode.MISSING_ARTIFACT, '报告引用的记录不存在', path=str(path))
@@ -54,11 +57,16 @@ def _resolve_record(ref: RecordRef, carrier: Path) -> Path:
 
 
 def _rebase_record(ref: RecordRef, carrier: Path, destination: Path) -> RecordRef:
+    """校验原承载文档中的记录引用，再为目标文档改写路径并固定当前哈希。"""
     path = _resolve_record(ref, carrier)
     return replace(ref, path=_relative(path, destination), sha256=_digest(path))
 
 
 def _operation(node: TraceNode, topology: TraceTopology) -> Operation | None:
+    """从报告节点引用查回拓扑操作，支持 procedure 序号及普通节点结果标识。
+
+    过程序号无法解析或节点不存在时返回 None，保留没有可附着源码的报告节点。
+    """
     if node.ref.result.startswith('procedure:'):
         try:
             return topology.procedures[int(node.ref.result.split(':', 1)[1])]
@@ -69,7 +77,10 @@ def _operation(node: TraceNode, topology: TraceTopology) -> Operation | None:
 
 
 def attach_sources(report: TraceReport, topology: TraceTopology, sources: SourceIndex) -> TraceReport:
-    """把同一执行 IR 的位置附到报告节点；不把位置升级为根因结论。"""
+    """把同一执行 IR 的位置附到报告节点，并汇入源码绑定的降级原因。
+
+    先校验拓扑与报告的运行身份；无法回查操作的节点保持原样，不把定位精度升级为根因证明。
+    """
     if topology.run_id != report.run_id:
         raise TraceError(StopCode.IDENTITY_MISMATCH, '源码拓扑与报告属于不同运行')
     nodes = []
@@ -82,7 +93,7 @@ def attach_sources(report: TraceReport, topology: TraceTopology, sources: Source
 
 
 def render_summary(report: TraceReport) -> str:
-    """只从结构化报告渲染中文摘要，避免维护第二份事实。"""
+    """仅从结构化报告渲染中文 Markdown 摘要，覆盖检查、证据、停止边界和后续结果。"""
     target = report.request.target
     observation = report.request.observation
     lines = [
@@ -161,6 +172,7 @@ def render_summary(report: TraceReport) -> str:
 
 
 def _artifact_for_report(ref: ArtifactRef, path: Path, destination: Path) -> ArtifactRef:
+    """保留工件身份与元数据，只把已解析本地路径改写为相对于报告的引用。"""
     return replace(ref, path=_relative(path, destination))
 
 
@@ -173,6 +185,12 @@ def _rebase_report(
     check_carrier: Path | None,
     source_carrier: Path | None = None,
 ) -> TraceReport:
+    """把报告中有依据的记录、工件及源码路径改写到新的承载文件。
+
+    提供运行时据已验证工件重建引用；复制已有报告时用 source_carrier 解析检查、假设和
+    后续结果中的相对记录引用。既无运行也无原承载文件时原样返回，避免猜测路径基准。
+    """
+    # link 复用现有报告时没有打开运行，所有记录路径以原报告为基准逐层迁移。
     if run is None:
         if source_carrier is None:
             return report
@@ -217,6 +235,7 @@ def _rebase_report(
         artifacts.append(_artifact_for_report(ref, path, destination))
     nodes = []
     for node in report.nodes:
+        # 只重定位能对应到已解析工件的证据，其他引用保持其原有身份和描述。
         evidence = tuple(
             (
                 RecordRef(
@@ -249,6 +268,10 @@ def _rebase_report(
 
 
 def _copy_file(path: Path, output: Path, role: str, declared_path: str) -> dict[str, Any]:
+    """按内容哈希组织证据副本，核对复制结果并返回重定位条目。
+
+    已有目标文件可复用但必须哈希一致；条目保留原声明路径，供移动后的运行显式重定位。
+    """
     digest = _digest(path)
     target = output / 'evidence' / digest[:16] / path.name
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -268,6 +291,11 @@ def _copy_file(path: Path, output: Path, role: str, declared_path: str) -> dict[
 def _copy_evidence(
     report: TraceReport, run: RunArtifacts, output: Path, source_index: SourceIndex | None
 ) -> dict[str, Any]:
+    """复制本报告引用的证据、原 manifest 和 state index，并生成重定位文档。
+
+    按哈希与声明路径去重，额外纳入检查来源和已验证源码工件；未读取的状态仅列为外部依赖。
+    原始文件字节与其中的引用不重写，搬迁后的解析由显式重定位映射完成。
+    """
     entries = [_copy_file(run.path, output, 'run_manifest', report.run.path if report.run else run.path.name)]
     if run.manifest.state_index is not None:
         entries.append(
@@ -299,6 +327,7 @@ def _copy_evidence(
             if key not in copied:
                 entries.append(_copy_file(path, output, 'source_binding', key[1]))
                 copied.add(key)
+    # 复制范围由报告实际读取证据决定，其余索引状态显式列为外部依赖。
     indexed = {
         entry.artifact
         for entry in run.states.values()
@@ -336,7 +365,11 @@ def write_report(
     source_carrier: Path | None = None,
     copy_evidence: bool = False,
 ) -> TraceReport:
-    """在新目录写机器报告和同源中文摘要；已有目录拒绝覆盖。"""
+    """在全新目录写出结构化报告、请求、中文摘要和引用清单，按需复制证据。
+
+    写入前统一附着源码和重定位引用；已有输出目录拒绝覆盖，任一步失败都会删除新建目录，
+    避免留下看似完整的部分报告。成功返回与 report.json 内容一致的报告对象。
+    """
     output = Path(output).absolute()
     if output.exists():
         raise TraceError(StopCode.INVALID_INPUT, '报告输出目录必须是新路径', path=str(output))
@@ -383,6 +416,7 @@ def write_report(
 
 
 def _load_reference(ref: RecordRef, carrier: Path, model: Any) -> Any:
+    """校验引用文件后按指定模型加载记录，并核对可选运行、检查或报告 ID。"""
     path = _resolve_record(ref, carrier)
     value = model.from_json(path.read_text(encoding='utf-8'))
     identity = value.run_id if model is RunManifest else value.id if model is CheckRecord else value.report_id
@@ -392,11 +426,16 @@ def _load_reference(ref: RecordRef, carrier: Path, model: Any) -> Any:
 
 
 def _artifact_hash(manifest: RunManifest, role: str) -> str | None:
+    """仅当 manifest 中某角色恰好对应一个工件时返回其哈希，否则返回 None。"""
     values = [item.sha256 for item in manifest.artifacts.values() if item.role == role]
     return values[0] if len(values) == 1 else None
 
 
 def _validate_replay(original: RunManifest, current: RunManifest) -> dict[str, Any]:
+    """核对两次运行的 IR、输入、端口布局、初始化和采样契约，返回重放兼容性依据。
+
+    IR 与输入必须各有唯一哈希且一致；任一比较项不符便拒绝 replay 关联。
+    """
     original_ir, current_ir = _artifact_hash(original, 'execution_ir'), _artifact_hash(current, 'execution_ir')
     original_inputs, current_inputs = _artifact_hash(original, 'inputs'), _artifact_hash(current, 'inputs')
     same = {
@@ -423,7 +462,11 @@ def link_report(
     hypothesis_path: Path | str | None = None,
     outcome_path: Path | str | None = None,
 ) -> TraceReport:
-    """创建新的关联报告，不修改原报告；所有相对引用按各自承载文件解析。"""
+    """校验假设或后续结果并写出新关联报告，所有相对引用按各自承载文件解析。
+
+    假设须引用原报告的已有节点且 ID 唯一；已执行结果核对 run/check/report 的共同运行身份，
+    replay 还需验证原运行与新运行的执行契约兼容。原报告保持只读，新引用统一重定位。
+    """
     report_path = Path(report_path).absolute()
     if hypothesis_path is None and outcome_path is None:
         raise TraceError(StopCode.INVALID_INPUT, 'link 至少需要 hypothesis 或 outcome')
@@ -456,6 +499,7 @@ def link_report(
             current_report = _load_reference(outcome.report, carrier, TraceReport)
             if current_check.run_id != current_run.run_id or current_report.run_id != current_run.run_id:
                 raise TraceError(StopCode.IDENTITY_MISMATCH, '后续 run/check/report 身份不一致')
+            # 同属一次运行是结果关联的前提；replay 还要求与原运行具备相同执行条件。
             if outcome.relation == 'replay':
                 if report.run is None:
                     raise TraceError(StopCode.IDENTITY_MISMATCH, '原报告缺少运行引用，不能核验 replay')

@@ -47,6 +47,7 @@ def _add_simulate_args(parser: ArgumentParser) -> None:
 
 
 def _add_trace_args(parser: ArgumentParser) -> None:
+    """注册 query、targets、checks 和 link 的文件参数，要求显式选择一个离线动作。"""
     actions = parser.add_subparsers(dest='trace_action', required=True, help='离线追踪动作')
     query = actions.add_parser('query', help='从保存状态生成动态解释报告')
     query.add_argument('--run', type=Path, required=True, help='trace-run.json 或受支持的旧 result.json')
@@ -319,7 +320,7 @@ def _add_verify_args(verify_parser: ArgumentParser) -> None:
 
 
 def create_arg_parser() -> ArgumentParser:
-    """Create argument parser for kcirct."""
+    """构建命令分发表；各子命令共用日志选项，trace 再按离线动作解析参数。"""
 
     shared_args = ArgumentParser(add_help=False)
     _add_shared_args(shared_args)
@@ -382,6 +383,7 @@ def exec_generate(input: str, output: str = 'none', **kwargs: Any) -> None: ...
 
 
 def exec_simulate(**kwargs: Any) -> None:
+    """处理 simulate CLI 参数并输出结果 JSON；描述模式直接返回，仿真失败以状态码 1 退出。"""
     from ._simulate import describe_simulator, simulate
 
     if kwargs.get('describe'):
@@ -412,6 +414,7 @@ def exec_simulate(**kwargs: Any) -> None:
 
 
 def _new_json(path: Path, document: dict[str, Any]) -> None:
+    """创建父目录并写出 UTF-8 JSON；已有输出路径按无效输入拒绝，避免覆盖查询证据。"""
     from .trace.model import StopCode, TraceError
 
     if path.exists():
@@ -421,6 +424,7 @@ def _new_json(path: Path, document: dict[str, Any]) -> None:
 
 
 def _artifact(path: Path, carrier: Path, role: str) -> Any:
+    """读取 CLI 输入并生成带哈希、长度的引用，路径相对于承载该引用的 JSON 所在目录。"""
     from .trace.model import ArtifactRef, StopCode, TraceError
 
     try:
@@ -436,6 +440,7 @@ def _artifact(path: Path, carrier: Path, role: str) -> Any:
 
 
 def _trace_exit(error: Any) -> int:
+    """将 TraceError 映射为 CLI 退出码：输入错误 2、追踪不完整 3、证据拒绝 4、内部错误 5。"""
     from .trace.model import StopCode
 
     if error.code in {
@@ -477,6 +482,11 @@ def _trace_exit(error: Any) -> int:
 
 
 def exec_trace(**kwargs: Any) -> None:
+    """分发离线追踪动作，输出工件位置或查询状态，并把失败转换为 JSON 诊断及退出码。
+
+    query 的退出码反映解释是否完成，设计检查是否通过由报告中的独立状态表达。
+    checks 记录预期值文件和观测映射的身份，link 则直接基于已有报告关联后续证据。
+    """
     from .trace import TraceRun, link_report, load_check_reference
     from .trace.model import ObservationMap, QueryRequest, StopCode, TraceError
 
@@ -534,6 +544,7 @@ def exec_trace(**kwargs: Any) -> None:
             raise TraceError(StopCode.INVALID_INPUT, '未知 trace 动作', action=action)
         request_path = Path(kwargs['request']).absolute()
         request = QueryRequest.from_json(request_path.read_text(encoding='utf-8'))
+        # 检查引用先按请求文件定位，其内部工件再按检查文件定位，不能使用进程当前目录。
         check = load_check_reference(request.check, request_path, trace_run) if request.check is not None else None
         check_carrier = trace_run.resolve_record(request.check, request_path) if request.check is not None else None
         report = trace_run.query(

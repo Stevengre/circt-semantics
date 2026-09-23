@@ -54,10 +54,12 @@ REFERENCE = RecordRef(path='../run/trace-run.json', id='run-a', sha256=SHA)
 
 
 def artifact(role: str = 'execution_ir', path: str = 'design.generic.mlir') -> ArtifactRef:
+    """构造固定哈希和大小的最小工件引用，允许测试指定角色与相对路径。"""
     return ArtifactRef(role=role, path=path, sha256=SHA, size_bytes=256)
 
 
 def mismatch() -> CheckRecord:
+    """构造运行 run-a 的 4 位输出差异检查，绑定 CSV 参考值来源。"""
     return CheckRecord(
         id='first-output-mismatch',
         run_id='run-a',
@@ -71,10 +73,12 @@ def mismatch() -> CheckRecord:
 
 
 def value_ref(view: Any = 'observed') -> ValueRef:
+    """构造绑定同一运行、状态、操作及位范围的值引用，用 view 区分读取语义。"""
     return ValueRef('run-a', 'eval-16', 'top/inst', 'op-9', '%9', view, bit_range=BitRange(0, 3))
 
 
 def test_all_public_documents_round_trip() -> None:
+    """验证公开文档经 JSON 文本和字典往返后，嵌套身份、状态和证据字段均保持不变。"""
     ir = artifact()
     raw = artifact('state', 'states/eval-16.kore.gz')
     state = StateIndexEntry(
@@ -163,6 +167,7 @@ def test_all_public_documents_round_trip() -> None:
 
 
 def test_large_bit_vectors_keep_string_and_exact_bit_pattern() -> None:
+    """验证 257 位值以十进制字符串无损往返，零值也作为有效数据保存。"""
     expected = (1 << 257) - 17
     vector = BitVector.from_int(expected, width=257)
     assert vector.to_dict()['value'] == str(expected)
@@ -172,11 +177,13 @@ def test_large_bit_vectors_keep_string_and_exact_bit_pattern() -> None:
 
 @pytest.mark.parametrize('value', [0, False, -1, '01', '-1', '1.0', '0x1', 'x', 'z', '16'])
 def test_reject_invalid_or_oversized_bit_vectors(value: Any) -> None:
+    """验证位向量拒绝非规范字符串、未知态以及超出 4 位宽度的数值。"""
     with pytest.raises(TraceError):
         BitVector(width=4, value=value)
 
 
 def test_design_example_and_defaults() -> None:
+    """验证设计示例可省略嵌套版本及部分预算，默认额度与未知身份状态保持约定。"""
     query = QueryRequest.from_dict(
         {
             'schema_version': 1,
@@ -199,6 +206,7 @@ def test_design_example_and_defaults() -> None:
 
 @pytest.mark.parametrize('version', [2, 0, '1', True, None])
 def test_unknown_or_invalid_schema_is_rejected(version: Any) -> None:
+    """验证不支持的版本以及字符串、布尔值等伪版本均返回 UNSUPPORTED_SCHEMA。"""
     document = REQUEST.to_dict()
     document['schema_version'] = version
     with pytest.raises(TraceError) as error:
@@ -207,6 +215,7 @@ def test_unknown_or_invalid_schema_is_rejected(version: Any) -> None:
 
 
 def test_missing_version_unknown_field_duplicate_key_and_nonfinite_are_rejected() -> None:
+    """验证顶层缺版本、未知字段、重复 JSON 键和非有限数均拒绝，并保留嵌套版本错误码。"""
     with pytest.raises(TraceError, match='缺少 schema_version'):
         QueryRequest.from_dict({})
     with pytest.raises(TraceError, match='未知字段'):
@@ -235,12 +244,14 @@ def test_missing_version_unknown_field_duplicate_key_and_nonfinite_are_rejected(
 )
 @pytest.mark.parametrize('value', [0, -1, False, '1', float('inf')])
 def test_budget_values_are_explicit_and_positive(field: str, value: Any) -> None:
+    """验证所有资源上限拒绝零、负数及不合类型的值，并统一返回 INVALID_BUDGET。"""
     with pytest.raises(TraceError) as error:
         Budget.from_dict({'schema_version': 1, field: value})
     assert error.value.code == StopCode.INVALID_BUDGET
 
 
 def test_check_kinds_preserve_failure_meaning_without_fabricating_expected() -> None:
+    """验证性质失败和可疑观测不伪造精确期望值，数值差异必须在比较掩码内确实存在。"""
     failure = CheckRecord(
         'p1',
         'run-a',
@@ -272,6 +283,7 @@ def test_check_kinds_preserve_failure_meaning_without_fabricating_expected() -> 
 
 
 def test_views_and_status_axes_are_distinct_and_zero_is_data() -> None:
+    """验证值视图具有独立身份，各状态轴独立序列化，且拒绝布尔值/整数替代状态枚举。"""
     assert len({value_ref(view) for view in ('observed', 'operand', 'committed', 'prior')}) == 4
     with pytest.raises(TraceError):
         value_ref('dump')
@@ -284,6 +296,7 @@ def test_views_and_status_axes_are_distinct_and_zero_is_data() -> None:
 
 
 def test_setup_post_eval_dump_and_retention_do_not_mix() -> None:
+    """验证 setup、post_eval、dump 和保留标记的字段约束，允许合法零事件但拒绝混用身份。"""
     setup = StateIndexEntry('setup', 'setup')
     assert setup.event_index is None
     assert setup.completion.status == 'not_checked'
@@ -307,6 +320,7 @@ def test_setup_post_eval_dump_and_retention_do_not_mix() -> None:
 
 
 def test_artifact_hash_compression_and_source_roles() -> None:
+    """验证压缩双层摘要、相对路径、源码角色和精确定位约束，并拒绝重复工件身份。"""
     packed = replace(artifact('state', 'states/0.kore.gz'), compression='gzip', uncompressed_sha256=SHA)
     assert packed.to_dict()['uncompressed_sha256'] == SHA
     with pytest.raises(TraceError):
@@ -325,6 +339,7 @@ def test_artifact_hash_compression_and_source_roles() -> None:
 
 
 def test_follow_up_replay_regression_require_new_evidence() -> None:
+    """验证后续实验、重放和回归须有新证据才能宣称支持假设，已提供 oracle 也须来源完整。"""
     for relation in ('follow_up', 'replay', 'regression'):
         outcome = FollowUpResult.from_dict({'schema_version': 1, 'id': 'f1', 'relation': relation})
         assert outcome.outcome == 'not_run'
@@ -347,6 +362,7 @@ def test_follow_up_replay_regression_require_new_evidence() -> None:
 
 
 def test_report_does_not_label_unchecked_observation_as_design_failure() -> None:
+    """验证无检查证据不能报告设计失败，且检查记录不得来自另一运行。"""
     with pytest.raises(TraceError):
         TraceReport('r1', 'run-a', REQUEST, status=StatusAxes(design_check='failed'))
     with pytest.raises(TraceError) as error:
@@ -355,6 +371,7 @@ def test_report_does_not_label_unchecked_observation_as_design_failure() -> None
 
 
 def test_stable_stop_codes_survive_serialization() -> None:
+    """验证全部停止码无损序列化，诊断详情中的零、False 和 None 保持原语义。"""
     for code in StopCode:
         reason = StopReason(code, '已到明确边界', {'read_bytes': 0, 'verified': False, 'missing': None})
         assert StopReason.from_json(reason.to_json()) == reason

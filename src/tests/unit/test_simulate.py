@@ -280,6 +280,7 @@ def test_cli_rejects_invalid_events_with_nonzero_exit_and_evidence(tmp_path: Pat
 
 
 def _trace_index(work: Path) -> tuple[RunManifest, list[StateIndexEntry], list[DumpIndexEntry]]:
+    """读取采集清单并拆分状态与采样条目，同时验证索引及所有工件的长度和内容哈希。"""
     manifest = RunManifest.from_json((work / 'trace-run.json').read_text())
     assert manifest.state_index is not None
     index = work / manifest.state_index.path
@@ -302,6 +303,7 @@ def _trace_index(work: Path) -> tuple[RunManifest, list[StateIndexEntry], list[D
 def test_trace_index_binds_real_state_positions_and_retention(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, keep_states: bool
 ) -> None:
+    """验证两种归档模式的状态顺序、前驱与 dump 绑定一致，持久引用仅指向实际留存的文件。"""
     definition, parser, calls = _fake_backend(tmp_path, monkeypatch)
     work = tmp_path / 'run'
     result = simulator.simulate(
@@ -346,10 +348,12 @@ def test_trace_index_binds_real_state_positions_and_retention(
 
 
 def test_failed_terminal_check_is_archived_without_completion(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """验证返回但未到终态的 Kore 仍被归档，且不计为完成调用或产生 dump。"""
     definition, parser, _ = _fake_backend(tmp_path, monkeypatch)
     original = simulator._check_finished
 
     def unfinished(state: Path) -> None:
+        """允许 setup 通过，仅让求值后的状态在终态检查时失败。"""
         if state.name.startswith('simulated.'):
             raise RuntimeError('保留未清空的 current cell')
         original(state)
@@ -380,6 +384,7 @@ def test_failed_terminal_check_is_archived_without_completion(tmp_path: Path, mo
 def test_timeout_binds_last_state_to_previous_successful_evaluation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, keep_states: bool
 ) -> None:
+    """验证第二次求值超时留下 missing 条目，末态文件仍归属于第一次成功求值。"""
     definition, parser, _ = _fake_backend(tmp_path, monkeypatch, timeout_at=2)
     work = tmp_path / 'run'
     result = simulator.simulate(
@@ -411,6 +416,7 @@ def test_timeout_binds_last_state_to_previous_successful_evaluation(
 def test_run_identity_is_unique_and_capture_does_not_change_evaluation_calls(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """验证相同输入的两次运行有独立身份，开启归档不会改变调用序列、末态或 VCD 采样。"""
     definition, parser, calls = _fake_backend(tmp_path, monkeypatch)
     design, stimulus = _design(tmp_path), _stimulus(tmp_path)
     results = [
@@ -439,10 +445,12 @@ def test_run_identity_is_unique_and_capture_does_not_change_evaluation_calls(
 def test_interrupted_manifest_publication_never_publishes_false_completion(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """模拟最终清单发布中断，验证结果标为导出失败，旧清单不会宣称运行完成。"""
     definition, parser, _ = _fake_backend(tmp_path, monkeypatch)
     atomic = simulator._atomic_text
 
     def interrupted(path: Path, text: str) -> None:
+        """仅阻断标为 completed 的运行清单写入，保留此前索引发布以模拟两文件间的中断。"""
         if path.name == 'trace-run.json' and json.loads(text)['completion']['status'] == 'completed':
             raise OSError('模拟原子发布前中断')
         atomic(path, text)
@@ -469,11 +477,13 @@ def test_interrupted_manifest_publication_never_publishes_false_completion(
 def test_default_capture_publishes_index_with_linear_total_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """验证默认采集只在少量发布点写完整索引，避免逐次求值重写历史造成平方级写入量。"""
     definition, parser, _ = _fake_backend(tmp_path, monkeypatch)
     atomic = simulator._atomic_text
     published: list[int] = []
 
     def record(path: Path, text: str) -> None:
+        """记录状态索引每次发布的 UTF-8 字节数，并沿用真实的原子写入路径。"""
         if path.name == 'trace-states.jsonl':
             published.append(len(text.encode()))
         atomic(path, text)

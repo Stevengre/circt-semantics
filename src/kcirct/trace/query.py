@@ -86,10 +86,12 @@ class _Write:
 
 
 def _reason(error: TraceError) -> StopReason:
+    """将查询异常转换为报告停止原因，保留错误码和结构化证据。"""
     return StopReason(error.code, error.message, error.details)
 
 
 def _id(ref: ValueRef) -> str:
+    """按完整读取引用生成节点身份，使状态、视图、地址和位范围各自独立。"""
     return 'value:' + hashlib.sha256(ref.to_json().encode()).hexdigest()
 
 
@@ -104,6 +106,7 @@ class _Query:
         profile: SemanticsProfile,
         check: CheckRecord | None = None,
     ) -> None:
+        """创建单次查询的图、预算计数和写口缓存，并采用读取器与请求中更早的截止时间。"""
         self.run, self.request, self.topology, self.profile, self.check = run, request, topology, profile, check
         self.started = time.monotonic()
         self.deadline = min(run.reader.deadline, self.started + request.budget.max_seconds)
@@ -117,10 +120,15 @@ class _Query:
         self.root: str | None = None
 
     def _tick(self) -> None:
+        """在展开或读取前检查查询截止时间，超时由调用层记录为停止边界。"""
         if time.monotonic() >= self.deadline:
             raise TraceError(StopCode.TIME_BUDGET, '查询达到截止时间')
 
     def _state(self, state_id: str) -> DecodedState:
+        """读取索引指定的真实状态，先检查窗口与不同状态位置的预算。
+
+        相同内容的不同 state_id 仍分别计数；缺失位置和窗口外位置不能充当前驱。
+        """
         self._tick()
         entry = self.run.states.get(state_id)
         if entry is None:
@@ -146,6 +154,7 @@ class _Query:
         *,
         address: str | None = None,
     ) -> ValueRef:
+        """为信号的指定状态和读取视图构造引用，存储单元可额外绑定地址。"""
         node = self.topology.nodes.get(signal)
         return ValueRef(
             self.run.manifest.run_id,
@@ -158,6 +167,11 @@ class _Query:
         )
 
     def _value(self, ref: ValueRef, state: DecodedState) -> tuple[BitVector, dict[str, Any]]:
+        """按引用视图读取保存值，并返回说明值来源的事实。
+
+        prior 和存储操作数使用 history，其余使用 signals；仅对已绑定的寄存器
+        初值或存储缺项使用初始化规则，缺失的普通信号仍明确报错。
+        """
         node = self.topology.nodes.get(ref.result)
         prior = ref.view == 'prior' or (ref.view == 'operand' and node is not None and node.storage_kind is not None)
         cell = state.history if prior else state.signals
@@ -196,6 +210,7 @@ class _Query:
 
     @staticmethod
     def _slice(value: BitVector, ref: ValueRef) -> BitVector:
+        """提取包含两端的位范围；未指定范围时保留原值，越界请求直接拒绝。"""
         if ref.bit_range is None:
             return value
         low, high = ref.bit_range.low, ref.bit_range.high
@@ -204,6 +219,7 @@ class _Query:
         return BitVector.from_int((value.unsigned >> low) % (1 << (high - low + 1)), high - low + 1)
 
     def _add(self, ref: ValueRef, *, candidate: bool = False) -> str:
+        """在节点预算内按完整引用去重建点，并绑定状态工件证据；此时尚不读取值。"""
         identity = _id(ref)
         if identity in self.nodes:
             return identity
@@ -235,6 +251,7 @@ class _Query:
         return identity
 
     def _populate(self, identity: str) -> None:
+        """填入普通节点的保存值，或无标量结果的写口节点的已核验写入事实。"""
         node = self.nodes[identity]
         state = self._state(node.ref.state_id)
         if node.ref.result.startswith('procedure:'):
@@ -248,6 +265,7 @@ class _Query:
         self.nodes[identity] = replace(node, value=value, type=f'i{value.width}', facts=facts)
 
     def _same(self, first: BitVector | None, second: BitVector, message: str, **details: Any) -> None:
+        """要求保存值与重算值完全相等，冲突时报告双方值并拒绝继续解释。"""
         if first != second:
             raise TraceError(
                 StopCode.INCONSISTENT_EVIDENCE,
@@ -258,6 +276,10 @@ class _Query:
             )
 
     def _previous(self, ref: ValueRef) -> ValueRef:
+        """验证真实前驱及其连续性，返回同一信号和地址的前驱提交引用。
+
+        setup 没有前驱；已索引但未保留或丢失的前驱统一记作历史缺口。
+        """
         entry = self.run.states[ref.state_id]
         if entry.predecessor is None:
             raise TraceError(StopCode.INITIALIZATION, '来源已到 setup 初始化边界')
@@ -271,6 +293,11 @@ class _Query:
         return self._ref(ref.result, entry.predecessor, 'committed', address=ref.address)
 
     def _expand(self, identity: str) -> tuple[_Dependency, ...]:
+        """核验当前节点的来源规则，返回实际依赖与不继续展开的静态候选。
+
+        位切片先追到完整值，旧值追到真实前驱；其余按 direct、存储、输入或组合
+        操作分流。只有重算结果与保存值一致，候选连接才成为实际依赖。
+        """
         saved = self.nodes[identity]
         ref, node = saved.ref, self.topology.nodes.get(saved.ref.result)
         if ref.result.startswith('procedure:'):
@@ -348,6 +375,11 @@ class _Query:
         )
 
     def _storage(self, identity: str, node: TopologyNode, state: DecodedState) -> tuple[_Dependency, ...]:
+        """解释存储提交；寄存器按真实时钟历史选择保持、采样 Next 或同步复位。
+
+        所有原生操作数均以 operand 视图读取；未采样的数据只保留为静态候选，
+        使等值采样也能与无边沿保持区分。
+        """
         if node.storage_kind == 'memory_cell':
             return self._memory_cell(identity, node, state)
         if node.storage_kind != 'register' or node.operation is None:
@@ -406,6 +438,7 @@ class _Query:
         return tuple(dependencies)
 
     def _memory_shape(self, signal: str) -> tuple[Operation, tuple[int, int, int]]:
+        """寻找存储的唯一独立写口，返回写口及已核验的深度、数据位宽、地址位宽。"""
         node = self.topology.nodes.get(signal)
         if node is None:
             raise TraceError(StopCode.UNSUPPORTED_SHAPE, '存储引用没有声明')
@@ -421,6 +454,7 @@ class _Query:
         return writers[0], memory_dimensions(node, writers[0])
 
     def _write_ref(self, operation: Operation, state_id: str) -> ValueRef:
+        """以保存的 procedure 列表位置标识写口，不将无返回值写口伪装成信号。"""
         return ValueRef(
             self.run.manifest.run_id,
             state_id,
@@ -431,6 +465,11 @@ class _Query:
         )
 
     def _memory_write(self, signal: str, state_id: str, state: DecodedState) -> _Write:
+        """重算单写口决策并核对整个存储提交，缓存与源状态哈希绑定的精简结果。
+
+        写入以 history 为旧 Map；不只核对请求地址，因此其他地址的意外变化也会
+        拒绝查询。缓存不保留完整 Map，命中时仍检查状态内容身份。
+        """
         writer, dimensions = self._memory_shape(signal)
         self._previous(self._ref(signal, state_id, 'committed'))
         cache_key = state_id, signal
@@ -470,6 +509,7 @@ class _Query:
         return result
 
     def _write_facts(self, write: _Write, ref: ValueRef) -> dict[str, Any]:
+        """序列化写口决策、实参视图及来源证据；仅有效写入带有提交引用。"""
         decision = write.decision
         return {
             'decision': decision.decision,
@@ -499,6 +539,7 @@ class _Query:
         }
 
     def _write_dependencies(self, ref: ValueRef) -> tuple[_Dependency, ...]:
+        """列出写口的地址、数据及控制实参；存在真实历史时钟时追加其控制依赖。"""
         operation = self.topology.procedures[int(ref.result.split(':')[1])]
         write = self._memory_write(operation.operands[0], ref.state_id, self._state(ref.state_id))
         dependencies = [
@@ -516,6 +557,7 @@ class _Query:
         return tuple(dependencies)
 
     def _memory_cell(self, identity: str, node: TopologyNode, state: DecodedState) -> tuple[_Dependency, ...]:
+        """核验单个地址的提交值，保留旧值链，并仅为同址有效写入添加写口来源。"""
         saved = self.nodes[identity]
         assert saved.ref.address is not None
         write = self._memory_write(node.signal_id, saved.ref.state_id, state)
@@ -549,6 +591,10 @@ class _Query:
         return tuple(dependencies)
 
     def _read_port(self, identity: str, node: TopologyNode, state: DecodedState) -> tuple[_Dependency, ...]:
+        """解释已支持的 RL0 读口：禁用读核验零值，启用读追溯未变化地址的历史值。
+
+        同次求值有同址有效写入时，快照不足以证明读写顺序，即使新旧值相同也停止。
+        """
         saved, op = self.nodes[identity], node.operation
         assert op is not None
         if (
@@ -638,6 +684,11 @@ class _Query:
         raise TraceError(StopCode.UNSUPPORTED_CLOCK, '时钟不属于已验证的一位输入或 direct/to_clock 连接', signal=signal)
 
     def execute(self, binding: TargetBinding) -> TraceReport:
+        """从已解析目标建立来源图，使用显式深度优先栈保留环和局部停止边界。
+
+        普通不支持项只终止当前分支；预算耗尽或证据冲突终止整体展开，并标记
+        尚未访问的待处理节点。已收集的节点和证据仍进入最终报告。
+        """
         active: set[str] = set()
         try:
             entry, dump = self.run.locate(self.request.observation)
@@ -664,6 +715,7 @@ class _Query:
                 for value in dumped:
                     self._same(self.nodes[self.root].value, self._slice(value, root), 'dump 与保存的目标端口值不一致')
             stack = [(self.root, False)]
+            # 离开标记维护当前路径，与已完成集合分开，避免把共享依赖误判成环。
             while stack:
                 identity, leaving = stack.pop()
                 if leaving:
@@ -698,6 +750,7 @@ class _Query:
         return self.report()
 
     def report(self) -> TraceReport:
+        """汇总图、停止边界、核验工件和成本，并分别给出执行、检查、完整性及查询状态。"""
         rejected = any(item.reason.code in _REJECT for item in self.frontier)
         incomplete = any(item.reason.code == StopCode.INCOMPLETE_EXECUTION for item in self.frontier)
         metadata_invalid = any(item.reason.code == StopCode.METADATA_CORRUPTION for item in self.frontier)

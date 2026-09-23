@@ -53,26 +53,32 @@ class Term:
 
     @property
     def tag(self) -> str:
+        """返回节点类别，如 DV、App 或 Assoc，供结构解码区分形状。"""
         return self.arena[self.index].tag
 
     @property
     def symbol(self) -> str:
+        """返回当前节点的 Kore 构造器符号。"""
         return self.arena[self.index].symbol
 
     @property
     def sorts(self) -> tuple[str, ...]:
+        """返回保留原始 Kore 文本的 sort 参数，避免结构比较丢失类型。"""
         return self.arena[self.index].sorts
 
     @property
     def value(self) -> str | None:
+        """返回 DV/String 的字面值；没有字面值的节点返回 None。"""
         return self.arena[self.index].value
 
     @property
     def args(self) -> tuple[Term, ...]:
+        """为孩子索引创建共享同一 arena 的视图，不递归复制子树。"""
         return tuple(Term(self.arena, index) for index in self.arena[self.index].children)
 
 
 def _shape(message: str, term: Term | None = None, **details: Any) -> TraceError:
+    """构造形状不受支持的停止原因，并附上可定位节点的符号、类型和索引。"""
     if term is not None:
         details.update(symbol=term.symbol, sorts=term.sorts, node=term.index)
     return TraceError(StopCode.UNSUPPORTED_SHAPE, message, **details)
@@ -88,6 +94,7 @@ def unwrap(term: Term) -> Term:
 
 
 def scalar(term: Term, sorts: tuple[str, ...] | None = None) -> str:
+    """去除合法 injection 后读取具体 DV 文本；可要求 sort 与指定类型完全一致。"""
     value = unwrap(term)
     if value.tag != 'DV' or value.value is None or (sorts is not None and value.sorts != sorts):
         raise _shape('需要有明确类型的具体值', term)
@@ -95,6 +102,7 @@ def scalar(term: Term, sorts: tuple[str, ...] | None = None) -> str:
 
 
 def _collection(term: Term, concat: str, empty: str, item: str) -> Iterator[Term]:
+    """迭代展开集合连接构造器并保留元素次序，遇到未知构造器或 sort 参数即拒绝。"""
     pending = [unwrap(term)]
     while pending:
         current = pending.pop()
@@ -111,6 +119,7 @@ def _collection(term: Term, concat: str, empty: str, item: str) -> Iterator[Term
 
 
 def list_items(term: Term) -> tuple[Term, ...]:
+    """解码 K List 为有序元素元组，并验证每个 ListItem 只有一个实参。"""
     result = []
     for item in _collection(term, LIST, LIST_EMPTY, LIST_ITEM):
         if len(item.args) != 1:
@@ -136,6 +145,7 @@ def map_items(term: Term) -> tuple[tuple[Term, Term], ...]:
 
 
 def string_map(term: Term) -> dict[str, Term]:
+    """将 K Map 解码成字符串键映射，拒绝非 String 键及去除 injection 后的重名键。"""
     result = {}
     for key, value in map_items(term):
         name = scalar(key, ('SortString{}',))
@@ -176,6 +186,7 @@ def canonical_digest(term: Term) -> str:
 
 
 def bit_vector(term: Term) -> BitVector:
+    """将具体二态 Bits 的数值和位宽转为 BitVector，未知值形状或非法宽度统一拒绝。"""
     value = unwrap(term)
     if value.symbol != BITS or len(value.args) != 2:
         raise TraceError(StopCode.UNSUPPORTED_VALUE, '值不是受支持的二态 Bits', symbol=value.symbol)
@@ -196,6 +207,7 @@ class Instance:
 
 
 def _term_cells(term: Term) -> dict[str, Term]:
+    """按 cell 构造器名称索引容器的直接孩子，拒绝非 cell 条目和重名 cell。"""
     cells = {}
     for child in term.args:
         if not child.symbol.startswith("Lbl'-LT-'") or not child.symbol.endswith("'-GT-'"):
@@ -208,12 +220,18 @@ def _term_cells(term: Term) -> dict[str, Term]:
 
 
 def _cell_value(cells: dict[str, Term], name: str) -> Term:
+    """提取指定必需 cell 的唯一内容，缺失或实参数量异常时停止。"""
     if name not in cells or len(cells[name].args) != 1:
         raise _shape('必需 cell 缺失或 arity 不受支持', cell=name)
     return cells[name].args[0]
 
 
 def _instances(term: Term) -> tuple[Instance, ...]:
+    """解码硬件实例及其输入输出端口，保留信号引用和完整类型节点。
+
+    严格校验实例 cell 集、Map 键与实例身份，以及端口名称/信号/类型的等长关系，
+    防止 zip 截断或重复身份把损坏元数据变成合法视图。
+    """
     if len(term.args) != 2:
         raise _shape('hw-instances 必须包含实例集合和 setup cell', term)
     collection, setup = term.args
@@ -279,34 +297,42 @@ class DecodedState:
 
     @property
     def signals(self) -> dict[str, Term]:
+        """读取当前状态的信号值映射，值仍为可进一步解码的 Term。"""
         return string_map(self.cells['signals'])
 
     @property
     def history(self) -> dict[str, Term]:
+        """读取当前配置保存的前次信号视图；其真实性仍需与实际前驱核对。"""
         return string_map(self.cells['history'])
 
     @property
     def connection(self) -> dict[str, Term]:
+        """读取信号到驱动操作或别名的连接映射。"""
         return string_map(self.cells['connection'])
 
     @property
     def register(self) -> dict[str, Term]:
+        """读取需从 history 取值的端口登记，包括 firreg 位宽与 firmem 读写延迟。"""
         return string_map(self.cells['register'])
 
     @property
     def register_proc(self) -> dict[str, Term]:
+        """读取 firmem 延迟读端口的 enable、address 和 mode 管线状态。"""
         return string_map(self.cells['register-proc'])
 
     @property
     def procedures(self) -> tuple[Term, ...]:
+        """按原始 List 顺序返回过程定义。"""
         return list_items(self.cells['procedures'])
 
     @property
     def instances(self) -> tuple[Instance, ...]:
+        """按已知 cell 布局解码实例、模块名及输入输出端口绑定。"""
         return _instances(self.cells['hw-instances'])
 
 
 def metadata_differences(setup: DecodedState, state: DecodedState) -> tuple[str, ...]:
+    """比较 setup 与目标状态的只读元数据指纹，返回发生变化的 cell 名称。"""
     return tuple(
         name
         for name in ('connection', 'procedures', 'register', 'hw-instances', 'top-module', 'top-ins')
@@ -315,6 +341,7 @@ def metadata_differences(setup: DecodedState, state: DecodedState) -> tuple[str,
 
 
 def history_matches(predecessor: DecodedState, state: DecodedState) -> bool:
+    """核对当前 history 的结构指纹是否等于给定真实前驱的 signals。"""
     return predecessor.fingerprints['signals'] == state.fingerprints['history']
 
 
@@ -353,9 +380,15 @@ def lexical_precheck(text: str, budget: Budget) -> tuple[int, int]:
 
 
 def _project(root: Pattern) -> tuple[tuple[_Node, ...], dict[str, int]]:
+    """从完整 generatedTop 配置中选择查询所需 cell，投影为扁平 arena 和根索引。
+
+    先校验已知配置布局，再以显式后序栈保留节点类型、sort、字面值和孩子关系；
+    共享节点复用索引，避免深树递归复制或将未知 pattern 静默忽略。
+    """
     from pyk.kore.syntax import DV, App, Assoc, String
 
     def children(parent: Pattern) -> dict[str, Pattern]:
+        """将容器的直接 Kore cell 按名称索引，拒绝未知条目及重复 cell。"""
         result: dict[str, Pattern] = {}
         for child in parent.patterns:
             if not isinstance(child, App) or not child.symbol.startswith("Lbl'-LT-'"):
@@ -401,6 +434,7 @@ def _project(root: Pattern) -> tuple[tuple[_Node, ...], dict[str, int]]:
             if name not in cells:
                 raise _shape('配置缺少必需 cell', cell=name)
             selected[name] = cells[name]
+    # arena 按后序建立，父节点写入时所有孩子索引均已可用。
     roots = {}
     nodes: list[_Node] = []
     indices: dict[int, int] = {}
@@ -438,6 +472,11 @@ def _project(root: Pattern) -> tuple[tuple[_Node, ...], dict[str, int]]:
 
 
 def _decode(text: str, budget: Budget) -> tuple[tuple[_Node, ...], dict[str, Any]]:
+    """在 worker 内解析单个完整 Kore 配置，返回扁平节点及结构/完成状态元数据。
+
+    词法预算检查先于 AST 创建；所有必需集合须通过结构校验。
+    prog、setup、cmd 或 currents 尚有待执行内容时标记 incomplete，不替调用方推断设计正确性。
+    """
     from pyk.kore.parser import KoreParser
 
     ast_nodes, depth = lexical_precheck(text, budget)
@@ -471,18 +510,26 @@ class _HashingInput:
     """哈希与解压消费同一批原始字节，避免先哈希再打开时的混用窗口。"""
 
     def __init__(self, stream: Any, digest: Any) -> None:
+        """绑定压缩原始流及其哈希累加器，让解压与身份校验消费同一份字节。"""
         self.stream, self.digest = stream, digest
 
     def read(self, size: int = -1) -> bytes:
+        """返回顺序读出的原始字节，并把同一批字节累计到工件哈希。"""
         data: bytes = self.stream.read(size)
         self.digest.update(data)
         return data
 
     def seek(self, offset: int, /) -> object:
+        """拒绝回退或重定位，避免重复/遗漏字节破坏压缩工件哈希。"""
         raise OSError('哈希解压流仅允许顺序读取')
 
 
 def _load(path: str, compression: str, budget: Budget, remaining: int, counter: Any) -> tuple[str, str, str]:
+    """按预算读取普通或 gzip 状态，返回 UTF-8 文本、工件哈希与解压内容哈希。
+
+    counter 记录本次实际解压字节，单文件或剩余累计额度超限立即停止；
+    失败时已消费的字节仍可由主进程计费。
+    """
     artifact_hash = hashlib.sha256()
     content_hash = hashlib.sha256()
     blocks = []
@@ -490,6 +537,7 @@ def _load(path: str, compression: str, budget: Budget, remaining: int, counter: 
         stream = gzip.GzipFile(fileobj=_HashingInput(raw, artifact_hash)) if compression == 'gzip' else raw
         try:
             while True:
+                # 最多多读一个字节，用实际读量区分恰好耗尽预算与真正超限。
                 limit = min(_BLOCK_BYTES, budget.max_state_bytes - counter.value + 1, remaining - counter.value + 1)
                 block = stream.read1(max(1, limit))
                 if not block:
@@ -510,6 +558,7 @@ def _load(path: str, compression: str, budget: Budget, remaining: int, counter: 
 
 
 def _send_frame(connection: Connection, message: tuple[Any, ...]) -> None:
+    """以受限大小的 pickle 帧发送本地 worker 消息，超大单值明确拒绝。"""
     payload = pickle.dumps(message, protocol=5)
     if len(payload) > _IPC_BYTES:
         raise TraceError(
@@ -522,6 +571,7 @@ def _send_frame(connection: Connection, message: tuple[Any, ...]) -> None:
 
 
 def _send_error(connection: Connection, error: TraceError) -> None:
+    """发送结构化停止原因；诊断过大时省略细节，保留错误码和截短后的说明。"""
     try:
         _send_frame(connection, ('error', error.code.value, error.message, error.details))
     except TraceError:
@@ -530,6 +580,11 @@ def _send_error(connection: Connection, error: TraceError) -> None:
 
 
 def _worker(connection: Connection, budget: Budget, counter: Any) -> None:
+    """循环接收状态读取请求，校验双层哈希、解析配置并分批返回扁平节点。
+
+    节点帧按 IPC 上限缩小，单节点仍超限则失败；解码异常转换成稳定停止原因。
+    收到结束标记或通信关闭即退出，主进程可在预算到期时直接终止此进程。
+    """
     try:
         while True:
             job = connection.recv()
@@ -598,6 +653,7 @@ class KoreReader:
     """一个查询的读取预算与 worker；失败读取也消耗预算，调用方自行保存 frontier。"""
 
     def __init__(self, budget: Budget | None = None, *, deadline: float | None = None) -> None:
+        """建立单次查询的累计预算与截止时间，解析 worker 延迟到首次读取时启动。"""
         self.budget = budget or Budget()
         self.started_at = time.monotonic()
         self.deadline = min(
@@ -610,16 +666,20 @@ class KoreReader:
         self._counter: Any = None
 
     def __enter__(self) -> KoreReader:
+        """返回当前 reader，以便在上下文结束时自动释放解析进程。"""
         return self
 
     def __exit__(self, *_args: Any) -> None:
+        """无论读取是否抛错，都释放通信管道与解析进程。"""
         self.close()
 
     @property
     def elapsed_seconds(self) -> float:
+        """返回从 reader 创建起计算的单调时钟耗时。"""
         return time.monotonic() - self.started_at
 
     def close(self) -> None:
+        """关闭管道并限时终止 worker；常规终止无效时强制结束，支持重复调用。"""
         if self._connection is not None:
             self._connection.close()
             self._connection = None
@@ -634,6 +694,7 @@ class KoreReader:
             self._process = None
 
     def _start(self) -> None:
+        """首次使用时以 spawn 启动独立解析进程，并建立管道和解压字节共享计数器。"""
         if self._process is not None:
             return
         context = multiprocessing.get_context('spawn')
@@ -652,6 +713,11 @@ class KoreReader:
         artifact_sha256: str | None = None,
         uncompressed_sha256: str | None = None,
     ) -> DecodedState:
+        """在查询预算内读取一个状态，可同时校验工件与解压内容的预期哈希。
+
+        主进程分帧接收视图并持续检查截止时间，超时会终止 worker；
+        成功与失败都累计实际解压字节，已提交的读取也消耗状态次数预算。
+        """
         before = self.read_bytes
         if time.monotonic() >= self.deadline:
             raise TraceError(StopCode.TIME_BUDGET, '查询读取时间预算已耗尽', read_bytes=0)
@@ -716,4 +782,5 @@ class KoreReader:
             error.details.update(read_bytes=self._counter.value, total_read_bytes=before + self._counter.value)
             raise
         finally:
+            # worker 失败或被终止后，共享计数器仍保留本次已消费的解压字节。
             self.read_bytes = before + self._counter.value

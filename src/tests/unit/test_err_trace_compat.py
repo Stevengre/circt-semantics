@@ -13,6 +13,7 @@ from kcirct.err_trace import KErrTrace, PathEdge, PathNode
 
 
 def _graph(target: str, source: str) -> KErrTrace:
+    """构造仅含目标、来源及 direct 连接的独立静态图，供实例隔离测试复用。"""
     trace = KErrTrace()
     trace.node_map[target] = PathNode(target)
     trace.build_edge(target, source, 'direct')
@@ -20,6 +21,7 @@ def _graph(target: str, source: str) -> KErrTrace:
 
 
 def test_fresh_instances_do_not_share_graph_or_query_annotations() -> None:
+    """验证图结构、差异列表和名称映射均由实例独占，新建或修改第二个实例不污染第一个。"""
     first = _graph('first/out', 'first/in')
     first.differenes.append('first/out')
     first.signal_port_mapping['first/result'] = 'first/out'
@@ -36,6 +38,7 @@ def test_fresh_instances_do_not_share_graph_or_query_annotations() -> None:
 
 
 def test_loading_same_json_does_not_share_nodes_or_edges(tmp_path: Path) -> None:
+    """验证从同一 JSON 加载的图互不共享可变节点或边，并保持旧格式的序列化结果。"""
     original = _graph('top/out', 'top/in')
     saved = tmp_path / 'graph.json'
     original.save_to_json(saved)
@@ -54,6 +57,7 @@ def test_loading_same_json_does_not_share_nodes_or_edges(tmp_path: Path) -> None
 
 
 def test_legacy_mapping_remains_last_alias_and_instance_local(tmp_path: Path) -> None:
+    """验证旧别名映射仍保留同一信号的最后一个名称，且映射不会泄漏到其他实例。"""
     # 只构造旧名称读取器消费的 cell，不伪装成一次真实仿真状态。
     mapping = tmp_path / 'names.kore'
     mapping.write_text(
@@ -80,6 +84,7 @@ def test_legacy_mapping_remains_last_alias_and_instance_local(tmp_path: Path) ->
 def test_constructor_does_not_create_or_overwrite_logs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_log: bool
 ) -> None:
+    """验证构造及默认日志输出不创建或覆盖 txt.log，也不向全局 Logger 注册表写入实例。"""
     monkeypatch.chdir(tmp_path)
     logfile = tmp_path / 'txt.log'
     if existing_log:
@@ -98,6 +103,7 @@ def test_constructor_does_not_create_or_overwrite_logs(
 
 
 def test_explicit_log_handler_does_not_receive_other_instance_records() -> None:
+    """验证调用者显式挂载的 handler 只收到所属 KErrTrace 实例的记录。"""
     first, second = KErrTrace(), KErrTrace()
     output = io.StringIO()
     handler = logging.StreamHandler(output)
@@ -112,6 +118,7 @@ def test_explicit_log_handler_does_not_receive_other_instance_records() -> None:
 
 
 def test_alternating_static_queries_keep_graphs_and_differences_separate(tmp_path: Path) -> None:
+    """交替查询两张图，验证查询结果可重复且差异标记、节点名称不串入另一实例。"""
     first = _graph('first/out', 'first/in')
     second = _graph('second/out', 'second/in')
     first.differenes.append('first/in')
@@ -128,6 +135,7 @@ def test_alternating_static_queries_keep_graphs_and_differences_separate(tmp_pat
 
 
 def test_legacy_node_and_edge_json_fields_are_unchanged() -> None:
+    """验证 PathNode 与 PathEdge 的旧 JSON 字段及取值可无损往返。"""
     node = {
         'edges_in': [0],
         'edges_out': [1],

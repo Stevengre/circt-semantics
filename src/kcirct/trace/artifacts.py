@@ -48,7 +48,10 @@ def exact_time(value: int, unit: str) -> int:
 
 
 def _json(text: str) -> Any:
+    """严格读取工件 JSON；拒绝重复键、非有限数以及无法解析的输入。"""
+
     def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
+        """在字典构造前检查重复字段，避免后值覆盖原始证据。"""
         result: dict[str, Any] = {}
         for key, value in items:
             if key in result:
@@ -57,6 +60,7 @@ def _json(text: str) -> Any:
         return result
 
     def nonfinite(value: str) -> Any:
+        """将 JSON 扩展常量 NaN/Infinity 统一拒绝为非法输入。"""
         raise TraceError(StopCode.INVALID_INPUT, 'JSON 包含非有限数', value=value)
 
     try:
@@ -71,6 +75,10 @@ class RunArtifacts:
     def __init__(
         self, path: Path, manifest: RunManifest, reader: KoreReader, relocations: dict[str, Path], manifest_sha256: str
     ) -> None:
+        """绑定单次查询的 manifest、reader 与重定位规则，并立即核验索引。
+
+        缓存和审计记录仅属于当前运行；传入的 manifest 哈希作为后续防变更检查的基准。
+        """
         self.path = path
         self.manifest = manifest
         self.reader = reader
@@ -97,7 +105,11 @@ class RunArtifacts:
         relocations: dict[str, Path] | None = None,
         normalization_output: Path | None = None,
     ) -> RunArtifacts:
-        """接受新 manifest 或旧 simulate v1 result；旧规范化只写入新目录。"""
+        """打开 manifest、引用它的 result，或将旧 simulate v1 result 规范化后打开。
+
+        入口与重定位目标先归一成绝对路径；旧格式必须写入调用方指定的新目录。
+        任何初始化失败都会关闭本次 reader，防止解析 worker 泄漏。
+        """
         path = Path(path).expanduser().resolve()
         reader = KoreReader(budget)
         mapping = {key: Path(value).expanduser().resolve() for key, value in (relocations or {}).items()}
@@ -127,18 +139,22 @@ class RunArtifacts:
             raise
 
     def __enter__(self) -> RunArtifacts:
+        """返回当前查询上下文，由退出上下文时统一释放 reader。"""
         return self
 
     def __exit__(self, *_args: Any) -> None:
+        """无论查询是否成功，都关闭 reader 并释放本次查询缓存。"""
         self.close()
 
     def close(self) -> None:
+        """停止解析 worker，清空解码缓存及当前缓存用量。"""
         self.reader.close()
         self._cache.clear()
         self.cache_bytes = 0
 
     @staticmethod
     def _text(path: Path, limit: int) -> str:
+        """在字节上限内读取 UTF-8 JSON，并区分超限、缺失与编码错误。"""
         try:
             with path.open('rb') as stream:
                 data = stream.read(limit + 1)
@@ -151,20 +167,27 @@ class RunArtifacts:
             raise TraceError(StopCode.INVALID_INPUT, 'JSON 工件不是 UTF-8', path=str(path)) from error
 
     def _deadline(self) -> None:
+        """让工件核验与 Kore 解析共享同一查询截止时间。"""
         if time.monotonic() >= self.reader.deadline:
             raise TraceError(StopCode.TIME_BUDGET, '工件校验已到查询截止时间')
 
     def _hash(self, path: Path) -> str:
+        """分块计算文件哈希，并在每次读取前检查查询时间预算。"""
         return _hash_file(path, self._deadline)
 
     def _unchanged(self) -> None:
+        """重新核验 manifest 与状态索引，阻止文件变更后复用先前证据。"""
         if self._hash(self.path) != self.manifest_sha256:
             raise TraceError(StopCode.HASH_MISMATCH, '读取期间 manifest 内容发生变化', path=str(self.path))
         if self.manifest.state_index is not None:
             self.resolve(self.manifest.state_index)
 
     def resolve(self, ref: ArtifactRef, *, carrier: Path | None = None) -> Path:
-        """相对于承载引用的 JSON 解析路径；默认载体为本次 manifest。"""
+        """相对承载引用的 JSON 定位工件，并验证登记的大小与 SHA-256。
+
+        默认载体为当前 manifest；显式重定位只改变读取位置，审计仍记录原声明路径。
+        缺失或内容不符时立即停止，不把同名文件作为替代证据。
+        """
         self._deadline()
         declared_path = (carrier or self.path).absolute().parent / ref.path
         path = _relocated(declared_path, ref.path, self.relocations)
@@ -178,12 +201,18 @@ class RunArtifacts:
         return path
 
     def verify_artifact(self, key: str) -> Path:
+        """重新核验运行元数据后，读取并验证 manifest 中指定键对应的工件。"""
         self._unchanged()
         if key not in self.manifest.artifacts:
             raise TraceError(StopCode.MISSING_ARTIFACT, 'manifest 未登记所需工件', artifact=key)
         return self.resolve(self.manifest.artifacts[key])
 
     def _load_index(self) -> None:
+        """读取有总量和单行上限的 JSONL 索引，建立状态与 dump 的唯一身份表。
+
+        未保留索引只记录缺口；重复身份、未登记工件及 dump 位置不一致均直接拒绝。
+        解析后再次校验索引哈希，避免读取途中被替换。
+        """
         if self.manifest.state_index is None:
             self.issues.append(StopReason(StopCode.NOT_RETAINED, '运行未记录状态索引'))
             return
@@ -237,6 +266,7 @@ class RunArtifacts:
 
     @property
     def setup_id(self) -> str:
+        """返回唯一 setup 状态身份；缺失或不唯一时拒绝建立元数据基准。"""
         setups = [entry.state_id for entry in self.states.values() if entry.phase == 'setup']
         if len(setups) != 1:
             raise TraceError(StopCode.MISSING_ARTIFACT, '查询需要唯一的 setup 状态', candidates=setups)
@@ -244,6 +274,7 @@ class RunArtifacts:
 
     @property
     def cost(self) -> QueryCost:
+        """汇总 reader 的累计读取开销和当前查询的缓存峰值。"""
         return QueryCost(
             elapsed_seconds=self.reader.elapsed_seconds,
             states_read=self.reader.states_read,
@@ -253,6 +284,7 @@ class RunArtifacts:
 
     @property
     def audit(self) -> dict[str, Any]:
+        """导出本次实际核验的状态、连续历史边和工件，明确证据覆盖范围。"""
         return {
             'states': dict(self.checked_states),
             'history_edges': [list(edge) for edge in sorted(self.checked_history)],
@@ -263,6 +295,11 @@ class RunArtifacts:
         }
 
     def _state(self, state_id: str) -> tuple[StateIndexEntry, DecodedState]:
+        """取得已保留且求值完成的状态，返回索引记录与解码视图。
+
+        命中缓存前仍核验文件身份；缓存键同时绑定压缩工件和原始内容哈希。
+        超出缓存预算的视图只返回而不缓存，已有视图按 LRU 淘汰；不完整状态拒绝使用。
+        """
         self._unchanged()
         entry = self.states.get(state_id)
         if entry is None:
@@ -279,6 +316,7 @@ class RunArtifacts:
         if entry.content_sha256 is not None and entry.content_sha256 != content_hash:
             raise TraceError(StopCode.HASH_MISMATCH, '索引与状态工件的原始哈希不一致', state_id=state_id)
         assert content_hash is not None
+        # 只按原始内容摘要命中会跳过另一个 gzip 文件的解压核验，必须同时绑定两层身份。
         cache_key = ref.sha256 + ':' + content_hash
         decoded = self._cache.get(cache_key)
         if decoded is not None:
@@ -309,7 +347,11 @@ class RunArtifacts:
         return entry, decoded
 
     def read_state(self, state_id: str) -> DecodedState:
-        """原记录未知时做本次终态审计，保留原记录；不推断全运行都完成。"""
+        """读取状态并与 setup 的只读元数据比较，将核验结果记入本次审计。
+
+        原记录未知时只补充本次观察到的完成证据，不改写原记录或推断整个运行完成。
+        非 setup 状态必须先通过唯一 setup 基准的同样核验。
+        """
         entry, decoded = self._state(state_id)
         if entry.phase != 'setup':
             setup_entry, setup = self._state(self.setup_id)
@@ -336,7 +378,11 @@ class RunArtifacts:
         return decoded
 
     def predecessor(self, state_id: str) -> DecodedState:
-        """只有明确连续的位置和 history/signals 相符才建立历史边。"""
+        """返回已证明连续的真实前驱，并核对当前 history 与前驱 signals。
+
+        同事件检查 evaluation 相邻，跨事件需要协议声明每次输入的求值次数。
+        到达 setup、历史缺失或证据冲突即停止，只有全部核验成功才登记历史边。
+        """
         current = self.read_state(state_id)
         entry = self.states[state_id]
         if entry.phase == 'setup':
@@ -351,6 +397,7 @@ class RunArtifacts:
         elif entry.event_index == previous.event_index:
             contiguous = entry.evaluation == (previous.evaluation or 0) + 1
         elif type(evaluations) is int and evaluations > 0:
+            # 跨输入事件只在已知上一事件求值总次数时才能证明没有漏掉中间状态。
             contiguous = (
                 previous.evaluation == evaluations
                 and entry.evaluation == 1
@@ -375,7 +422,11 @@ class RunArtifacts:
         return predecessor
 
     def locate(self, observation: Observation) -> tuple[StateIndexEntry, DumpIndexEntry | None]:
-        """返回唯一的实际保存位置；sample 必须先经 ObservationMap 显式映射。"""
+        """按阶段、身份、事件/求值位置和精确物理时间筛出唯一索引记录。
+
+        返回状态及可选 dump；sample 序号本身不能证明位置，需先通过显式映射补充条件。
+        无匹配或多匹配统一返回观测歧义，不猜测最近状态。
+        """
         candidates: list[tuple[StateIndexEntry, DumpIndexEntry | None]] = []
         if observation.phase == 'dump':
             for dump in self.dumps.values():
@@ -416,6 +467,7 @@ class RunArtifacts:
 
 
 def _hash_file(path: Path, check_deadline: Callable[[], None]) -> str:
+    """逐块计算 SHA-256，每块前调用截止时间检查，并将读取失败转为工件缺失。"""
     digest = hashlib.sha256()
     try:
         with path.open('rb') as stream:
@@ -431,6 +483,7 @@ def _hash_file(path: Path, check_deadline: Callable[[], None]) -> str:
 
 
 def _relocated(path: Path, relative: str, relocations: dict[str, Path]) -> Path:
+    """优先匹配完整引用键，否则使用最长绝对目录前缀重定位，未命中则保留原路径。"""
     if relative in relocations:
         return relocations[relative]
     absolute = Path(os.path.abspath(path))
@@ -448,6 +501,11 @@ def _relocated(path: Path, relative: str, relocations: dict[str, Path]) -> Path:
 def _normalize_legacy(
     source: Path, document: Any, output: Path, relocations: dict[str, Path], reader: KoreReader
 ) -> Path:
+    """仅依据旧 simulate v1 明确记录的身份和哈希，在新目录生成 trace manifest。
+
+    保留材料缺失及未审计状态；不读取滚动文件来补历史，不从失败位置猜测 last-state 身份。
+    只有协议充分时才建立跨事件前驱和 dump 边界，原运行文件保持只读。
+    """
     if (
         not isinstance(document, dict)
         or type(document.get('schema_version')) is not int
@@ -461,6 +519,7 @@ def _normalize_legacy(
         raise TraceError(StopCode.INVALID_INPUT, '规范化输出目录必须新建，不能覆盖已有材料', path=str(output))
 
     def deadline() -> None:
+        """将旧格式工件核验和规范化写入纳入当前 reader 的时间预算。"""
         if time.monotonic() >= reader.deadline:
             raise TraceError(StopCode.TIME_BUDGET, '旧材料规范化已到截止时间')
 
@@ -468,6 +527,10 @@ def _normalize_legacy(
     limitations: list[str] = ['旧运行没有逐求值完成审计；本次读取时另行校验，原记录保持 not_checked']
 
     def register(key: str, path: Path, role: str, digest: str | None = None, raw_hash: str | None = None) -> str | None:
+        """登记可用旧工件的相对路径、大小及哈希；缺失材料记录限制并返回 None。
+
+        旧 result 的文件摘要必须匹配；gzip 状态另保留旧索引声明的原始内容哈希，待解码时核验。
+        """
         relocated = _relocated(path, str(path), relocations)
         if not relocated.is_file():
             limitations.append(f'缺少旧工件：{key}')
@@ -573,6 +636,7 @@ def _normalize_legacy(
                 )
     elif document.get('last_state'):
         limitations.append('失败旧运行的 last-state 位置未经记录，未用失败调用位置猜测其身份')
+    # 这里只保存可推导的位置关系；前驱是否归档、内容是否衔接仍由查询时验证。
     for position, entry in list(entries.items()):
         event, evaluation = position
         predecessor = None

@@ -48,15 +48,18 @@ PROFILE = SemanticsProfile('synthetic-test-rules', 'synthetic-test-definition', 
 
 
 def item(value: str, sort: str = 'String') -> Pattern:
+    """将指定 sort 的域值注入 KItem，构造独立 KORE 夹具需要的原子项。"""
     source = SortApp('Sort' + sort)
     return inj(source, SORT_K_ITEM, DV(source, String(value)))
 
 
 def bits(value: int, width: int = 8) -> Pattern:
+    """按值与位宽构造原生 Bits term，保存用例给定的精确整数值。"""
     return App(BITS, args=(DV(SortApp('SortInt'), String(str(value))), DV(SortApp('SortInt'), String(str(width)))))
 
 
 def types(*widths: int) -> Pattern:
+    """将给定整数位宽按输入顺序编码为 StdFT 使用的 Types 链表。"""
     result = App(
         "Lbl'Stop'List'LBraQuotUndsCommUndsUnds'MLIR-SYNTAX'Unds'Types'Unds'Type'Unds'Types'QuotRBraUnds'Types"
     )
@@ -69,6 +72,7 @@ def types(*widths: int) -> Pattern:
 
 
 def op(name: str, operands: tuple[str, ...], widths: tuple[int, ...], output: int = 8, **attributes: int) -> Pattern:
+    """构造带字符串操作数、整数属性和单整数返回类型的 StdOp 夹具。"""
     return App(
         "Lbl'UndsLParUndsRParLBraUndsRBraColnUndsUnds'MLIR-HELPER-SYNTAX'Unds'StdOp'Unds'String'Unds'List'Unds'Map'Unds'StdFT",
         args=(
@@ -84,9 +88,11 @@ def op(name: str, operands: tuple[str, ...], widths: tuple[int, ...], output: in
 
 
 def state_text(replacements: dict[str, Pattern]) -> str:
+    """替换最小状态夹具中指定 cell 的内容，保留其他配置并序列化为 KORE。"""
     root = KoreParser(FIXTURE.read_text()).pattern()
 
     def change(node: Pattern) -> Pattern:
+        """在自底向上遍历中替换命中的 cell 内容，同时保留该 cell 的原始标签。"""
         if isinstance(node, App):
             for name, value in replacements.items():
                 if node.symbol == "Lbl'-LT-'" + name + "'-GT-'":
@@ -97,12 +103,14 @@ def state_text(replacements: dict[str, Pattern]) -> str:
 
 
 def artifact(path: Path, root: Path, role: str = 'state') -> ArtifactRef:
+    """依据实际文件字节构造相对路径、角色、哈希和长度齐备的工件引用。"""
     return ArtifactRef(
         role, path.relative_to(root).as_posix(), hashlib.sha256(path.read_bytes()).hexdigest(), path.stat().st_size
     )
 
 
 def publish(root: Path, texts: list[str], *, run_id: str = 'small-run', evaluations: int = 1) -> Path:
+    """将 setup 和后续状态写成可读取运行，建立连续前驱、求值位置、哈希及 manifest。"""
     root.mkdir(exist_ok=True)
     artifacts = {}
     entries: list[StateIndexEntry] = []
@@ -148,6 +156,7 @@ def small_run(
     cycle: bool = False,
     unknown: bool = False,
 ) -> Path:
+    """构造 mux 加输出别名的小运行，可独立注入错值、缺值、环和未知操作。"""
     selected = 7 if selector else other
     signals = {
         'Demo/%a': bits(7),
@@ -182,6 +191,7 @@ def small_run(
 def execute(
     path: Path, *, budget: Budget | None = None, target: str = 'Demo/result', window: QueryWindow | None = None
 ) -> TraceReport:
+    """用合成测试规则执行首个求值状态的信号查询，透传预算与事件窗口。"""
     request = QueryRequest(
         Target('signal', name=target),
         Observation('post_eval', state_id='state1', evaluation=1),
@@ -194,6 +204,7 @@ def execute(
 
 
 def test_saved_values_actual_mux_and_candidate_edges(tmp_path: Path) -> None:
+    """验证来源图区分别名、控制、选中数据及未展开候选，并保留保存值和核验工件。"""
     report = execute(small_run(tmp_path))
     assert report.status.query == 'complete'
     assert report.status.design_check == 'not_run'
@@ -209,6 +220,7 @@ def test_saved_values_actual_mux_and_candidate_edges(tmp_path: Path) -> None:
 
 
 def test_selector_and_unused_input_variants_are_independent(tmp_path: Path) -> None:
+    """验证未选输入变化不影响结果，selector 切换影响结果，重复查询也不互相污染。"""
     first = execute(small_run(tmp_path / 'first', other=17))
     second = execute(small_run(tmp_path / 'second', other=28))
     changed = execute(small_run(tmp_path / 'changed', selector=0, other=28))
@@ -231,6 +243,7 @@ def test_selector_and_unused_input_variants_are_independent(tmp_path: Path) -> N
 def test_saved_missing_mismatch_cycle_and_unknown(
     tmp_path: Path, options: dict[str, bool], code: StopCode, status: str
 ) -> None:
+    """验证错值、缺值、依赖环和未知操作各自生成准确的查询状态及停止码。"""
     report = execute(small_run(tmp_path, **options))
     assert report.status.query == status
     assert code in {item.reason.code for item in report.frontier}
@@ -239,6 +252,7 @@ def test_saved_missing_mismatch_cycle_and_unknown(
 
 
 def test_node_and_state_budgets_keep_frontier(tmp_path: Path) -> None:
+    """验证节点或状态预算耗尽后保留已有图和明确停止边界。"""
     path = small_run(tmp_path)
     report = execute(path, budget=Budget(max_nodes=2))
     assert report.status.query == 'partial'
@@ -249,12 +263,14 @@ def test_node_and_state_budgets_keep_frontier(tmp_path: Path) -> None:
 
 
 def test_window_does_not_explain_outside_observation(tmp_path: Path) -> None:
+    """验证观测位置位于请求窗口外时直接留下窗口停止原因。"""
     report = execute(small_run(tmp_path), window=QueryWindow(first_event=1))
     assert report.status.query == 'partial'
     assert report.frontier[0].reason.code == StopCode.WINDOW_BOUNDARY
 
 
 def test_public_query_does_not_trust_same_operation_names(tmp_path: Path) -> None:
+    """验证公开查询拒绝没有源码身份绑定的合成规则，即使操作名称已知。"""
     path = small_run(tmp_path)
     request = QueryRequest(
         Target('signal', name='Demo/result'), Observation('post_eval', state_id='state1', evaluation=1)
@@ -267,6 +283,7 @@ def test_public_query_does_not_trust_same_operation_names(tmp_path: Path) -> Non
 
 
 def test_query_does_not_change_original_artifacts(tmp_path: Path) -> None:
+    """验证执行查询前后所有原始运行文件的内容哈希保持一致。"""
     path = small_run(tmp_path)
     before = {file.name: hashlib.sha256(file.read_bytes()).hexdigest() for file in tmp_path.iterdir()}
     execute(path)
@@ -274,6 +291,7 @@ def test_query_does_not_change_original_artifacts(tmp_path: Path) -> None:
 
 
 def test_deadline_keeps_explicit_reason(tmp_path: Path) -> None:
+    """验证执行器截止时间已过时仍通过报告返回明确的超时停止码。"""
     path = small_run(tmp_path)
     request = QueryRequest(
         Target('signal', name='Demo/result'), Observation('post_eval', state_id='state1', evaluation=1)
@@ -287,6 +305,7 @@ def test_deadline_keeps_explicit_reason(tmp_path: Path) -> None:
 
 
 def test_source_identity_cannot_be_asserted_by_status_field(tmp_path: Path) -> None:
+    """验证 manifest 自称 verified 不能替代语义源码与编译定义的实际身份核验。"""
     path = small_run(tmp_path)
     manifest = RunManifest.from_json(path.read_text())
     path.write_text(replace(manifest, identities={'semantics_binding': {'status': 'verified'}}).to_json())
@@ -298,6 +317,7 @@ def test_source_identity_cannot_be_asserted_by_status_field(tmp_path: Path) -> N
 
 
 def test_bit_range_keeps_full_value_source(tmp_path: Path) -> None:
+    """验证切片根节点返回正确位值，并继续连接到同一信号的完整值来源。"""
     path = small_run(tmp_path)
     request = QueryRequest(
         Target('signal', name='Demo/result', bit_range=BitRange(1, 3)),
@@ -313,6 +333,7 @@ def test_bit_range_keeps_full_value_source(tmp_path: Path) -> None:
 
 
 def test_normalized_check_matches_short_observation_and_alias(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """验证检查和查询使用不同位置写法及目标别名时，规范化后仍能绑定同一观察。"""
     path = small_run(tmp_path)
     query_module = importlib.import_module('kcirct.trace.query')
     monkeypatch.setattr(query_module, 'bind_semantics', lambda run: PROFILE)
@@ -335,6 +356,7 @@ def test_normalized_check_matches_short_observation_and_alias(tmp_path: Path, mo
 
 
 def _test_profile_bundle(path: Path, monkeypatch: pytest.MonkeyPatch, *, legacy: bool = False) -> None:
+    """构造受测试替换规则表认可的源码与定义工件；legacy 模式额外写入伪造历史构建记录。"""
     source, definition = path.parent / 'rules.md', path.parent / 'definition.kore'
     source.write_text('independent test rule identity')
     definition.write_text('independent test definition identity')
@@ -356,6 +378,7 @@ def _test_profile_bundle(path: Path, monkeypatch: pytest.MonkeyPatch, *, legacy:
 
 
 def test_profile_requires_actual_source_and_compiled_bytes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """验证真实源码及定义可绑定解释器，源码内容随后变化会触发哈希冲突。"""
     path = small_run(tmp_path)
     _test_profile_bundle(path, monkeypatch)
     with RunArtifacts.open(path) as run:
@@ -367,6 +390,7 @@ def test_profile_requires_actual_source_and_compiled_bytes(tmp_path: Path, monke
 
 
 def test_forged_original_build_records_are_not_provenance(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """验证内容看似一致的伪造历史构建记录不能替代受认可的原始来源记录。"""
     path = small_run(tmp_path)
     _test_profile_bundle(path, monkeypatch, legacy=True)
     with RunArtifacts.open(path) as run, pytest.raises(TraceError) as caught:

@@ -35,11 +35,13 @@ if TYPE_CHECKING:
 
 
 def _deadline(run: RunArtifacts) -> None:
+    """在检查导入的循环和文件读取边界检查共享截止时间，超时立即停止。"""
     if time.monotonic() >= run.reader.deadline:
         raise TraceError(StopCode.TIME_BUDGET, '检查导入达到查询截止时间')
 
 
 def _slice(vector: BitVector, target: Target) -> BitVector:
+    """按目标的闭合位区间截取已保存值；无区间时保留原值，超出位宽则拒绝。"""
     if target.bit_range is None:
         return vector
     interval = target.bit_range
@@ -50,7 +52,11 @@ def _slice(vector: BitVector, target: Target) -> BitVector:
 
 
 def observed_value(run: RunArtifacts, topology: TraceTopology, target: Target, observation: Observation) -> BitVector:
-    """读取指定位置的保存值，同时核对该信号所有已保存 dump 别名。"""
+    """读取目标在指定观测位置的实际保存值，并按需截取位区间。
+
+    首先固定运行与状态身份；存储单元按地址唯一取值，普通信号核对已保存的 dump 别名。
+    写口、缺值、位宽冲突及 dump 与状态不一致均明确报错，不推算替代实际值。
+    """
     _deadline(run)
     if topology.run_id != run.manifest.run_id:
         raise TraceError(StopCode.IDENTITY_MISMATCH, '检查使用的拓扑属于另一运行')
@@ -73,6 +79,7 @@ def observed_value(run: RunArtifacts, topology: TraceTopology, target: Target, o
         vector = bit_vector(value)
     if binding.width is not None and binding.width != vector.width:
         raise TraceError(StopCode.OBSERVATION_MISMATCH, '观测值位宽与目标类型不一致', target_id=binding.target_id)
+    # dump 只是已保存状态的另一种表示；任何同信号别名冲突都不能作为有效观测。
     if dump is not None and binding.kind != 'memory_cell':
         for alias in binding.aliases:
             if alias in dump.values and dump.values[alias] != vector:
@@ -86,6 +93,7 @@ def observed_value(run: RunArtifacts, topology: TraceTopology, target: Target, o
 
 
 def _normalized_observation(run: RunArtifacts, observation: Observation) -> Observation:
+    """将观测选择条件解析到唯一状态和可选 dump，补全运行实际保存的位置字段。"""
     entry, dump = run.locate(observation)
     return replace(
         observation,
@@ -101,7 +109,11 @@ def _normalized_observation(run: RunArtifacts, observation: Observation) -> Obse
 def normalize_check(
     run: RunArtifacts, topology: TraceTopology, record: CheckRecord, *, carrier: Path | None = None
 ) -> CheckRecord:
-    """校验测试侧记录；性质文本只保留，不作为脚本或新的 oracle 执行。"""
+    """校验检查的运行身份、实际值与来源文件，返回绑定真实观测后的记录。
+
+    来源相对 carrier（缺省为运行 manifest）解析；缺失时尝试显式文件或最长目录前缀重定位。
+    性质文本仅作为来源描述保留，不执行为脚本，也不据此生成新的预期值。
+    """
     if record.run_id != run.manifest.run_id:
         raise TraceError(StopCode.IDENTITY_MISMATCH, '检查记录属于另一运行')
     actuals = [observed_value(run, topology, target, record.observation) for target in record.targets]
@@ -123,6 +135,7 @@ def normalize_check(
             if replacement is not None:
                 path = replacement
             else:
+                # 目录整体搬迁时优先采用最长匹配前缀，避免较宽泛映射遮蔽具体路径。
                 prefixes = [
                     (Path(key), value)
                     for key, value in run.relocations.items()
@@ -144,6 +157,7 @@ def normalize_check(
 
 
 def _file_digest(run: RunArtifacts, path: Path) -> str:
+    """受查询截止时间约束地分块计算来源文件哈希，读取失败报告工件缺失。"""
     digest = hashlib.sha256()
     try:
         with path.open('rb') as stream:
@@ -159,6 +173,7 @@ def _file_digest(run: RunArtifacts, path: Path) -> str:
 
 
 def _expected_text(run: RunArtifacts, path: Path) -> tuple[str, str]:
+    """在单文件字节上限内读取预期工件，返回 UTF-8 文本及对应原始字节哈希。"""
     _deadline(run)
     try:
         with path.open('rb') as stream:
@@ -174,6 +189,11 @@ def _expected_text(run: RunArtifacts, path: Path) -> tuple[str, str]:
 
 
 def _validate_map(run: RunArtifacts, topology: TraceTopology, observations: ObservationMap, format: str) -> None:
+    """校验观测映射的信号声明、比较掩码和格式特有的采样契约。
+
+    每个运行位置只能映射一次；CSV 使用唯一数据行号，VCD 使用带单位的唯一物理时刻。
+    信号名、列映射、位宽和方向必须与实际拓扑一致，空映射或歧义均拒绝。
+    """
     if observations.run_id != run.manifest.run_id:
         raise TraceError(StopCode.IDENTITY_MISMATCH, 'ObservationMap 属于另一运行')
     names = [signal.name for signal in observations.signals]
@@ -210,6 +230,7 @@ def _validate_map(run: RunArtifacts, topology: TraceTopology, observations: Obse
             StopCode.INVALID_INPUT,
             'CSV 必须声明 sample_index=zero_based_data_row、value_format 和 missing_values=reject',
         )
+    # 运行位置和外部采样编号分别去重，防止两端任意一端出现多义映射。
     positions: set[tuple[str, str | None]] = set()
     samples: set[int] = set()
     times: set[int] = set()
@@ -236,6 +257,10 @@ def _validate_map(run: RunArtifacts, topology: TraceTopology, observations: Obse
 
 
 def _csv_values(run: RunArtifacts, text: str, observations: ObservationMap) -> dict[tuple[int, str], BitVector]:
+    """按已校验的列映射和整数进制读取 CSV，只为指定数据行返回信号值。
+
+    所有行必须与表头列数一致；被采样行拒绝空值、未知值及越界整数，缺少请求行也报错。
+    """
     rows = csv.reader(io.StringIO(text), skipinitialspace=True)
     first = next(rows, None)
     if first is None:
@@ -272,6 +297,11 @@ def _csv_values(run: RunArtifacts, text: str, observations: ObservationMap) -> d
 
 
 def _vcd_values(text: str, observations: ObservationMap) -> dict[tuple[int, str], BitVector]:
+    """按明确物理时间读取 VCD 的最近一次已定义值，返回映射序号与信号对应的二态向量。
+
+    时刻必须落在整数 tick 且不超过保存范围；完整信号名、位宽及变更时间序列均需匹配。
+    尚未定义的值、重复变更时刻及 X/Z 不进行补齐或猜测。
+    """
     try:
         waveform = VCDVCD(vcd_string=text, signals=list(observations.columns.values()))
         magnitude = str(waveform.timescale['magnitude'])
@@ -298,6 +328,7 @@ def _vcd_values(text: str, observations: ObservationMap) -> dict[tuple[int, str]
             changes = data.tv
             if any(left[0] >= right[0] for left, right in zip(changes, changes[1:], strict=False)):
                 raise TraceError(StopCode.AMBIGUOUS_OBSERVATION, 'VCD 同一信号的变更时刻重复或不递增', signal=reference)
+            # VCD 变更值持续有效到下一次变更；取不晚于观测 tick 的最后一项。
             cursor = bisect_right([change[0] for change in changes], tick) - 1
             if cursor < 0:
                 raise TraceError(StopCode.MISSING_VALUE, 'VCD 在指定时刻尚无已定义值', signal=reference)
@@ -317,7 +348,11 @@ def import_checks(
     *,
     carrier: Path | None = None,
 ) -> tuple[CheckRecord, ...]:
-    """只对显式映射的实际观测生成真实差异；没有差异时返回空集。"""
+    """比较显式采样位置上的实际值与独立预期，仅为掩码内的真实差异生成检查记录。
+
+    检查 ID 由运行、映射和预期文件身份确定；记录保留来源列、采样位置及生成方式。
+    返回前重新核对预期文件哈希，拒绝读取期间被替换的来源；无差异时返回空元组。
+    """
     if format not in {'csv', 'vcd'}:
         raise TraceError(StopCode.INVALID_INPUT, '检查导入格式必须是 csv 或 vcd')
     _validate_map(run, topology, observations, format)
@@ -343,6 +378,7 @@ def import_checks(
             difference = actual.unsigned ^ left.unsigned
             if not (difference if mask is None else difference & mask.unsigned):
                 continue
+            # 稳定 ID 绑定来源字节和映射身份，保证重新导入时能够逐条复核检查包。
             identity = f'{run.manifest.run_id}:{map_hash}:{digest}:{index}:{signal.name}'
             results.append(
                 CheckRecord(
