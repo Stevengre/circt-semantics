@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "target": "TraceSimulation/result",
+  "observation": {
+    "phase": "dump",
+    "event_index": 4,
+    "evaluation": 2
+  },
+  "value": {
+    "width": 8,
+    "value": 1
+  },
+  "commit": {
+    "state_id": "event-3.eval-1",
+    "decision": "capture_next",
+    "old": 0,
+    "next": 1
+  }
+}
