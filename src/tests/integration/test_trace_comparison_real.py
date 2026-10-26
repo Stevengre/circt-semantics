@@ -92,8 +92,14 @@ def test_real_equal_outputs_preserve_control_selection_difference(tmp_path: Path
         )
         request = PairRequest(query, query, mappings)
         (tmp_path / f'request-{event}.json').write_text(request.to_json())
-        report = compare_runs(TraceRun.open(paths[0]), request, right=TraceRun.open(paths[1]), contract=contract)
-        (tmp_path / f'pair-{event}.json').write_text(report.to_json())
+        carrier = tmp_path / f'pair-{event}.json'
+        report = compare_runs(
+            TraceRun.open(paths[0]), request, right=TraceRun.open(paths[1]), contract=contract, carrier=carrier
+        )
+        carrier.write_text(report.to_json())
+        assert (carrier.parent / report.left_run.path).resolve() == paths[0].resolve()
+        assert report.right_run is not None
+        assert (carrier.parent / report.right_run.path).resolve() == paths[1].resolve()
         assert report.comparison_status == 'different'
         assert not report.unmatched
         assert not report.left.frontier
