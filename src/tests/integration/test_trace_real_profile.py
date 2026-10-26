@@ -333,3 +333,35 @@ def test_real_mux_oracle_rejects_missing_control_and_wrong_selected_source(tmp_p
     )
     with pytest.raises(AssertionError):
         verify(wrong_source)
+
+
+def test_real_all_bound_icmp_predicates(tmp_path: Path) -> None:
+    """验证固定 K profile 的12种数字谓词及实际选边，不冒称通用HDL有符号比较。"""
+    # Explicit truth table from the separately read fixed K BitsCmp rules.
+    # Predicates2/3 and signed-looking comparisons intentionally follow those
+    # bound rules; this test is not a proof of CIRCT/Verilog comparator compliance.
+    table = (
+        (0, 1, 0),
+        (1, 0, 1),
+        (1, 0, 1),
+        (1, 0, 0),
+        (0, 0, 1),
+        (0, 1, 1),
+        (1, 0, 0),
+        (1, 1, 0),
+        (0, 0, 1),
+        (0, 1, 1),
+        (0, 1, 0),
+        (1, 0, 1),
+    )
+    pairs = ((2, 128), (128, 128), (128, 2), (0, 255), (255, 0))
+    classes = (0, 1, 2, 0, 2)
+    path = run_design(tmp_path, 'icmp-all', 'ProfileICmp', [{'a': a, 'b': b} for a, b in pairs])
+    for event, relation in enumerate(classes):
+        for predicate, expected in enumerate(table):
+            report = query(path, Target('signal', name=f'ProfileICmp/p{predicate}'), event, 2)
+            root = report.nodes[0]
+            assert root.value is not None and root.value.unsigned == expected[relation]
+            assert root.facts['predicate'] == predicate
+            assert incoming(report, f'ProfileICmp/%p{predicate}', 'data') == {'ProfileICmp/%a', 'ProfileICmp/%b'}
+            assert incoming(report, f'ProfileICmp/%p{predicate}', 'control') == set()

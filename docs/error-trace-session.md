@@ -77,3 +77,7 @@ kcirct trace session replay --session investigation.json --actor tool:replay --o
 从前一次动作输出中的 `report.nodes` 和 `report.frontier` 获取真实节点身份；不按展示顺序猜测。`query` 接受新的 `--request`，`locate` 可提供 `--source-binding`。创建时 `--session-budget` 固定累计上限；其他动作的 `--budget` 分别约束本次恢复和动作，两者都受累计上限约束。显式重定位文件格式与 `trace query` 一致。
 
 每次 CLI 进程都重新执行已提交动作，因此恢复成本真实计入日志；需要同进程多步操作时使用上面的 Python API。退出码0只表示请求的动作成功，完整性仍读取输出的 `report.status.query`；初始仅一层的图通常为 partial。缺失工件、预算、身份或日志错误使用通用 trace 诊断和非零退出码。每个动作输出都要求新路径，禁止覆盖已有报告；会话日志则由核心 API 原子追加。
+
+## 单时钟域边界
+
+当前分析器保守检查整个执行模型中的架构寄存器和 memory 写口时钟。通过一位 direct/to_clock 链解析到同一顶层输入的层次连接属于同一域；常量时钟不增加活动输入域。出现两个独立顶层输入时钟，或无法验证的时钟来源时，完整查询及会话首次展开均保留 `unsupported_clock` frontier，即使目标只依赖其中一个时钟、保存值恰好一致也不返回完整解释。此限制不改变 K 记录的值，不宣称实现多时钟分析。

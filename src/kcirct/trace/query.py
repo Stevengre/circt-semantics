@@ -118,6 +118,7 @@ class _Query:
         self.memory_writes: dict[tuple[str, str], _Write] = {}
         self.execution = 'not_checked'
         self.root: str | None = None
+        self._clock_domain_checked = False
 
     def _tick(self) -> None:
         """在展开或读取前检查查询截止时间，超时由调用层记录为停止边界。"""
@@ -298,6 +299,7 @@ class _Query:
         位切片先追到完整值，旧值追到真实前驱；其余按 direct、存储、输入或组合
         操作分流。只有重算结果与保存值一致，候选连接才成为实际依赖。
         """
+        self._single_clock_domain()
         saved = self.nodes[identity]
         ref, node = saved.ref, self.topology.nodes.get(saved.ref.result)
         if ref.result.startswith('procedure:'):
@@ -653,8 +655,8 @@ class _Query:
         dependencies.append(_Dependency(prior, 'data', 'unchanged_address_history'))
         return tuple(dependencies)
 
-    def _clock(self, signal: str) -> None:
-        """允许已核验的一位输入/常量及 direct/to_clock 链，拒绝推断任意生成时钟。"""
+    def _clock_origin(self, signal: str) -> str | None:
+        """解析已核验的一位输入/常量及 direct/to_clock 链；常量没有活动输入域。"""
         seen: set[str] = set()
         while signal not in seen:
             self._tick()
@@ -672,16 +674,49 @@ class _Query:
                 signal = op.operands[0]
                 continue
             if op is not None and op.name == 'hw.constant' and not op.operands:
-                return
+                return None
             if op is None and any(
                 port.signal_id == signal
                 and port.direction == 'input'
                 and port.instance_id == self.run.manifest.top_module
                 for port in self.topology.port_aliases
             ):
-                return
+                return signal
             break
         raise TraceError(StopCode.UNSUPPORTED_CLOCK, '时钟不属于已验证的一位输入或 direct/to_clock 连接', signal=signal)
+
+    def _clock(self, signal: str) -> None:
+        """局部时钟仍独立核验；全设计域检查不使生成时钟变成已支持形状。"""
+        self._clock_origin(signal)
+
+    def _single_clock_domain(self) -> None:
+        """本版保守限定整个执行模型为单活动输入时钟，不以局部数值吻合扩张范围。"""
+        if self._clock_domain_checked:
+            return
+        clocks = {
+            node.operation.operands[1]
+            for node in self.topology.nodes.values()
+            if node.storage_kind == 'register' and node.operation is not None and len(node.operation.operands) >= 2
+        }
+        clocks.update(
+            op.operands[2]
+            for op in self.topology.procedures
+            if op.name == 'seq.firmem.write_port' and len(op.operands) >= 3
+        )
+        origins: set[str] = set()
+        for clock in sorted(clocks):
+            # 未识别的时钟不能被静默当作已知时钟的别名。
+            origin = self._clock_origin(clock)
+            if origin is not None:
+                origins.add(origin)
+        if len(origins) > 1:
+            raise TraceError(
+                StopCode.UNSUPPORTED_CLOCK,
+                '执行模型含多个独立输入时钟；本版仅验证全设计单活动输入时钟域',
+                clock_inputs=sorted(origins),
+                scope='whole_execution_model',
+            )
+        self._clock_domain_checked = True
 
     def start(self, binding: TargetBinding) -> str:
         """只核验和填充根节点；会话逐层展开与完整查询共享同一入口。"""
