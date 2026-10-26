@@ -683,6 +683,34 @@ class _Query:
             break
         raise TraceError(StopCode.UNSUPPORTED_CLOCK, '时钟不属于已验证的一位输入或 direct/to_clock 连接', signal=signal)
 
+    def start(self, binding: TargetBinding) -> str:
+        """只核验和填充根节点；会话逐层展开与完整查询共享同一入口。"""
+        entry, dump = self.run.locate(self.request.observation)
+        self._state(entry.state_id)
+        self.execution = 'completed'
+        if binding.signal_id is None:
+            raise TraceError(StopCode.UNSUPPORTED_OPERATION, '该目标类型尚无动态解释', kind=binding.kind)
+        root = self._ref(
+            binding.signal_id,
+            entry.state_id,
+            'observed' if binding.kind == 'signal' else 'committed',
+            address=binding.address,
+        )
+        root = replace(root, bit_range=self.request.target.bit_range)
+        if binding.kind == 'memory_write_port':
+            if binding.procedure_index is None:
+                raise TraceError(StopCode.IDENTITY_MISMATCH, '写口缺少 procedure 身份')
+            root = self._write_ref(self.topology.procedures[binding.procedure_index], entry.state_id)
+        self.root = self._add(root)
+        self._populate(self.root)
+        if dump is not None and binding.kind == 'signal':
+            aliases = self.topology.nodes[binding.signal_id].aliases
+            dumped = [value for name, value in dump.values.items() if name == binding.name or name in aliases]
+            for value in dumped:
+                self._same(self.nodes[self.root].value, self._slice(value, root), 'dump 与保存的目标端口值不一致')
+        assert self.root is not None
+        return self.root
+
     def execute(self, binding: TargetBinding) -> TraceReport:
         """从已解析目标建立来源图，使用显式深度优先栈保留环和局部停止边界。
 
@@ -691,30 +719,8 @@ class _Query:
         """
         active: set[str] = set()
         try:
-            entry, dump = self.run.locate(self.request.observation)
-            self._state(entry.state_id)
-            self.execution = 'completed'
-            if binding.signal_id is None:
-                raise TraceError(StopCode.UNSUPPORTED_OPERATION, '该目标类型尚无动态解释', kind=binding.kind)
-            root = self._ref(
-                binding.signal_id,
-                entry.state_id,
-                'observed' if binding.kind == 'signal' else 'committed',
-                address=binding.address,
-            )
-            root = replace(root, bit_range=self.request.target.bit_range)
-            if binding.kind == 'memory_write_port':
-                if binding.procedure_index is None:
-                    raise TraceError(StopCode.IDENTITY_MISMATCH, '写口缺少 procedure 身份')
-                root = self._write_ref(self.topology.procedures[binding.procedure_index], entry.state_id)
-            self.root = self._add(root)
-            self._populate(self.root)
-            if dump is not None and binding.kind == 'signal':
-                aliases = self.topology.nodes[binding.signal_id].aliases
-                dumped = [value for name, value in dump.values.items() if name == binding.name or name in aliases]
-                for value in dumped:
-                    self._same(self.nodes[self.root].value, self._slice(value, root), 'dump 与保存的目标端口值不一致')
-            stack = [(self.root, False)]
+            root = self.start(binding)
+            stack = [(root, False)]
             # 离开标记维护当前路径，与已完成集合分开，避免把共享依赖误判成环。
             while stack:
                 identity, leaving = stack.pop()

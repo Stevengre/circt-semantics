@@ -32,6 +32,15 @@ _PROFILES = {
     ),
 }
 
+# 相同已审阅源码的另一份精确编译身份；不是路径归一化或允许任意重编译。
+# 来源、真实 K 资格测试与覆盖限制见 docs/trace-profile-builds.md。
+_ADDITIONAL_BUILDS = {
+    (
+        '2a82d12ea2e894e400629d3c6c7b3210fc4b68717f21a3dcf672f0a8b52a8db3',
+        'bbe16518aa6f44ad80eb002f9efd10ddaf1c3d86f717af208b85b33e66a6a1e8',
+    ): True,
+}
+
 
 @dataclass(frozen=True)
 class SemanticsProfile:
@@ -55,6 +64,9 @@ def bind_semantics(run: RunArtifacts) -> SemanticsProfile:
     if digest not in _PROFILES:
         raise TraceError(StopCode.UNSUPPORTED_SEMANTICS, '规则内容不在已审阅的有限解释范围', source_sha256=digest)
     definition, preset = _PROFILES[digest]
+    compiled = run.manifest.artifacts.get('definition/definition.kore')
+    if compiled is not None and (digest, compiled.sha256) in _ADDITIONAL_BUILDS:
+        definition, preset = compiled.sha256, _ADDITIONAL_BUILDS[(digest, compiled.sha256)]
     declared = run.manifest.identities.get('semantics_binding', {})
     if isinstance(declared, dict) and declared.get('definition_sha256') not in (None, definition):
         raise TraceError(StopCode.IDENTITY_MISMATCH, '显式声明的编译定义与绑定规则冲突')
@@ -314,6 +326,21 @@ def evaluate_comb(op: Operation, values: tuple[BitVector, ...]) -> Evaluation:
         result = bound_attribute_bits(op, 'value', width).unsigned
     elif name == 'seq.to_clock' and len(values) == 1 and values[0].width == width == 1:
         result = integers[0]
+    elif name == 'comb.mul' and values:
+        # 当前 BitsMul 保留所有操作数位宽之和，最后才截断。逐项取最终模等价且资源有界。
+        result = 1
+        for value in values:
+            bounded_width(value.width)
+            result = (result * value.unsigned) % (1 << width)
+    elif name == 'comb.replicate' and len(values) == 1:
+        source_width = bounded_width(values[0].width)
+        if width < source_width or width % source_width:
+            raise TraceError(StopCode.UNSUPPORTED_SHAPE, 'replicate 仅支持整数倍扩展的整数位向量')
+        count = width // source_width
+        result = 0
+        for _ in range(count):
+            result = (result << source_width) | integers[0]
+        facts = {'replications': count}
     elif name in {'comb.add', 'comb.and', 'comb.or', 'comb.xor'} and values:
         if name == 'comb.add':
             # K 规则从右侧归约，并在每次相加后按当时两项的最大位宽截断。

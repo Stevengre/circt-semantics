@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
     from pyk.kore.syntax import Pattern
 
+    from .parse_cache import ParsedStateCache
+
 MAP = "Lbl'Unds'Map'Unds'"
 MAP_ITEM = "Lbl'UndsPipe'-'-GT-Unds'"
 MAP_EMPTY = "Lbl'Stop'Map"
@@ -590,9 +592,12 @@ def _worker(connection: Connection, budget: Budget, counter: Any) -> None:
             job = connection.recv()
             if job is None:
                 return
-            path, compression, remaining, expected_artifact, expected_content = job
+            path, compression, remaining, expected_artifact, expected_content, validation_only = job
+            parse_started: float | None = None
             try:
+                load_started = time.monotonic()
                 text, artifact_hash, content_hash = _load(path, compression, budget, remaining, counter)
+                _send_frame(connection, ('loaded', time.monotonic() - load_started))
                 for expected, actual, layer in (
                     (expected_artifact, artifact_hash, 'artifact'),
                     (expected_content, content_hash, 'uncompressed'),
@@ -601,7 +606,14 @@ def _worker(connection: Connection, budget: Budget, counter: Any) -> None:
                         raise TraceError(
                             StopCode.HASH_MISMATCH, 'Kore 工件哈希不匹配', layer=layer, expected=expected, actual=actual
                         )
+                if validation_only:
+                    _send_frame(connection, ('validated', artifact_hash, content_hash))
+                    continue
+                _send_frame(connection, ('parsing',))
+                parse_started = time.monotonic()
                 arena, metadata = _decode(text, budget)
+                _send_frame(connection, ('decoded', time.monotonic() - parse_started))
+                parse_started = None
                 # 不发送整份 AST 或递归 pickle；每批传输后主进程重新检查截止时间。
                 # 保守计算解码视图的 Python 对象成本，含 arena/根/指纹的容器开销。
                 view_bytes = 16_384 + 8 * len(arena)
@@ -636,6 +648,8 @@ def _worker(connection: Connection, budget: Budget, counter: Any) -> None:
                 metadata.update(artifact_sha256=artifact_hash, uncompressed_sha256=content_hash, view_bytes=view_bytes)
                 _send_frame(connection, ('done', metadata))
             except TraceError as error:
+                if parse_started is not None:
+                    _send_frame(connection, ('decoded', time.monotonic() - parse_started))
                 _send_error(connection, error)
             except FileNotFoundError:
                 _send_error(connection, TraceError(StopCode.MISSING_ARTIFACT, 'Kore 工件不存在', path=path))
@@ -664,6 +678,13 @@ class KoreReader:
         self._process: BaseProcess | None = None
         self._connection: Connection | None = None
         self._counter: Any = None
+        self.parse_cache: ParsedStateCache | None = None
+        self.cache_namespace: str | None = None
+        self.parse_calls = 0
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.load_seconds = 0.0
+        self.decode_seconds = 0.0
 
     def __enter__(self) -> KoreReader:
         """返回当前 reader，以便在上下文结束时自动释放解析进程。"""
@@ -729,15 +750,35 @@ class KoreReader:
         compression = compression or ('gzip' if path.suffix == '.gz' else 'none')
         if compression not in ('none', 'gzip'):
             raise TraceError(StopCode.UNSUPPORTED_SHAPE, '不支持此状态压缩格式', compression=compression)
+        cache = self.parse_cache
+        content_identity = uncompressed_sha256 or (artifact_sha256 if compression == 'none' else None)
+        enabled = cache is not None and self.cache_namespace is not None and artifact_sha256 and content_identity
+        candidate = None
+        if enabled:
+            assert cache is not None and self.cache_namespace is not None
+            assert artifact_sha256 is not None and content_identity is not None
+            candidate = cache.lookup(
+                self.cache_namespace, artifact_sha256, content_identity, self.budget.max_cache_bytes
+            )
+            if candidate is None:
+                self.cache_misses += 1
         self._start()
         assert self._connection is not None and self._process is not None
         connection = self._connection
         self._counter.value = 0
         self.states_read += 1
         nodes: list[_Node] = []
+        succeeded = False
         try:
             connection.send(
-                (str(path), compression, self.budget.max_read_bytes - before, artifact_sha256, uncompressed_sha256)
+                (
+                    str(path),
+                    compression,
+                    self.budget.max_read_bytes - before,
+                    artifact_sha256,
+                    uncompressed_sha256,
+                    candidate is not None,
+                )
             )
             while True:
                 remaining = self.deadline - time.monotonic()
@@ -751,6 +792,33 @@ class KoreReader:
                     continue
                 # 消息仅来自本地可信 worker，大小在反序列化之前受限。
                 message = pickle.loads(connection.recv_bytes(maxlength=_IPC_BYTES))
+                if message[0] in {'loaded', 'decoded'}:
+                    field = 'load_seconds' if message[0] == 'loaded' else 'decode_seconds'
+                    setattr(self, field, getattr(self, field) + message[1])
+                    if enabled:
+                        assert cache is not None
+                        cache.metrics[field] += message[1]
+                    continue
+                if message[0] == 'parsing':
+                    self.parse_calls += 1
+                    if enabled:
+                        assert cache is not None
+                        cache.metrics['parse_calls'] += 1
+                    continue
+                if message[0] == 'validated':
+                    assert candidate is not None and cache is not None
+                    if (candidate.artifact_sha256, candidate.uncompressed_sha256) != (message[1], message[2]):
+                        raise TraceError(StopCode.HASH_MISMATCH, '解析缓存与本次原始字节不一致')
+                    if candidate.ast_nodes > self.budget.max_ast_nodes:
+                        raise TraceError(StopCode.AST_NODES_BUDGET, '已核验状态的 AST 节点数超过当前预算')
+                    if candidate.ast_depth > self.budget.max_ast_depth:
+                        raise TraceError(StopCode.AST_DEPTH_BUDGET, '已核验状态的 AST 深度超过当前预算')
+                    if time.monotonic() >= self.deadline:
+                        raise TraceError(StopCode.TIME_BUDGET, '缓存重新核验超过截止时间')
+                    self.cache_hits += 1
+                    cache.metrics['hits'] += 1
+                    succeeded = True
+                    return candidate
                 if message[0] == 'nodes':
                     nodes.extend(message[1])
                     continue
@@ -761,7 +829,7 @@ class KoreReader:
                     self.close()
                     raise TraceError(StopCode.TIME_BUDGET, '读取视图传输超过截止时间')
                 arena = tuple(nodes)
-                return DecodedState(
+                decoded = DecodedState(
                     cells={name: Term(arena, index) for name, index in metadata['roots'].items()},
                     fingerprints=metadata['fingerprints'],
                     completion=CompletionEvidence(
@@ -775,6 +843,11 @@ class KoreReader:
                     ast_depth=metadata['ast_depth'],
                     view_bytes=metadata['view_bytes'],
                 )
+                if enabled:
+                    assert cache is not None and self.cache_namespace is not None
+                    cache.remember(self.cache_namespace, decoded, self.budget.max_cache_bytes)
+                succeeded = True
+                return decoded
         except (EOFError, BrokenPipeError) as error:
             self.close()
             raise TraceError(StopCode.INTERNAL_ERROR, '解析 worker 通信中断', read_bytes=self._counter.value) from error
@@ -784,3 +857,8 @@ class KoreReader:
         finally:
             # worker 失败或被终止后，共享计数器仍保留本次已消费的解压字节。
             self.read_bytes = before + self._counter.value
+            if enabled:
+                assert cache is not None
+                cache.metrics['reads'] += 1
+                cache.metrics['read_bytes'] += self._counter.value
+                cache.metrics['failed_reads'] += not succeeded

@@ -47,8 +47,11 @@ def _add_simulate_args(parser: ArgumentParser) -> None:
 
 
 def _add_trace_args(parser: ArgumentParser) -> None:
-    """注册 query、targets、checks 和 link 的文件参数，要求显式选择一个离线动作。"""
+    """注册查询、显式双运行比较和证据关联参数，要求选择一个离线动作。"""
+    from .trace.session_cli import add_session_args
+
     actions = parser.add_subparsers(dest='trace_action', required=True, help='离线追踪动作')
+    add_session_args(actions.add_parser('session', help='逐层调查与持久化动作重放'))
     query = actions.add_parser('query', help='从保存状态生成动态解释报告')
     query.add_argument('--run', type=Path, required=True, help='trace-run.json 或受支持的旧 result.json')
     query.add_argument('--request', type=Path, required=True, help='QueryRequest JSON')
@@ -57,6 +60,19 @@ def _add_trace_args(parser: ArgumentParser) -> None:
     query.add_argument('--copy-evidence', action='store_true', help='复制本报告实际读取的证据并生成重定位清单')
     query.add_argument('--relocations', type=Path, help='显式 trace_relocations JSON')
     query.add_argument('--normalization-output', type=Path, help='旧 v1 result 的一次性规范化输出目录')
+
+    compare = actions.add_parser('compare', help='按显式合同比较两个运行的依赖解释；无参考时保留单侧解释')
+    compare.add_argument('--run', type=Path, required=True, help='左侧 trace-run.json')
+    compare.add_argument('--reference-run', type=Path, help='可选右侧 trace-run.json')
+    compare.add_argument('--request', type=Path, required=True, help='PairRequest JSON')
+    compare.add_argument('--contract', type=Path, help='有参考运行时必需的 PairContract JSON')
+    compare.add_argument('--output', type=Path, required=True, help='必须尚不存在的 PairReport JSON')
+    compare.add_argument('--relocations', type=Path, help='左侧显式重定位')
+    compare.add_argument('--reference-relocations', type=Path, help='右侧显式重定位')
+    compare.add_argument('--source-binding', type=Path, help='左侧可选源码绑定')
+    compare.add_argument('--reference-source-binding', type=Path, help='右侧可选源码绑定')
+    compare.add_argument('--left-request-carrier', type=Path, help='左侧嵌套检查引用载体；默认 PairRequest 文件')
+    compare.add_argument('--right-request-carrier', type=Path, help='右侧嵌套检查引用载体；默认 PairRequest 文件')
 
     targets = actions.add_parser('targets', help='列出运行绑定的可查询目标')
     targets.add_argument('--run', type=Path, required=True)
@@ -492,6 +508,12 @@ def exec_trace(**kwargs: Any) -> None:
 
     action = kwargs['trace_action']
     try:
+        if action == 'session':
+            from .trace.session_cli import execute_session
+
+            result = execute_session(kwargs)
+            print(json.dumps({key: result[key] for key in ('action', 'action_status', 'selected_query', 'cost')}))
+            return
         if action == 'link':
             report = link_report(
                 kwargs['report'],
@@ -506,6 +528,59 @@ def exec_trace(**kwargs: Any) -> None:
             relocations=kwargs.get('relocations'),
             normalization_output=kwargs.get('normalization_output'),
         )
+        if action == 'compare':
+            from .trace.comparison import PairContract, PairRequest, compare_runs
+
+            request_path = Path(kwargs['request']).absolute()
+            output = Path(kwargs['output']).absolute()
+            if output.exists():
+                raise TraceError(StopCode.INVALID_INPUT, '拒绝覆盖已有比较报告', path=str(output))
+            pair_request = PairRequest.from_json(request_path.read_text(encoding='utf-8'))
+            contract_path = kwargs.get('contract')
+            contract = (
+                PairContract.from_json(Path(contract_path).read_text(encoding='utf-8'))
+                if contract_path is not None
+                else None
+            )
+            reference_path = kwargs.get('reference_run')
+            if reference_path is None and kwargs.get('reference_relocations') is not None:
+                raise TraceError(StopCode.INVALID_INPUT, '无参考运行时不能提供参考重定位')
+            reference = (
+                TraceRun.open(reference_path, relocations=kwargs.get('reference_relocations'))
+                if reference_path is not None
+                else None
+            )
+            pair = compare_runs(
+                trace_run,
+                pair_request,
+                right=reference,
+                contract=contract,
+                carrier=output,
+                left_request_carrier=kwargs.get('left_request_carrier') or request_path,
+                right_request_carrier=kwargs.get('right_request_carrier') or request_path,
+                left_source_binding=kwargs.get('source_binding'),
+                right_source_binding=kwargs.get('reference_source_binding'),
+            )
+            _new_json(output, pair.to_dict())
+            print(
+                json.dumps(
+                    {
+                        'id': pair.id,
+                        'mode': pair.mode,
+                        'comparison_status': pair.comparison_status,
+                        'comparability': pair.comparability,
+                        'output': str(output),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            if pair.mode == 'single_run':
+                code = {'complete': 0, 'partial': 3, 'rejected': 4, 'error': 5}.get(pair.left.status.query, 5)
+            else:
+                code = 3 if pair.comparison_status == 'partial' else 0
+            if code:
+                raise SystemExit(code)
+            return
         if action == 'targets':
             output = Path(kwargs['output'])
             document = {

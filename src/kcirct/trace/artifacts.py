@@ -133,7 +133,11 @@ class RunArtifacts:
                 path = _normalize_legacy(path, document, normalization_output, mapping, reader)
                 text = cls._text(path, reader.budget.max_state_bytes)
                 manifest = RunManifest.from_json(text)
-            return cls(path, manifest, reader, mapping, hashlib.sha256(text.encode('utf-8')).hexdigest())
+            from .parse_cache import configure_reader
+
+            manifest_sha256 = hashlib.sha256(text.encode('utf-8')).hexdigest()
+            configure_reader(reader, manifest, manifest_sha256)
+            return cls(path, manifest, reader, mapping, manifest_sha256)
         except BaseException:
             reader.close()
             raise

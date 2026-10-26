@@ -48,11 +48,12 @@ def _relative(path: Path, carrier: Path) -> str:
     return Path(os.path.relpath(path, carrier.parent)).as_posix()
 
 
-def test_trace_help_lists_four_noninteractive_actions() -> None:
-    """验证 trace 帮助列出四个非交互子命令并正常退出。"""
+def test_trace_help_lists_noninteractive_actions() -> None:
+    """验证原有子命令和新增比较入口均在帮助中列出，并正常退出。"""
     result = _run('trace', '--help')
     assert result.returncode == 0
-    assert '{query,targets,checks,link}' in result.stdout
+    for command in ('query', 'compare', 'session', 'targets', 'checks', 'link'):
+        assert command in result.stdout
     assert 'input(' not in result.stdout
 
 

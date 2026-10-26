@@ -62,6 +62,7 @@ class StopCode(str, Enum):
     SOURCE_MISMATCH = 'source_mismatch'
     CYCLE = 'cycle'
     INTERNAL_ERROR = 'internal_error'
+    PENDING_EXPANSION = 'pending_expansion'
     UNKNOWN = 'unknown'
 
 
@@ -175,7 +176,6 @@ class JsonModel:
 
     def _validate(self) -> None:
         """预留跨字段语义校验钩子；无额外约束的模型只执行基类类型校验。"""
-        pass
 
     @classmethod
     def _from_dict(cls: type[_Model], document: Any, *, require_version: bool) -> _Model:
