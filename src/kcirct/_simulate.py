@@ -22,6 +22,7 @@ from uuid import uuid4
 from pyk.kdist import kdist
 
 from .api import KCIRCT
+from .kdist.build_record import BUILD_RECORD_NAME
 from .trace.model import (
     ArtifactRef,
     BitVector,
@@ -111,6 +112,12 @@ class _TraceCapture:
         package = Path(__file__).resolve().parent
         sources = self.work / 'trace-identity'
         sources.mkdir()
+        # 只保存编译阶段已产生的来源记录，不以当前安装包替编译器补写来源。
+        build_record = definition / BUILD_RECORD_NAME
+        if build_record.is_file():
+            saved_record = sources / BUILD_RECORD_NAME
+            shutil.copyfile(build_record, saved_record)
+            self.artifact('definition/' + BUILD_RECORD_NAME, saved_record, 'build_record')
         semantic_hashes = {}
         for path in sorted((package / 'kdist' / 'circt_semantics').rglob('*')):
             if not path.is_file() or path.suffix not in {'.k', '.md'}:

@@ -1,4 +1,4 @@
-"""真实 K 状态上的独立值、选边和时序预期；候选核验不修改生产允许列表。"""
+"""通过公开 TraceRun 验证真实 K 状态上的独立值、选边和时序预期。"""
 
 from __future__ import annotations
 
@@ -13,18 +13,12 @@ import pytest
 
 from kcirct._simulate import simulate
 from kcirct.trace import TraceRun
-from kcirct.trace.artifacts import RunArtifacts
 from kcirct.trace.model import Budget, Observation, QueryRequest, QueryWindow, StopCode, Target
-from kcirct.trace.query import _Query
-from kcirct.trace.semantics import SemanticsProfile
-from kcirct.trace.topology import TraceTopology
 
 if TYPE_CHECKING:
     from kcirct.trace.model import TraceReport
 
 RESOURCE = Path(__file__).parents[1] / 'resources/trace/profile-v2'
-SOURCE_SHA = '2a82d12ea2e894e400629d3c6c7b3210fc4b68717f21a3dcf672f0a8b52a8db3'
-CANDIDATE_SHA = 'bbe16518aa6f44ad80eb002f9efd10ddaf1c3d86f717af208b85b33e66a6a1e8'
 
 
 def run_design(root: Path, name: str, top: str, inputs: list[dict[str, int]]) -> Path:
@@ -70,29 +64,14 @@ def query(
     budget: Budget | None = None,
     status: str = 'complete',
 ) -> TraceReport:
-    """正常模式用公开入口；资格检查模式只在测试内显式使用固定候选身份。"""
+    """所有构建均通过公开入口选择解释器并检查绑定，不注入候选 profile。"""
     request = QueryRequest(
         target,
         Observation('post_eval', event_index=event, evaluation=evaluation),
         window=window or QueryWindow(),
         budget=budget or Budget(),
     )
-    if os.getenv('KCIRCT_TRACE_QUALIFY_CANDIDATE') != CANDIDATE_SHA:
-        report = TraceRun.open(path).query(request)
-    else:
-        # 该开关仅属于测试程序，不是生产绕过路径。逐份核验全部源码和 definition 原字节。
-        with RunArtifacts.open(path, budget=request.budget) as run:
-            hashes = run.manifest.identities['semantics_hashes']
-            digest = hashlib.sha256(json.dumps(hashes, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-            assert digest == SOURCE_SHA
-            for name, expected in hashes.items():
-                artifact = run.verify_artifact('semantics/' + name)
-                assert hashlib.sha256(artifact.read_bytes()).hexdigest() == expected
-            definition = run.verify_artifact('definition/definition.kore')
-            assert hashlib.sha256(definition.read_bytes()).hexdigest() == CANDIDATE_SHA
-            topology = TraceTopology.from_run(run)
-            profile = SemanticsProfile(SOURCE_SHA, CANDIDATE_SHA, True, 'candidate_qualification_only')
-            report = _Query(run, request, topology, profile).execute(topology.resolve(target))
+    report = TraceRun.open(path).query(request)
     output = path.parent.parent / 'reports'
     output.mkdir(exist_ok=True)
     key = hashlib.sha256(request.to_json().encode()).hexdigest()[:16]

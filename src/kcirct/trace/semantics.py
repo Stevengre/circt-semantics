@@ -9,6 +9,8 @@ from functools import reduce
 from operator import and_, or_, xor
 from typing import TYPE_CHECKING
 
+from ..kdist.build_record import BUILD_RECORD_NAME, BUILD_RECORD_SCHEMA, LLVM_BUILD_RECIPE, SUPPORTED_K_VERSION
+from .artifacts import _json
 from .kore import bit_vector, map_items, scalar, unwrap
 from .model import BitVector, StopCode, TraceError
 from .topology import attribute_value, integer_type_width, memory_shape
@@ -32,8 +34,8 @@ _PROFILES = {
     ),
 }
 
-# 相同已审阅源码的另一份精确编译身份；不是路径归一化或允许任意重编译。
-# 来源、真实 K 资格测试与覆盖限制见 docs/trace-profile-builds.md。
+# 没有构建记录的历史运行仍按精确编译身份兼容。
+# 新构建通过编译阶段的来源记录关联，不能只凭运行自称使用某份源码。
 _ADDITIONAL_BUILDS = {
     (
         '2a82d12ea2e894e400629d3c6c7b3210fc4b68717f21a3dcf672f0a8b52a8db3',
@@ -49,6 +51,39 @@ class SemanticsProfile:
     preset_supported: bool
     binding: str
     limitations: tuple[str, ...] = ()
+
+
+def _verify_build_record(run: RunArtifacts, hashes: dict[str, str]) -> None:
+    """核对受支持配方的构建记录、采集源码和实际运行产物的关联。"""
+    key = 'definition/' + BUILD_RECORD_NAME
+    ref = run.manifest.artifacts[key]
+    if ref.role != 'build_record' or ref.compression != 'none':
+        raise TraceError(StopCode.UNSUPPORTED_SEMANTICS, '编译来源记录的工件类型不受支持')
+    path = run.verify_artifact(key)
+    record = _json(run._text(path, run.reader.budget.max_state_bytes))
+    if not isinstance(record, dict) or (
+        record.get('schema') != BUILD_RECORD_SCHEMA
+        or record.get('k_version') != SUPPORTED_K_VERSION
+        or record.get('recipe') != LLVM_BUILD_RECIPE
+    ):
+        raise TraceError(StopCode.UNSUPPORTED_SEMANTICS, '编译来源记录的版本、工具链或配方不受支持')
+    if record.get('semantics_hashes') != hashes:
+        raise TraceError(StopCode.IDENTITY_MISMATCH, '构建时的语义源码与运行采集源码不一致，请重新构建')
+    outputs = record.get('artifacts')
+    names = {'definition.kore', 'compiled.bin', 'backend.txt', 'interpreter'}
+    if not isinstance(outputs, dict) or set(outputs) != names:
+        raise TraceError(StopCode.UNSUPPORTED_SEMANTICS, '编译来源记录缺少完整 LLVM 运行产物身份')
+    for name in sorted(names):
+        key = 'definition/' + name
+        artifact = run.manifest.artifacts.get(key)
+        if (
+            artifact is None
+            or artifact.role != 'compiled_definition'
+            or artifact.compression != 'none'
+            or artifact.sha256 != outputs[name]
+        ):
+            raise TraceError(StopCode.IDENTITY_MISMATCH, '编译来源记录与运行产物身份不一致', artifact=key)
+        run.verify_artifact(key)
 
 
 def bind_semantics(run: RunArtifacts) -> SemanticsProfile:
@@ -68,7 +103,8 @@ def bind_semantics(run: RunArtifacts) -> SemanticsProfile:
     if compiled is not None and (digest, compiled.sha256) in _ADDITIONAL_BUILDS:
         definition, preset = compiled.sha256, _ADDITIONAL_BUILDS[(digest, compiled.sha256)]
     declared = run.manifest.identities.get('semantics_binding', {})
-    if isinstance(declared, dict) and declared.get('definition_sha256') not in (None, definition):
+    actual_definition = compiled.sha256 if compiled is not None else definition
+    if isinstance(declared, dict) and declared.get('definition_sha256') not in (None, actual_definition):
         raise TraceError(StopCode.IDENTITY_MISMATCH, '显式声明的编译定义与绑定规则冲突')
     for name, expected in hashes.items():
         key = 'semantics/' + name
@@ -78,8 +114,16 @@ def bind_semantics(run: RunArtifacts) -> SemanticsProfile:
         run.verify_artifact(key)
     ref = run.manifest.artifacts.get('definition/definition.kore')
     if ref is not None:
-        if ref.sha256 != definition:
-            raise TraceError(StopCode.UNSUPPORTED_SEMANTICS, '编译定义与已审阅规则身份不匹配')
+        if ref.role != 'compiled_definition':
+            raise TraceError(StopCode.UNSUPPORTED_SEMANTICS, '编译定义的工件类型不受支持')
+        if 'definition/' + BUILD_RECORD_NAME in run.manifest.artifacts:
+            _verify_build_record(run, hashes)
+            definition = ref.sha256
+        elif ref.sha256 != definition:
+            raise TraceError(
+                StopCode.UNSUPPORTED_SEMANTICS,
+                '编译定义未登记且缺少构建来源记录，请用当前 kdist 重新构建 circt-semantics.llvm',
+            )
         run.verify_artifact('definition/definition.kore')
         return SemanticsProfile(digest, definition, preset, 'source_and_definition_verified')
     # 早期运行只留下原构建清单。只接受两份独立原记录的一致关联，并明确字节缺口。

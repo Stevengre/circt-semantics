@@ -17,6 +17,13 @@ if [[ ! -d "$KCIRCT_TRACE_DEFINITION_DIR" || ! -x "$KCIRCT_TRACE_PARSER" ]]; the
     printf '%s\n' 'CI 构建未提供可用的 LLVM 定义和可执行 parser。' >&2
     exit 1
 fi
+# 新构建必须由 kdist 发布来源记录；缺失时不能退回机器专属的历史哈希。
+build_record="$KCIRCT_TRACE_DEFINITION_DIR/kcirct-build.json"
+if [[ ! -f "$build_record" ]]; then
+    printf '%s\n' 'CI 构建缺少 kcirct-build.json，请重新构建 LLVM target。' >&2
+    exit 1
+fi
+cp "$build_record" "$results_dir/kcirct-build.json"
 export KCIRCT_TRACE_DEFINITION_DIR KCIRCT_TRACE_PARSER
 
 # operation 比较依赖前一阶段生成的 VCD，三个阶段必须顺序执行。

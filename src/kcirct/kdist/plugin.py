@@ -8,6 +8,8 @@ from pyk.kbuild.utils import k_version
 from pyk.kdist.api import Target
 from pyk.ktool.kompile import PykBackend, kompile
 
+from .build_record import BUILD_RECORD_NAME, BUILD_RECORD_SCHEMA, build_recipe, semantics_hashes, write_build_record
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
     from typing import Any, Final
@@ -36,11 +38,25 @@ class KompileTarget(Target):
         self._kompile_args = kompile_args
 
     def build(self, output_dir: Path, deps: dict[str, Path], args: dict[str, Any], verbose: bool) -> None:
-        kompile_args = self._kompile_args(deps['circt-semantics.source'])
+        (output_dir / BUILD_RECORD_NAME).unlink(missing_ok=True)
+        source_dir = deps['circt-semantics.source']
+        source_root = source_dir / 'circt_semantics'
+        hashes = semantics_hashes(source_root)
+        if not hashes:
+            raise ValueError('构建依赖中没有可记录的 K 语义源码')
+        kompile_args = self._kompile_args(source_dir)
+        recipe = build_recipe(kompile_args, source_dir)
+        version = k_version().text
         kompile(output_dir=output_dir, verbose=verbose, **kompile_args)
+        if semantics_hashes(source_root) != hashes:
+            raise ValueError('编译期间语义源码发生变化，不能发布构建来源记录')
+        write_build_record(output_dir, k_version=version, recipe=recipe, hashes=hashes)
+
+    def source(self) -> tuple[Path, ...]:
+        return (Path(__file__), Path(__file__).with_name('build_record.py'))
 
     def context(self) -> dict[str, str]:
-        return {'k-version': k_version().text}
+        return {'k-version': k_version().text, 'build-record-schema': BUILD_RECORD_SCHEMA}
 
     def deps(self) -> tuple[str]:
         return ('circt-semantics.source',)

@@ -25,6 +25,10 @@ bash .github/scripts/run-integration.sh
 集成脚本仅构建一次 `circt-semantics.llvm`，从当前安装查询定义目录和
 `TOP_LEVEL_PARSER`，生成并检查 parser，再导出 `KCIRCT_TRACE_DEFINITION_DIR`
 和 `KCIRCT_TRACE_PARSER`。测试不依赖开发者机器上的绝对路径。
+编译阶段必须生成 `kcirct-build.json`，否则脚本直接失败；记录副本保存到
+`.ci-results/kcirct-build.json`，随集成结果上传，用于核对实际源码、K 版本、
+编译配置和产物哈希。CI 不维护特定机器的 definition 哈希列表。
+构建记录的检查与信任边界见 [`docs/trace-profile-builds.md`](../docs/trace-profile-builds.md)。
 
 脚本按以下顺序执行，任一阶段失败都会停止并保留其非零退出码：
 
@@ -35,6 +39,8 @@ bash .github/scripts/run-integration.sh
 2. `test_evaluate_operation` 生成各 operation 的 VCD。
 3. `test_diffvcd_operatrion` 与已归档的参考 VCD 比较。
 4. `test_error_trace.py` 和当前 checkout 的 `test_trace_*.py` 检查旧查询兼容及真实 K trace。
+   `test_trace_build_identity.py` 在排除历史 definition 登记项后，仍须通过构建记录
+   完成公开 `TraceRun` 查询；真实 profile 测试也统一使用公开入口。
 
 各阶段的 JUnit 报告写入 `.ci-results/`。工作流另外执行代码质量检查和单元测试。
 operation 的生成和比较分阶段执行；每个阶段可使用两个 pytest worker。
