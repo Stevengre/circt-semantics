@@ -1,94 +1,61 @@
 name: 'Set Up kcirct Environment'
-description: 'Set up kcirct test environment with Docker'
+description: '构建包含 K、CIRCT 和 HDL 工具的测试环境'
 inputs:
   container-name:
-    description: 'Docker container name to use'
-    type: string
+    description: '测试容器名称'
     required: true
   tag-name:
-    description: 'Docker image tag to use'
-    type: string
-    required: false
-    default: runtimeverificationinc/kevm
+    description: '本地 Docker 镜像标签'
+    default: 'kcirct-ci:local'
   subdir:
-    description: 'Subdirectory where code is cloned.'
-    required: false
-    type: string
-    default: './'
-  os: 
-    description: 'OS to setup Docker for.'
-    required: false
-    type: string
-    default: 'ubuntu'
-  distro:
-    description: 'Distribution to setup Docker for.'
-    required: false
-    type: string
-    default: 'jammy'
-  llvm:
-    description: 'LLVM version to use.'
-    required: false
-    type: number
-    default: 14
+    description: '相对于 GITHUB_WORKSPACE 的项目目录'
+    default: '.'
   dockerfile:
-    description: 'Hardcode the path of the dockerfile to use.'
-    required: false
-    type: string
+    description: '相对于项目目录的 Dockerfile 路径'
     default: '.github/workflows/Dockerfile'
+  poetry-version:
+    description: '与 poetry.lock 格式兼容的 Poetry 版本'
+    default: '2.4.1'
 runs:
-  using: "composite"
+  using: composite
   steps:
-  - name: 'Download Firtool Static Libraries'
-    shell: bash
-    run: |
-      wget https://github.com/llvm/circt/releases/download/firtool-1.71.0/circt-full-static-linux-x64.tar.gz
-      tar -xf circt-full-static-linux-x64.tar.gz
-      ls -l
-      echo "$(pwd)/firtool-1.71.0/bin" >> $GITHUB_PATH
+    - name: 构建并启动 Docker
+      shell: bash
+      env:
+        CONTAINER_NAME: ${{ inputs.container-name }}
+        IMAGE_TAG: ${{ inputs.tag-name }}
+        SOURCE_SUBDIR: ${{ inputs.subdir }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
+        POETRY_VERSION: ${{ inputs.poetry-version }}
+      run: |
+        set -euo pipefail
+        source_dir=$(realpath "$GITHUB_WORKSPACE/$SOURCE_SUBDIR")
+        dockerfile=$(realpath "$source_dir/$DOCKERFILE")
+        k_version=$(tr -d '\r\n' < "$source_dir/deps/k_release")
 
-  - name: 'Check version'
-    shell: bash
-    run: arcilator --version
+        # Dockerfile 只安装工具；不把源码、宿主 .venv 或缓存发送到构建上下文。
+        docker build "$(dirname "$dockerfile")" \
+          --file "$dockerfile" \
+          --tag "$IMAGE_TAG" \
+          --build-arg "K_VERSION=$k_version" \
+          --build-arg "POETRY_VERSION=$POETRY_VERSION" \
+          --build-arg "USER_ID=$(id -u)" \
+          --build-arg "GROUP_ID=$(id -g)"
 
-  - name: 'Set up Docker'
-    shell: bash {0}
-    run: |
-      set -euxo pipefail
-
-      CONTAINER_NAME=${{ inputs.container-name }}
-      SUBDIR=${{ inputs.subdir }}
-      BASE_OS=${{ inputs.os }}
-      BASE_DISTRO=${{ inputs.distro }}
-      DOCKERFILE=${{ inputs.dockerfile }}
-      LLVM_VERSION=${{ inputs.llvm }}
-      TAG_NAME=${{ inputs.tag-name }}
-
-      USER=github-user
-      GROUP=${USER}
-      K_VERSION=$(cat deps/k_release)
-      USER_ID=1000
-      GROUP_ID=${USER_ID}
-
-      docker build . --file ${DOCKERFILE}        \
-        --tag ${TAG_NAME}                        \
-        --build-arg USER_ID=${USER_ID}           \
-        --build-arg GROUP_ID=${GROUP_ID}         \
-        --build-arg USER=${USER}                 \
-        --build-arg GROUP=${GROUP}               \
-        --build-arg BASE_DISTRO=${BASE_DISTRO}   \
-        --build-arg K_VERSION=${K_VERSION}       \
-        --build-arg LLVM_VERSION=${LLVM_VERSION}
-
-      docker run                          \
-        --name ${CONTAINER_NAME}          \
-        --rm                              \
-        --interactive                     \
-        --tty                             \
-        --detach                          \
-        --user root                       \
-        --workdir /home/${USER}/workspace \
-        ${TAG_NAME}
-
-      docker cp . ${CONTAINER_NAME}:/home/${USER}/workspace
-      docker exec ${CONTAINER_NAME} chown -R ${USER}:${GROUP} /home/${USER}
-  
+        # 与 runner 使用相同 UID/GID，报告写回工作区后可直接上传。
+        docker run --detach \
+          --name "$CONTAINER_NAME" \
+          --user github-user \
+          --workdir /workspace \
+          --mount "type=bind,source=$source_dir,target=/workspace" \
+          "$IMAGE_TAG" sleep infinity
+        docker exec "$CONTAINER_NAME" bash -c '
+          set -euo pipefail
+          python3 --version
+          poetry --version
+          kompile --version
+          firtool --version
+          arcilator --version
+          verilator --version
+          iverilog -V
+        '

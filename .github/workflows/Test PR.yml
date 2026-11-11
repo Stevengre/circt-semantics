@@ -1,90 +1,105 @@
 name: 'Test PR'
+
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize]
-    branches:
-      - 'main'
+    branches: [main]
+  push:
+    branches: [main, 'feat/**']
+  workflow_dispatch:
 
-# 并发控制 （同时只存在一个工作流，且最新的会覆盖旧的）
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  POETRY_VERSION: '2.4.1'
+  POETRY_NO_INTERACTION: '1'
+  POETRY_VIRTUALENVS_IN_PROJECT: 'true'
+
 jobs:
   kcirct-code-quality-checks:
     name: 'kcirct: Code Quality'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.10.12']
-    defaults:
-      run:
-        working-directory: .
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - name: 'Setup Python 3.10'
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: 'Check out code'
-        uses: actions/checkout@v4
-      - name: 'Install Poetry'
-        uses: Gr1N/setup-poetry@v9
-      - name: 'Run code quality checks'
-        run: make check
-      - name: 'Run pyupgrade'
-        run: make pyupgrade
-  
+          python-version: '3.12'
+      - name: 安装固定版本 Poetry
+        run: python -m pip install "poetry==$POETRY_VERSION"
+      - name: 检查锁文件并安装依赖
+        run: |
+          poetry check --lock
+          make poetry-install
+      - name: 检查代码质量
+        run: bash .github/scripts/check-quality.sh
+
   code-quality:
     name: 'Code Quality Checks'
-    runs-on: ubuntu-latest
-    needs:
-      - kcirct-code-quality-checks
+    runs-on: ubuntu-24.04
+    needs: kcirct-code-quality-checks
+    if: always()
+    env:
+      QUALITY_RESULT: ${{ needs.kcirct-code-quality-checks.result }}
     steps:
-      - run: true
-  
+      - run: test "$QUALITY_RESULT" = success
+
+  test-unit:
+    name: 'Unit Tests'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: 安装固定版本 Poetry
+        run: python -m pip install "poetry==$POETRY_VERSION"
+      - name: 运行单元测试
+        run: |
+          mkdir -p .ci-results
+          make test-unit TEST_ARGS="--junitxml=.ci-results/unit.xml"
+      - name: 保存测试报告
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-results
+          path: .ci-results/
+          include-hidden-files: true
+          if-no-files-found: ignore
+
   test-integration:
     name: 'Conformance Tests'
-    needs: code-quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
+    env:
+      CONTAINER_NAME: kcirct-ci-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: 'Check out code'
-        uses: actions/checkout@v4
-      - name: 'Set up Docker'
+      - uses: actions/checkout@v7
+      - name: 构建并启动测试环境
         uses: ./.github/actions/setup-kcirct-env
         with:
-          container-name: kcirct-ci-concrete-${{ github.sha }}
-      - name: 'build circt-semantics.llvm'
-        run: |
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make kcirct'
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make circt-semantics'
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'poetry run kdist build'
-      - name: 'Test build parser Toplevel'
-        run: |
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'rm -f /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX'
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_make_env -s"'
-
-      - name: 'DEBUG: show directory and contents'
-        run: |
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c '
-            file /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
-            ldd /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
-            head -n 1 /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
-          '
-          
-      - name: 'build operations vcd by kcirct'
-        run: |
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} chmod +x /home/github-user/workspace/src/kcirct/workingdir/parsers/parser_TopLevel_MAIN-SYNTAX
-          docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_evaluate_operation"'
-      
-      - name: 'Compare operations vcd'
-        run: docker exec -u github-user kcirct-ci-concrete-${{ github.sha }} /bin/bash -c 'make test-integration TEST_ARGS="-k test_diffvcd_operatrion"'
-
-      - name: 'Tear down Docker'
+          container-name: ${{ env.CONTAINER_NAME }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+      - name: 安装依赖并构建 Python 包
+        run: docker exec "$CONTAINER_NAME" make build
+      - name: 构建定义并运行集成测试
+        run: docker exec "$CONTAINER_NAME" bash .github/scripts/run-integration.sh
+      - name: 保存测试报告
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration-results
+          path: .ci-results/
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: 清理测试容器
         if: always()
         run: |
-          docker stop --time=0 kcirct-ci-concrete-${{ github.sha }}
-
+          if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+            docker rm --force "$CONTAINER_NAME"
+          fi
